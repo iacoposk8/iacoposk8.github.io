@@ -151,11 +151,13 @@ aside {
 
 header {
     position: relative;
-    width: 100%;
-    min-height: auto;
-    @include background-cover;
     background-position: center;
-    background-image: url('../img/header.jpg');
+    background-color: #0077bb;
+    background-image: url(/images/pirateflag.png);
+    background-repeat: no-repeat;
+    background-size: inherit;
+    background-attachment: fixed;
+    background-position: 50% 50%;
     text-align: center;
     color: white;
     .header-content {

@@ -4,7 +4,10 @@ theme: jekyll-theme-cayman
 markdown: kramdown
 
 # Configurazione del menu di navigazione
-header_pages:
-  - index.md
-  - about.md
-  - contact.md
+navigation:
+  - title: Home
+    url: /home
+  - title: About
+    url: /about
+  - title: Contact
+    url: /contact

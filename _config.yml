@@ -1,3 +1,10 @@
-title: My GitHub Page
-description: A description of your site
+title: Iacopo Guarneri
+#description: A description of your site
 theme: jekyll-theme-cayman
+markdown: kramdown
+
+# Configurazione del menu di navigazione
+header_pages:
+  - index.md
+  - about.md
+  - contact.md

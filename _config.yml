@@ -1,13 +1,3 @@
 title: Iacopo Guarneri
-#description: A description of your site
+description: A description of your site
 theme: jekyll-theme-cayman
-markdown: kramdown
-
-# Configurazione del menu di navigazione
-navigation:
-  - title: Home
-    url: /home
-  - title: About
-    url: /about
-  - title: Contact
-    url: /contact

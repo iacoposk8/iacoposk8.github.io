@@ -31,7 +31,8 @@ Also check the money and time, you can have earnings (which sooner or later you 
 ---
 
 ## Vo2Max online calculator
-Click here to find out what is Vo2Max
+Click the following button to find out what your Vo2Max is
+<a href="/projects/vo2max" class="btn btn-primary btn-xl">Train!</a>
 
 ---
 
@@ -43,7 +44,7 @@ This project dates back to 2010, when flash was widely used to make animations, 
 ## Random midi generator
 This is a project that I made about 8 years ago around 2012, It allows you to create random melodies and export them in the midi format. Some things didn't work anymore so I fixed them and now you can play it;)
 
-<a href="/projects/random_midi_generator" class="btn btn-primary btn-xl">Play it!</a>
+<a href="/projects/random_midi_generator" class="btn btn-primary btn-xl">Play!</a>
 
 ---
 

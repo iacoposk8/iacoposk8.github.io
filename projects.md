@@ -11,6 +11,8 @@ I took different indices such as peace, temperature, purchasing power, welfare, 
 I've always wondered why apple can sell so many iPhones. I always felt that it offered nothing more than other smartphones in terms of performance and innovation. I wanted to confirm my impression by comparing objective parameters with the main brands (Samsung, Xiaomi, Huawei and OnePlus). To choose which smartphones to compare I based on the most popular ones by brand according to the site: <a href="https://www.gsmarena.com/" target="_blank">gsmarena.com</a>.
 To compare the GPUs I relied on the reports of: <a href="https://www.notebookcheck.net/" target="_blank">notebookcheck.net</a>.
 
+<a href="/projects/apple" class="btn btn-primary btn-xl">Check for yourself</a>
+
 ---
 
 ## Nostro Mondo - Forum
@@ -27,6 +29,8 @@ So when you win you will be able to recover all the losses and have a profit.
 The problem with this method is that you can lose up to 20 times in a row and even if you bet only one cent it will become more than 5000 euros or dollars.
 This script proves that you always lose! sometimes it takes a few hours, sometimes a few weeks, but sooner or later you always lose.
 Also check the money and time, you can have earnings (which sooner or later you lose) but in very long times.
+
+<a href="/projects/metodo_croce" class="btn btn-primary btn-xl">Try and lose!</a>
 
 ---
 

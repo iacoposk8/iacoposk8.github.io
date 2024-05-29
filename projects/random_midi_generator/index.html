@@ -1,392 +1,390 @@
-<!DOCTYPE html>
-<html>
-    <head>
-    	<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css">
-		<script src="https://code.jquery.com/jquery-3.7.1.js"></script>
-		<script src="https://code.jquery.com/ui/1.13.3/jquery-ui.js"></script>
-		<style>
-		*{
-			font-family:arial;
-		}
-		#download{
-			margin-top:20px;
-		}
-		#view{
-			width:750px;
-			height:200px;
-			position:absolute;
-		}
-		.view_note.active{
-			background:#f99 !important;
-		}
-		#view_cont{
-			height:200px;
-			margin:20px 0;
-		}
-		#detail{
-			display:none;
-			overflow:hidden;
-		}
-		.slider{
-			margin-top: 5px;
-			margin-bottom: 15px;
-		}
-		#loading{
-			color:#fff;
-			background:rgba(0,0,0,0.8);
-			position:fixed;
-			top:0px;
-			left:0px;
-			height:100%;
-			width:100%;
-			z-index:999999;
-			text-align:center;
-			font-weight:bold;
-			font-size:30px;
-			font-family:arial;
-			padding-top:50px;
-			display:none;
-		}
-		</style>
-    </head>
-    <body>
-		<div id="container">
-			<div id="settings">
-				Musical note length<br />
-				<div id="len" class="slider" attr-range="true" attr-min=1 attr-max=600 attr-min-val=50 attr-max-val=100></div>
+---
+layout: default
+title: Random Midi Generator
+---
 
-				Silence length<br />
-				<div id="mute" class="slider" attr-range="true" attr-min=1 attr-max=250 attr-min-val=20 attr-max-val=40></div>
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+<script src="https://code.jquery.com/ui/1.13.3/jquery-ui.js"></script>
+<style>
+*{
+	font-family:arial;
+}
+#download{
+	margin-top:20px;
+}
+#view{
+	width:750px;
+	height:200px;
+	position:absolute;
+}
+.view_note.active{
+	background:#f99 !important;
+}
+#view_cont{
+	height:200px;
+	margin:20px 0;
+}
+#detail{
+	display:none;
+	overflow:hidden;
+}
+.slider{
+	margin-top: 5px;
+	margin-bottom: 15px;
+}
+#loading{
+	color:#fff;
+	background:rgba(0,0,0,0.8);
+	position:fixed;
+	top:0px;
+	left:0px;
+	height:100%;
+	width:100%;
+	z-index:999999;
+	text-align:center;
+	font-weight:bold;
+	font-size:30px;
+	font-family:arial;
+	padding-top:50px;
+	display:none;
+}
 
-				Musical notes and silences must be multiple of<br />
-				<div id="multi" class="slider" attr-range="false" attr-min=1 attr-max=127 attr-val=35></div>
+	<div id="container">
+		<div id="settings">
+			Musical note length<br />
+			<div id="len" class="slider" attr-range="true" attr-min=1 attr-max=600 attr-min-val=50 attr-max-val=100></div>
 
-				Pitch <br />
-				<div id="pitch" class="slider" attr-range="true" attr-min=1 attr-max=127 attr-min-val=48 attr-max-val=71></div>
+			Silence length<br />
+			<div id="mute" class="slider" attr-range="true" attr-min=1 attr-max=250 attr-min-val=20 attr-max-val=40></div>
 
-				Velocity<br />
-				<div id="velocity" class="slider" attr-range="true" attr-min=1 attr-max=127 attr-min-val=60 attr-max-val=127></div>
+			Musical notes and silences must be multiple of<br />
+			<div id="multi" class="slider" attr-range="false" attr-min=1 attr-max=127 attr-val=35></div>
 
-				Loop length<br />
-				<div id="loop" class="slider" attr-range="false" attr-min=1 attr-max=2500 attr-val=900></div>
+			Pitch <br />
+			<div id="pitch" class="slider" attr-range="true" attr-min=1 attr-max=127 attr-min-val=48 attr-max-val=71></div>
 
-				% chord type 1<br />
-				<div id="accordo37" class="slider" attr-range="false" attr-min=1 attr-max=100 attr-val=0></div>
+			Velocity<br />
+			<div id="velocity" class="slider" attr-range="true" attr-min=1 attr-max=127 attr-min-val=60 attr-max-val=127></div>
 
-				% chord type 2<br />
-				<div id="accordo47" class="slider" attr-range="false" attr-min=1 attr-max=100 attr-val=0></div>
+			Loop length<br />
+			<div id="loop" class="slider" attr-range="false" attr-min=1 attr-max=2500 attr-val=900></div>
 
-				% chord type 3<br />
-				<div id="accordo3710" class="slider" attr-range="false" attr-min=1 attr-max=100 attr-val=0></div>
-				
-				% chord type 4<br />
-				<div id="accordo4710" class="slider" attr-range="false" attr-min=1 attr-max=100 attr-val=0></div>
-			</div>
+			% chord type 1<br />
+			<div id="accordo37" class="slider" attr-range="false" attr-min=1 attr-max=100 attr-val=0></div>
+
+			% chord type 2<br />
+			<div id="accordo47" class="slider" attr-range="false" attr-min=1 attr-max=100 attr-val=0></div>
+
+			% chord type 3<br />
+			<div id="accordo3710" class="slider" attr-range="false" attr-min=1 attr-max=100 attr-val=0></div>
 			
-			<div id="action">
-				<button id="generate">Generate</button>
-				<button id="create">Play</button>
-				<div id="download"></div>
-			</div>
-			
-			<div id="view_cont">
-				<div id="view"></div>
-				<div id="view_row"></div>
-			</div>
-			
-			<div id="detail">
-				
-				Lunghezza<br />
-				<div id="len_det" class="slider" attr-range="true" attr-min=1 attr-max=2500 attr-min-val=1 attr-max-val=1></div>
-				
-				Pitch<br />
-				<div id="note_det" class="slider" attr-range="false" attr-min=1 attr-max=127 attr-val=1></div>
-				
-				Velocity<br />
-				<div id="velocity_det" class="slider" attr-range="false" attr-min=1 attr-max=127 attr-val=1></div>
-				
-				<button id="remove_note">Delete</button>
-			</div>
+			% chord type 4<br />
+			<div id="accordo4710" class="slider" attr-range="false" attr-min=1 attr-max=100 attr-val=0></div>
 		</div>
-		<div id="loading">Loading...</div>
 		
-		<script>
-		$(".slider").each(function(){
-			var range = $( '<div class="slider-range"></div>' );
-			if($(this).attr("attr-range") == "true"){
-				var amount = $( '<span class="amount">'+$(this).attr("attr-min-val")+' - '+$(this).attr("attr-max-val")+'</span>' );
-			} else {
-				var amount = $( '<span class="amount">'+$(this).attr("attr-val")+'</span>');
-			}
-			$(this).append(range);
-			$(this).append(amount);
-			var self = this;
+		<div id="action">
+			<button id="generate">Generate</button>
+			<button id="create">Play</button>
+			<div id="download"></div>
+		</div>
+		
+		<div id="view_cont">
+			<div id="view"></div>
+			<div id="view_row"></div>
+		</div>
+		
+		<div id="detail">
+			
+			Lunghezza<br />
+			<div id="len_det" class="slider" attr-range="true" attr-min=1 attr-max=2500 attr-min-val=1 attr-max-val=1></div>
+			
+			Pitch<br />
+			<div id="note_det" class="slider" attr-range="false" attr-min=1 attr-max=127 attr-val=1></div>
+			
+			Velocity<br />
+			<div id="velocity_det" class="slider" attr-range="false" attr-min=1 attr-max=127 attr-val=1></div>
+			
+			<button id="remove_note">Delete</button>
+		</div>
+	</div>
+	<div id="loading">Loading...</div>
+	
+	<script>
+	$(".slider").each(function(){
+		var range = $( '<div class="slider-range"></div>' );
+		if($(this).attr("attr-range") == "true"){
+			var amount = $( '<span class="amount">'+$(this).attr("attr-min-val")+' - '+$(this).attr("attr-max-val")+'</span>' );
+		} else {
+			var amount = $( '<span class="amount">'+$(this).attr("attr-val")+'</span>');
+		}
+		$(this).append(range);
+		$(this).append(amount);
+		var self = this;
 
-			var config = {
-				min: parseInt($(this).attr("attr-min")),
-				max: parseInt($(this).attr("attr-max")),
-				slide: function( event, ui ) {
-					if(typeof ui.values !== "undefined"){
-						amount.html( ui.values[ 0 ] + " - " + ui.values[ 1 ] );
-						$(self).attr("attr-min-val", ui.values[ 0 ]);
-						$(self).attr("attr-max-val", ui.values[ 1 ]);
-					} else {
-						amount.html( ui.value );
-						$(self).attr("attr-val", ui.value);
-					}
-
-					if($(self).attr("id") == "len_det"){
-						changeData("start",ui.values[ 0 ]);
-						changeData("stop",ui.values[ 1 ]);
-					}
-					if($(self).attr("id") == "note_det"){
-						changeData("note",ui.value);
-					}
-					if($(self).attr("id") == "velocity_det"){
-						changeData("velocity",ui.value);
-					}
+		var config = {
+			min: parseInt($(this).attr("attr-min")),
+			max: parseInt($(this).attr("attr-max")),
+			slide: function( event, ui ) {
+				if(typeof ui.values !== "undefined"){
+					amount.html( ui.values[ 0 ] + " - " + ui.values[ 1 ] );
+					$(self).attr("attr-min-val", ui.values[ 0 ]);
+					$(self).attr("attr-max-val", ui.values[ 1 ]);
+				} else {
+					amount.html( ui.value );
+					$(self).attr("attr-val", ui.value);
 				}
-			};
 
-			if($(this).attr("attr-range") == "true"){
-				config.range = true;
-				config.values = [ parseInt($(this).attr("attr-min-val")), parseInt($(this).attr("attr-max-val")) ];
+				if($(self).attr("id") == "len_det"){
+					changeData("start",ui.values[ 0 ]);
+					changeData("stop",ui.values[ 1 ]);
+				}
+				if($(self).attr("id") == "note_det"){
+					changeData("note",ui.value);
+				}
+				if($(self).attr("id") == "velocity_det"){
+					changeData("velocity",ui.value);
+				}
 			}
-			else{
-				config.range = false;
-				config.value = parseInt($(this).attr("attr-val"));
+		};
+
+		if($(this).attr("attr-range") == "true"){
+			config.range = true;
+			config.values = [ parseInt($(this).attr("attr-min-val")), parseInt($(this).attr("attr-max-val")) ];
+		}
+		else{
+			config.range = false;
+			config.value = parseInt($(this).attr("attr-val"));
+		}
+
+		range.slider(config);
+	});
+
+	function roundMulti(toRound,multi){
+		max=(multi - toRound % multi) + toRound;
+		min=toRound - toRound % multi;
+		if(max-toRound<toRound-min)
+			return max;
+		else
+			return min;
+	}
+	
+	function rand(min,max,multi){
+		max=parseInt(max);
+		min=parseInt(min);
+		res=Math.floor(Math.random() * (max - min)) + min;
+		if(multi!=undefined){
+			res=roundMulti(res,multi);
+		}
+		return res;
+	}
+	
+	var xml;
+	function render(){			
+		x2=xml[0].stop;
+		y1=y2=xml[0].note;
+		for(i=0;i<xml.length;i++){
+			if(xml[i].stop>x2)
+				x2=xml[i].stop;
+			if(xml[i].note<y1)
+				y1=xml[i].note;
+			if(xml[i].note>y2)
+				y2=xml[i].note;
+		}
+		
+		$("#view, #view_row").html("");
+		altezza_riga=$("#view").height()/(y2-y1);
+		
+		for(i=y1;i<=y2;i++){
+			n_nota="";
+			if(i%5==0){n_nota=i;}
+			$("#view_row").prepend("<div style='height:"+(altezza_riga-1)+"px; width:100%; border-top:1px solid #999;'>"+n_nota+"</div>");
+		}
+
+		for(i=0;i<xml.length;i++){
+			inizio=($("#view").width()/x2)*xml[i].start;
+			fine=($("#view").width()/x2)*xml[i].stop;
+			
+			//altezza in px delle ariga moltiplicata per la nota attuale meno la nota più bassa (in modo che se la nota attuale e la nota minima coincidono il risultato è zero, quindi il punto più basso della view)
+			tono_pos=$("#view").height()-(altezza_riga*(xml[i].note-y1));
+			
+			//disegno la nota
+			$("#view").append('<div class="view_note" id="vn_'+i+'" style="cursor:pointer; background:#ccc; position:absolute; margin:'+Math.round(tono_pos)+'px 0 0 '+Math.round(inizio)+'px; width:'+Math.round(fine-inizio)+'px; height:'+altezza_riga+'px;"></div>');
+		}
+		
+		grafichSelectNote();
+	}
+	
+	$("#create").click(function(){
+		//$("#loading").css("display","block");
+
+		// Creazione del contesto audio
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    // Funzione per convertire il numero della nota MIDI in frequenza
+    function midiToFrequency(midiNote) {
+	return 440 * Math.pow(2, (midiNote - 69) / 12);
+    }
+
+    // Funzione per convertire la velocità in volume (gain)
+    function velocityToGain(velocity) {
+	return velocity / 127; // Normalizza la velocità (88, 110, ecc.) su un range 0.0 - 1.0
+    }
+
+    // Funzione per riprodurre una singola nota
+    function playNote(note) {
+	const oscillator = audioContext.createOscillator();
+	const gainNode = audioContext.createGain();
+
+	const frequency = midiToFrequency(note.note);
+	const gain = velocityToGain(note.velocity);
+
+	oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+	gainNode.gain.setValueAtTime(gain, audioContext.currentTime);
+
+	oscillator.type = 'sine';
+
+	oscillator.connect(gainNode).connect(audioContext.destination);
+
+	const startTime = audioContext.currentTime + note.start / 100; // Conversione ms a s
+	const endTime = audioContext.currentTime + note.stop / 100; // Conversione ms a s
+
+	oscillator.start(startTime);
+	oscillator.stop(endTime);
+    }
+
+    // Itera su ogni nota nell'array e riproduce la nota
+    xml.forEach(playNote);
+	});
+
+	$("#generate").click(function(){
+		count=1; time=0; xml=new Array();
+		while(1){
+			time_start=time;
+			time=time_start+rand($("#len").attr("attr-min-val"),$("#len").attr("attr-max-val"),$("#multi").attr("attr-val"));
+			velocity=rand($("#velocity").attr("attr-min-val"),$("#velocity").attr("attr-max-val"));
+			if(count%2==0){
+				durata_silenzio=rand($("#mute").attr("attr-min-val"),$("#mute").attr("attr-max-val"),$("#multi").attr("attr-val"));
+				time_start=time_start+durata_silenzio;
+				time=time+durata_silenzio;
+			}
+			
+			pitch=rand($("#pitch").attr("attr-min-val"),$("#pitch").attr("attr-max-val"));
+			caso=rand(1,100);
+			
+			xml[xml.length]={"start":time_start, "stop":time, "note":pitch, "velocity":velocity};
+
+			if(caso<=$("#accordo37").attr("attr-val")){
+				xml[xml.length]={"start":time_start, "stop":time, "note":pitch+3, "velocity":velocity};
+				xml[xml.length]={"start":time_start, "stop":time, "note":pitch+7, "velocity":velocity};
+			}
+			else if(caso<=$("#accordo47").attr("attr-val")){
+				xml[xml.length]={"start":time_start, "stop":time, "note":pitch+4, "velocity":velocity};
+				xml[xml.length]={"start":time_start, "stop":time, "note":pitch+7, "velocity":velocity};
+			}
+			else if(caso<=$("#accordo3710").attr("attr-val")){
+				xml[xml.length]={"start":time_start, "stop":time, "note":pitch+3, "velocity":velocity};
+				xml[xml.length]={"start":time_start, "stop":time, "note":pitch+7, "velocity":velocity};
+				xml[xml.length]={"start":time_start, "stop":time, "note":pitch+10, "velocity":velocity};
+			}
+			else if(caso<=$("#accordo4710").attr("attr-val")){
+				xml[xml.length]={"start":time_start, "stop":time, "note":pitch+4, "velocity":velocity};
+				xml[xml.length]={"start":time_start, "stop":time, "note":pitch+7, "velocity":velocity};
+				xml[xml.length]={"start":time_start, "stop":time, "note":pitch+10, "velocity":velocity};
 			}
 
-			range.slider(config);
-		});
+			if(time>=$("#loop").attr("attr-val")){break;}
+			count++;
+		}
+		
+		render();
+	});
+	
+	function refreshDet(id,operazione,view){
+		if(id!=undefined && operazione!=undefined){
+			for(i=0;i<select.length;i++){
+				op_prov=eval("xml[select[i]]."+id+operazione+";");
+				if(((id=="note" || id=="velocity") && op_prov>=1 && op_prov<=127) || ((id=="start" || id=="stop") && op_prov>=1 && op_prov<=2500)){
+					eval("xml[select[i]]."+id+"="+op_prov+";");
+				}
+			}
+		}
+		
+		if(typeof view === "undefined" || view){
+		//if(select[0]!=undefined && select[0]!=""){
+			$("#len_det").find(".slider-range").slider('values', [xml[select[0]].start, xml[select[0]].stop]);
+			$("#len_det").find(".amount").html(xml[select[0]].start+' - '+xml[select[0]].stop);
 
-		function roundMulti(toRound,multi){
-			max=(multi - toRound % multi) + toRound;
-			min=toRound - toRound % multi;
-			if(max-toRound<toRound-min)
-				return max;
+			$("#note_det").find(".slider-range").slider('value', xml[select[0]].note);
+			$("#note_det").find(".amount").html(xml[select[0]].note);
+
+			$("#velocity_det").find(".slider-range").slider('value', xml[select[0]].velocity);
+			$("#velocity_det").find(".amount").html(xml[select[0]].velocity);
+		}
+	}
+	
+	var ctrl=0, select=new Array();
+	function grafichSelectNote(){
+		$(".view_note.active").removeClass("active");
+		for(i=0;i<select.length;i++){
+			$("#vn_"+select[i]).addClass("active");
+		}
+	}
+	$(document).keydown(function(e){
+		if(e.which==17){
+			ctrl=1;
+		}
+	}).keyup(function(e){
+		ctrl=0;
+	}).delegate(".view_note","click",function(){
+		$("#detail").css("display","block");
+		
+		if(ctrl==1){
+			next=select.length;
+		}else{
+			select=new Array();
+			next=0;
+		}
+		id=$(this).attr("id").split("_");
+		select[select.length]=parseInt(id[1]);
+		
+		refreshDet();
+		grafichSelectNote();
+	});
+	
+	function changeData(id,val_det){ 
+		eval("xml_i=xml[select[0]]."+id+";");
+		
+		if(xml_i>val_det){
+			eval("somma=xml[select[0]]."+id+"-val_det;");
+			somma=xml_i-val_det;
+			if(somma<0)
+				operazione=somma;
 			else
-				return min;
+				operazione="-"+somma;
+		}
+		if(xml_i<val_det){
+			somma=val_det-xml_i;
+			operazione="+"+somma;
 		}
 		
-		function rand(min,max,multi){
-			max=parseInt(max);
-			min=parseInt(min);
-			res=Math.floor(Math.random() * (max - min)) + min;
-			if(multi!=undefined){
-				res=roundMulti(res,multi);
-			}
-			return res;
-		}
-		
-		var xml;
-		function render(){			
-			x2=xml[0].stop;
-			y1=y2=xml[0].note;
-			for(i=0;i<xml.length;i++){
-				if(xml[i].stop>x2)
-					x2=xml[i].stop;
-				if(xml[i].note<y1)
-					y1=xml[i].note;
-				if(xml[i].note>y2)
-					y2=xml[i].note;
-			}
-			
-			$("#view, #view_row").html("");
-			altezza_riga=$("#view").height()/(y2-y1);
-			
-			for(i=y1;i<=y2;i++){
-				n_nota="";
-				if(i%5==0){n_nota=i;}
-				$("#view_row").prepend("<div style='height:"+(altezza_riga-1)+"px; width:100%; border-top:1px solid #999;'>"+n_nota+"</div>");
-			}
-
-			for(i=0;i<xml.length;i++){
-				inizio=($("#view").width()/x2)*xml[i].start;
-				fine=($("#view").width()/x2)*xml[i].stop;
-				
-				//altezza in px delle ariga moltiplicata per la nota attuale meno la nota più bassa (in modo che se la nota attuale e la nota minima coincidono il risultato è zero, quindi il punto più basso della view)
-				tono_pos=$("#view").height()-(altezza_riga*(xml[i].note-y1));
-				
-				//disegno la nota
-				$("#view").append('<div class="view_note" id="vn_'+i+'" style="cursor:pointer; background:#ccc; position:absolute; margin:'+Math.round(tono_pos)+'px 0 0 '+Math.round(inizio)+'px; width:'+Math.round(fine-inizio)+'px; height:'+altezza_riga+'px;"></div>');
-			}
-			
-			grafichSelectNote();
-		}
-		
-		$("#create").click(function(){
-			//$("#loading").css("display","block");
-
-			// Creazione del contesto audio
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-            // Funzione per convertire il numero della nota MIDI in frequenza
-            function midiToFrequency(midiNote) {
-                return 440 * Math.pow(2, (midiNote - 69) / 12);
-            }
-
-            // Funzione per convertire la velocità in volume (gain)
-            function velocityToGain(velocity) {
-                return velocity / 127; // Normalizza la velocità (88, 110, ecc.) su un range 0.0 - 1.0
-            }
-
-            // Funzione per riprodurre una singola nota
-            function playNote(note) {
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-
-                const frequency = midiToFrequency(note.note);
-                const gain = velocityToGain(note.velocity);
-
-                oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
-                gainNode.gain.setValueAtTime(gain, audioContext.currentTime);
-
-                oscillator.type = 'sine';
-
-                oscillator.connect(gainNode).connect(audioContext.destination);
-
-                const startTime = audioContext.currentTime + note.start / 100; // Conversione ms a s
-                const endTime = audioContext.currentTime + note.stop / 100; // Conversione ms a s
-
-                oscillator.start(startTime);
-                oscillator.stop(endTime);
-            }
-
-            // Itera su ogni nota nell'array e riproduce la nota
-            xml.forEach(playNote);
-		});
-
-		$("#generate").click(function(){
-			count=1; time=0; xml=new Array();
-			while(1){
-				time_start=time;
-				time=time_start+rand($("#len").attr("attr-min-val"),$("#len").attr("attr-max-val"),$("#multi").attr("attr-val"));
-				velocity=rand($("#velocity").attr("attr-min-val"),$("#velocity").attr("attr-max-val"));
-				if(count%2==0){
-					durata_silenzio=rand($("#mute").attr("attr-min-val"),$("#mute").attr("attr-max-val"),$("#multi").attr("attr-val"));
-					time_start=time_start+durata_silenzio;
-					time=time+durata_silenzio;
-				}
-				
-				pitch=rand($("#pitch").attr("attr-min-val"),$("#pitch").attr("attr-max-val"));
-				caso=rand(1,100);
-				
-				xml[xml.length]={"start":time_start, "stop":time, "note":pitch, "velocity":velocity};
-
-				if(caso<=$("#accordo37").attr("attr-val")){
-					xml[xml.length]={"start":time_start, "stop":time, "note":pitch+3, "velocity":velocity};
-					xml[xml.length]={"start":time_start, "stop":time, "note":pitch+7, "velocity":velocity};
-				}
-				else if(caso<=$("#accordo47").attr("attr-val")){
-					xml[xml.length]={"start":time_start, "stop":time, "note":pitch+4, "velocity":velocity};
-					xml[xml.length]={"start":time_start, "stop":time, "note":pitch+7, "velocity":velocity};
-				}
-				else if(caso<=$("#accordo3710").attr("attr-val")){
-					xml[xml.length]={"start":time_start, "stop":time, "note":pitch+3, "velocity":velocity};
-					xml[xml.length]={"start":time_start, "stop":time, "note":pitch+7, "velocity":velocity};
-					xml[xml.length]={"start":time_start, "stop":time, "note":pitch+10, "velocity":velocity};
-				}
-				else if(caso<=$("#accordo4710").attr("attr-val")){
-					xml[xml.length]={"start":time_start, "stop":time, "note":pitch+4, "velocity":velocity};
-					xml[xml.length]={"start":time_start, "stop":time, "note":pitch+7, "velocity":velocity};
-					xml[xml.length]={"start":time_start, "stop":time, "note":pitch+10, "velocity":velocity};
-				}
-
-				if(time>=$("#loop").attr("attr-val")){break;}
-				count++;
-			}
-			
+		if(typeof operazione != "undefined"){
+			refreshDet(id,operazione,false);
 			render();
-		});
-		
-		function refreshDet(id,operazione,view){
-			if(id!=undefined && operazione!=undefined){
-				for(i=0;i<select.length;i++){
-					op_prov=eval("xml[select[i]]."+id+operazione+";");
-					if(((id=="note" || id=="velocity") && op_prov>=1 && op_prov<=127) || ((id=="start" || id=="stop") && op_prov>=1 && op_prov<=2500)){
-						eval("xml[select[i]]."+id+"="+op_prov+";");
-					}
-				}
-			}
-			
-			if(typeof view === "undefined" || view){
-			//if(select[0]!=undefined && select[0]!=""){
-				$("#len_det").find(".slider-range").slider('values', [xml[select[0]].start, xml[select[0]].stop]);
-				$("#len_det").find(".amount").html(xml[select[0]].start+' - '+xml[select[0]].stop);
+		}
+	}
 
-				$("#note_det").find(".slider-range").slider('value', xml[select[0]].note);
-				$("#note_det").find(".amount").html(xml[select[0]].note);
-
-				$("#velocity_det").find(".slider-range").slider('value', xml[select[0]].velocity);
-				$("#velocity_det").find(".amount").html(xml[select[0]].velocity);
+	$("#remove_note").click(function(){
+		for(i=0;i<select.length;i++){
+			xml[select[i]]="";
+		}
+		for(i=0;i<xml.length;i++){
+			if(xml[i]==""){
+				xml.splice(i,1);
+				i--;
 			}
 		}
-		
-		var ctrl=0, select=new Array();
-		function grafichSelectNote(){
-			$(".view_note.active").removeClass("active");
-			for(i=0;i<select.length;i++){
-				$("#vn_"+select[i]).addClass("active");
-			}
-		}
-		$(document).keydown(function(e){
-			if(e.which==17){
-				ctrl=1;
-			}
-		}).keyup(function(e){
-			ctrl=0;
-		}).delegate(".view_note","click",function(){
-			$("#detail").css("display","block");
-			
-			if(ctrl==1){
-				next=select.length;
-			}else{
-				select=new Array();
-				next=0;
-			}
-			id=$(this).attr("id").split("_");
-			select[select.length]=parseInt(id[1]);
-			
-			refreshDet();
-			grafichSelectNote();
-		});
-		
-		function changeData(id,val_det){ 
-			eval("xml_i=xml[select[0]]."+id+";");
-			
-			if(xml_i>val_det){
-				eval("somma=xml[select[0]]."+id+"-val_det;");
-				somma=xml_i-val_det;
-				if(somma<0)
-					operazione=somma;
-				else
-					operazione="-"+somma;
-			}
-			if(xml_i<val_det){
-				somma=val_det-xml_i;
-				operazione="+"+somma;
-			}
-			
-			if(typeof operazione != "undefined"){
-				refreshDet(id,operazione,false);
-				render();
-			}
-		}
-
-		$("#remove_note").click(function(){
-			for(i=0;i<select.length;i++){
-				xml[select[i]]="";
-			}
-			for(i=0;i<xml.length;i++){
-				if(xml[i]==""){
-					xml.splice(i,1);
-					i--;
-				}
-			}
-			$("#detail").css("display","none");
-			render();
-		});
-		</script>
-    </body>
-</html>
+		$("#detail").css("display","none");
+		render();
+	});
+	</script>

@@ -43,12 +43,14 @@ This project dates back to 2010, when flash was widely used to make animations, 
 ## Random midi generator
 This is a project that I made about 8 years ago around 2012, It allows you to create random melodies and export them in the midi format. Some things didn't work anymore so I fixed them and now you can play it;)
 
-<a href="/projects/random_midi_generator" class="btn btn-default btn-xl">Play!</a>
+<a href="/projects/random_midi_generator" class="btn btn-primary btn-xl">Play it!</a>
 
 ---
 
 ## Self-sufficient Vegetable Garden
 This project that I developed in 2014 allows you to calculate the smallest size of a vegetable garden that allows you to be self-sufficient
+
+<a href="/projects/vegetable_garden" class="btn btn-primary btn-xl">Try it!</a>
 
 ---
 

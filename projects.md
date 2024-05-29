@@ -32,6 +32,7 @@ Also check the money and time, you can have earnings (which sooner or later you 
 
 ## Vo2Max online calculator
 Click the following button to find out what your Vo2Max is
+
 <a href="/projects/vo2max" class="btn btn-primary btn-xl">Train!</a>
 
 ---

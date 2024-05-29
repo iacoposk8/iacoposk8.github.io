@@ -6,7 +6,7 @@
 <body id="page-top">
   {% include nav.html %}
   
-  <main id="content" class="main-content" role="main" {% if page.width %}style="width: {{ page.width }}px;">{% endif %}>
+  <main id="content" class="main-content" role="main" {% if page.width %}style="max-width: {{ page.width }}px;"{% endif %}>
     {{ content }}
   </main>
   <footer class="site-footer">

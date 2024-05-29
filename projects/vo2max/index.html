@@ -6,7 +6,11 @@ title: Vo2Max Calculator Online
 <h1>Vo2Max Calculator Online</h1>
 
 <link rel="stylesheet" href="style.css">
-<style></style>
+<style>
+	input{
+		color:#000;
+	}
+</style>
 <script language="JavaScript">
 function Vo2Max(opt){		 
 	var self = this;
@@ -123,7 +127,7 @@ function calculate(){
 	<tr class="pari"><td class="col1">Average heart rate last workout</td><td><input id="average" type="number"></td></tr>
 	<tr class="dispari"><td class="col1">Age</td><td><input id="age" type="number" min=20 max=79></td></tr>
 	<tr class="pari"><td class="col1">Gender</td><td>M <input type="radio" name="gender" id="gender_m" value="m"> F <input type="radio" name="gender" id="gender_f" value="f"></td></tr>
-	<tr class="dispari"><td><button id="calculate" onclick="calculate()">Calculate</button></td><td></td></tr>
+	<tr class="dispari"><td><button id="calculate" onclick="calculate()" class="btn btn-primary">Calculate</button></td><td></td></tr>
 </table>
 
 <div id="content">

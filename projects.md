@@ -61,7 +61,7 @@ It sounds too good to be true but that's it, is free and does not ask working ho
 
 Fare rap is a portal in Italian of rap and hip hop, which specializes in finding mc's and emerging producers.
 The site is several years that is online and has become increasingly important by the work of great bloggers who have become part of the team.
-There are several services in addition to the blog, there is a forum, chat for freestyle, can manage their own profile and to search for collaboration with dj or mc, there are guides to start rapping, a database with all the artists (not emerging <a href="[https://fare-rap.it/index.php/rap-database" target="_blank">with a chart showing the best Italian mc</a>) of Italy, and an area of free downlaod where to find the cd of emerging artists and not.
+There are several services in addition to the blog, there is a forum, chat for freestyle, can manage their own profile and to search for collaboration with dj or mc, there are guides to start rapping, a database with all the artists (not emerging <a href="https://fare-rap.it/index.php/rap-database" target="_blank">with a chart showing the best Italian mc</a>) of Italy, and an area of free downlaod where to find the cd of emerging artists and not.
 
 <a href="http://fare-rap.it" target="_blank">Come see what we mean</a> :)
 

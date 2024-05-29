@@ -4,7 +4,13 @@ title: Projects
 ---
 ## Best country to live in
 I took different indices such as peace, temperature, purchasing power, welfare, health system, education etc. and making an average I created a map and a table with the ranking of the best countries to live.
+
 ---
+
+***
+
+___
+
 ## Smartphone - Apple Vs other brands
 I've always wondered why apple can sell so many iPhones. I always felt that it offered nothing more than other smartphones in terms of performance and innovation. I wanted to confirm my impression by comparing objective parameters with the main brands (Samsung, Xiaomi, Huawei and OnePlus). To choose which smartphones to compare I based on the most popular ones by brand according to the site: gsmarena.com.
 To compare the GPUs I relied on the reports of: notebookcheck.net.

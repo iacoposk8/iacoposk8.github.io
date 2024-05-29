@@ -1,0 +1,136 @@
+<link rel="stylesheet" href="style.css">
+<style></style>
+<script language="JavaScript">
+function Vo2Max(opt){		 
+	var self = this;
+
+	if(typeof opt.hrmax === "undefined"){ //Heart Rate Reserve(HRR)
+		var R = 220
+		if(opt.gender == "f")
+			var R = 226
+		opt.hrmax = R - opt.age; //Maximum Heart Rate (HRMax)
+	}
+	this.hrr= opt.hrmax - opt.hrest
+	
+	this.getHr = function(p){
+		var ret = {}
+		ret.Standard = p * opt.hrmax / 100
+		ret.Karvonen = (p * self.hrr / 100) + opt.hrest
+		return ret
+	}
+	
+	this.getPerc = function(p){
+		var ret = {}
+		ret.Standard = p * 100 / opt.hrmax
+		ret.Karvonen = ((p - opt.hrest)*100) / self.hrr
+		return ret
+	}
+	
+	function LinearFuncInOut(x,x0,x1,y0,y1){
+		console.log(y0+"+((("+y1+"-"+y0+")/("+x1+"-"+x0+"))*("+x+"-"+x0+")))");
+		return y0+(((y1-y0)/(x1-x0))*(x-x0))
+	}
+
+	this.Karvonen2Vo2Max = function(p){
+		//[Karvonen, Vo2Max]
+		var conversions = [[0, 0], [50, 35], [65, 50], [72, 60], [79, 70], [83, 75], [87, 80], [91, 85], [94, 90], [100, 100]]
+
+		for(i in conversions){
+			if(p == conversions[i][0])
+				return conversions[i][1];
+			if(p > conversions[i][0] && p < conversions[parseInt(i)+1][0])
+				return LinearFuncInOut(p, conversions[i][0], conversions[parseInt(i)+1][0], conversions[i][1], conversions[parseInt(i)+1][1]);
+		}
+	}
+	
+	this.Vo2Max260 = function(p){
+		conversions = {"m":{ "20-29":[ [95,55.4], [80,51.1], [60,45.4], [40,41.7], ], "30-39":[ [95,54], [80,48.3], [60,44], [40,40.5], ], "40-49":[ [95,52.5], [80,46.4], [60,42.4], [40,38.5], ], "50-59":[ [95,48.9], [80,43.4], [60,39.2], [40,35.6], ], "60-69":[ [95,45.7], [80,39.5], [60,35.5], [40,32.3], ], "70-79":[ [95,42.1], [80,36.7], [60,32.3], [40,29.4], ], }, "f":{ "20-29":[ [95,49.6], [80,43.9], [60,39.5], [40,36.1], ], "30-39":[ [95,47.4], [80,42.4], [60,37.8], [40,34.4], ], "40-49":[ [95,45.3], [80,39.7], [60,36.3], [40,33], ], "50-59":[ [95,41.1], [80,36.7], [60,33], [40,30.1], ], "60-69":[ [95,37.8], [80,33], [60,30], [40,27.5], ], "70-79":[ [95,36.7], [80,30.9], [60,28.1], [40,25.9]]}};
+		
+		for(age in conversions[opt.gender]){
+			range = age.split("-");
+			if(opt.age >= range[0] && opt.age <= range[1]){
+				range = age;
+				break;
+			}
+		}
+		
+		var prev_age;
+		for(age in conversions[opt.gender]){
+			if(typeof prev_age !== "undefined"){
+				ages = prev_age.split("-");
+				ages1 = age.split("-");
+				if(opt.age >= ages[0] && opt.age <= ages1[1]){
+					new_conv = [];
+					conv = [];
+					for(var i in conversions[opt.gender][prev_age]){
+						new_conv[i]=[conversions[opt.gender][prev_age][i][1]];
+					}
+					for(var i in conversions[opt.gender][age]){
+						new_conv[i][1]=conversions[opt.gender][age][i][1];
+					}
+					for(var i in new_conv){
+						conv.push([conversions["m"][range][i][0], LinearFuncInOut(opt.age, ages[0],ages1[0],new_conv[i][0], new_conv[i][1])]);
+					}
+					console.log(conv);
+					for(var i in conv){
+						if(p >= conv[parseInt(i)+1][0] && p < conv[i][0]){
+							return [LinearFuncInOut(p, conv[i][0], conv[parseInt(i)+1][0], conv[i][1], conv[parseInt(i)+1][1]),conv]
+						}
+					}
+				}
+			}
+			prev_age = age;
+		}
+	}
+}
+
+//---------------------------------------------------------------
+function calculate(){
+	if(document.querySelector("#gender_f").checked)
+		gender = "f";
+	else
+		gender = "m";
+
+	var V = new Vo2Max({
+		hrest: document.querySelector("#hrest").value, 			//Resting Heart Rate (HRest)
+		gender: gender, 		//m (male), f (female)			
+		hrmax:document.querySelector("#hrmax").value, 			//Maximum Heart Rate (HRMax)
+		age: document.querySelector("#age").value
+	});
+
+	//console.log(V.getHr(80));
+	var K = V.getPerc(document.querySelector("#average").value).Karvonen;
+	var vo2_perc = parseFloat(V.Karvonen2Vo2Max(K)).toFixed(2);
+	var vo2_60 = V.Vo2Max260(vo2_perc);
+	vo2_60[0] = parseFloat(vo2_60[0]).toFixed(2);
+	
+	document.querySelector("style").innerHTML += '@keyframes rotate-six { 0% { transform: rotate(-50deg); } 100% { transform: rotate('+parseInt((vo2_perc/100)*180)+'deg); } }';
+	document.querySelector("#legend").style.display = "block";
+	document.querySelector("#content #graph").innerHTML = '<div id="result">'+vo2_perc+'%<br />'+vo2_60[0]+' ml/kg/min</div><ul class="chart-skills"><li></li><li></li><li></li><li></li><li></li><li></li></ul>';
+}
+</script>
+
+<table>
+	<tr class="pari"><td class="col1">Resting Heart Rate (HRest)</td><td><input id="hrest" type="number"></td></tr>
+	<tr class="dispari"><td class="col1">Maximum Heart Rate (HRMax)</td><td><input id="hrmax" type="number"></td></tr>
+	<tr class="pari"><td class="col1">Average heart rate last workout</td><td><input id="average" type="number"></td></tr>
+	<tr class="dispari"><td class="col1">Age</td><td><input id="age" type="number" min=20 max=79></td></tr>
+	<tr class="pari"><td class="col1">Gender</td><td>M <input type="radio" name="gender" id="gender_m" value="m"> F <input type="radio" name="gender" id="gender_f" value="f"></td></tr>
+	<tr class="dispari"><td><button id="calculate" onclick="calculate()">Calculate</button></td><td></td></tr>
+</table>
+
+<div id="content">
+	<div id="graph"></div>
+	<div id="legend">
+		<table>
+			<tr><td><div class="legend" style="background-color:#d35400;"></div></td><td>Poor</td></tr>
+			<tr><td><div class="legend" style="background-color:#f1c40f;"></div></td><td>Fair</td></tr>
+			<tr><td><div class="legend" style="background-color:#2ecc71;"></div></td><td>Good</td></tr>
+			<tr><td><div class="legend" style="background-color:#3498db;"></div></td><td>Excellent</td></tr>
+			<tr><td><div class="legend" style="background-color:#8e44ad;"></div></td><td>Superior</td></tr>
+		</table>
+	</div>
+</div>
+<script>
+
+</script>

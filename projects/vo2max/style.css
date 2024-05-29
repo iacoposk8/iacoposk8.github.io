@@ -1,0 +1,213 @@
+/* RESET STYLES
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
+*{
+	font-family: arial;
+}
+.col1{
+	text-align:right;
+	padding-right:20px;
+}
+#legend{
+	display:none;
+}
+.legend{
+	width:20px;
+	height:20px;
+}
+.pari{
+	background:#16a085;
+	color:#fff;
+}
+.dispari{
+	background:#2c3e50;
+	color:#fff;
+}
+#result{
+	text-align:center;
+	font-size:40px;
+	font-weight:bold;
+	margin:80px 0;
+}
+table{
+	margin:0 auto;
+	border-collapse: collapse;
+}
+table td{
+	padding:5px;
+	border:1px solid #000;
+}
+.chart-skills {
+  margin: 0 auto;
+  padding: 0;
+  list-style-type: none;
+}
+
+.chart-skills *,
+.chart-skills::before {
+  box-sizing: border-box;
+}
+
+
+/* CHART-SKILLS STYLES
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
+
+.chart-skills {
+  position: relative;
+  width: 350px;
+  height: 175px;
+  overflow: hidden;
+}
+
+.chart-skills::before,
+.chart-skills::after {
+  position: absolute;
+}
+
+.chart-skills::before {
+  content: '';
+  width: inherit;
+  height: inherit;
+  border: 45px solid rgba(211, 211, 211, .3);
+  border-bottom: none;
+  border-top-left-radius: 175px;
+  border-top-right-radius: 175px;
+}
+
+.chart-skills::after {
+  /*content: 'Top Skills';*/
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: cadetblue;
+}
+
+.chart-skills li {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: inherit;
+  height: inherit;
+  border: 45px solid;
+  border-top: none;
+  border-bottom-left-radius: 175px;
+  border-bottom-right-radius: 175px;
+  transform-origin: 50% 0;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  animation-fill-mode: forwards;
+  animation-duration: .4s;
+  animation-timing-function: linear;
+}
+
+.chart-skills li:nth-child(1) {
+  z-index: 6;
+  border-color: #d35400;
+  animation-name: rotate-one;
+}
+
+.chart-skills li:nth-child(2) {
+  z-index: 5;
+  border-color: #f1c40f;
+  animation-name: rotate-two;
+  animation-delay: .4s;
+}
+
+.chart-skills li:nth-child(3) {
+  z-index: 4;
+  border-color: #2ecc71;
+  animation-name: rotate-three;
+  animation-delay: .8s;
+}
+
+.chart-skills li:nth-child(4) {
+  z-index: 3;
+  border-color: #3498db;
+  animation-name: rotate-four;
+  animation-delay: 1.2s;
+}
+
+.chart-skills li:nth-child(5) {
+  z-index: 2;
+  border-color: #8e44ad;
+  animation-name: rotate-five;
+  animation-delay: 1.6s;
+}
+
+.chart-skills li:nth-child(6) {
+  z-index: 10;
+  border-color: transparent;
+  animation-name: rotate-six;
+  animation-delay: 2.0s;
+  transform: rotate(-50deg);
+}
+.chart-skills li:nth-child(6)::after {
+    content: '';
+    position: absolute;
+    left: -20px;
+    top: -20px;
+    width: 0;
+    height: 0;
+    border-left: 20px solid transparent;
+    border-right: 20px solid #000;
+    border-top: 20px solid transparent;
+    clear: both;
+    border-bottom: 20px solid transparent;
+
+}
+
+/* ANIMATIONS
+–––––––––––––––––––––––––––––––––––––––––––––––––– */
+
+@keyframes rotate-one {
+  100% {
+    transform: rotate(72deg);
+  }
+}
+
+@keyframes rotate-two {
+  0% {
+    transform: rotate(72deg);
+  }
+  100% {
+    transform: rotate(108deg);
+  }
+}
+
+@keyframes rotate-three {
+  0% {
+    transform: rotate(108deg);
+  }
+  100% {
+    transform: rotate(144deg);
+  }
+}
+
+@keyframes rotate-four {
+  0% {
+    transform: rotate(144deg);
+  }
+  100% {
+    transform: rotate(171deg);
+  }
+}
+
+@keyframes rotate-five {
+  0% {
+    transform: rotate(171deg);
+  }
+  100% {
+    transform: rotate(180deg);
+  }
+}
+
+@keyframes fade-in {
+  0%,
+  90% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}

@@ -1,0 +1,86 @@
+<style>
+*{
+	font-family:arial;
+}
+.col{
+	width: 200px;
+	display:inline-block;
+}
+</style>
+Your Budget ($) <input type="number" id="money_start" value="1000"><br />
+How much money do you want to bet? <input type="number" id="punt" value="0.5"><br />
+<button>Go!</button>
+
+<div id="money"></div>
+<div id="giocate"></div>
+<div id="max_perdite"></div>
+<br />
+<!--<div id="logs" style="overflow:auto; height:500px;"><div></div></div>-->
+
+<script src="jquery-3.4.1.js"></script>
+<script>
+function getRandomInt(min, max) {
+	return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+function getcolor(n){
+	if(n==2)
+		return "black";
+	else
+		return "red";
+}
+
+function secondsToDhms(seconds) {
+	seconds = Number(seconds);
+	var d = Math.floor(seconds / (3600*24));
+	var h = Math.floor(seconds % (3600*24) / 3600);
+	var m = Math.floor(seconds % 3600 / 60);
+	var s = Math.floor(seconds % 60);
+
+	var dDisplay = d > 0 ? d + (d == 1 ? " day, " : " days, ") : "";
+	var hDisplay = h > 0 ? h + (h == 1 ? " hour, " : " hours, ") : "";
+	var mDisplay = m > 0 ? m + (m == 1 ? " minute, " : " minutes ") : "";
+	var sDisplay = s > 0 ? s + (s == 1 ? " second" : " seconds") : "";
+	return dDisplay + hDisplay + mDisplay;
+}
+
+$("button").click(function(){
+	var money= parseFloat($("#money_start").val());
+	var punt = fish = parseFloat($("#punt").val());
+	var interval;
+	var perdite = max_perdite = giocate=0; 
+
+	interval = setInterval(function(){
+		if(money<=0){
+			alert("You Lose!");
+			clearInterval(interval);
+		} else {
+			seq=[1,2,1,1,2,2]
+			for(i in seq){
+				rand=getRandomInt(1,2);
+				if(rand==seq[i]){
+					money+=punt;
+					punt=fish;
+					if(perdite > max_perdite){
+						max_perdite=perdite;
+					}
+					perdite=0;
+				} else {
+					money-=punt;
+					punt*=2;
+					if(punt>money)
+						punt=money;
+					perdite++;
+				}
+				$("#max_perdite").html("Longer consecutive loss sequence: "+max_perdite+" times");
+				$("#money").html("Money : "+money+" $");
+				//$("#logs > div").append("<div class='col'>Bet "+punt+" $ on "+getcolor(seq[i])+"</div><div class='col'>Roulette's ball goes up "+getcolor(rand)+"</div><div class='col'>Money become: "+money+" $</div><br />");
+				$("#logs").scrollTop($("#logs > div").height());
+
+				giocate++;
+				$("#giocate").html("Number of matches: "+giocate+" ("+secondsToDhms(giocate*50)+")");
+			}			
+		}
+	},0.01);
+});
+</script>
+

@@ -1,0 +1,19 @@
+sul sito del calcolatore ci sono tanti link interessanti
+ci sono rese non presenti in food e valori nutrizionali non presenti in gda
+vedere visivamente gli alimenti di cui non conosciamo la produttività
+in gda c'è la riboflavina che non c'è in food, non è che la riboflavina è il nome do una vitamina presente?
+creare una funzione che crei un orto con tanti ortaggi dimensionati, nel senso che i pomodri siccome son molto produttivi saranno 1mq, mentre la soia 10mq ecc...
+creare funzione per aumentare la varietà di ortaggi a discapito dell'ottimizzazione
+se checkGda controllasse cosa manca in modo random o sequenziale il risultato sarebbe diverso, qual'è l'ordinamento dove i mq sono minori?
+che cibi hanno la Vitamin D?
+
+
+
+siti:
+http://ricette-calorie.com/valori-nutrizionali/categorie.php
+www.dietabit.it/alimenti/
+
+Raccolta e utilizzazione 
+http://www.agraria.org/coltivazionierbacee/soia.htm
+
+http://www.agricolturabiologicaonline.eu/?Schede_tecniche_di_coltivazione_ortaggi

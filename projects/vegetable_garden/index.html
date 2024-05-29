@@ -1,0 +1,557 @@
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+*{
+	font-family:arial;	
+}
+input[type="number"]{
+	height:34px;
+}
+#mq{
+	margin:35px 0;
+}
+#vegetables_search_content{
+	display:none;
+}
+.col50{
+	width:50%;
+	float:left;
+}
+#detail{
+	margin-top: 30px;
+}
+#mq{
+	border-collapse: collapse;
+	width:100%;
+}
+#mq td{
+	border:1px solid #333;
+	padding:5px 15px;
+	color:#fff;
+}
+#mq td *{
+	color:#fff;
+}
+#mq .pari{
+	background:#2c3e50;
+}
+#mq .dispari{
+	background:#16a085;
+}
+
+@media only screen and (max-width: 600px) {
+	.col50{
+		width:100%;
+	}
+	.colleft{
+		margin-bottom:60px;
+		padding-bottom:60px;
+		border-bottom:2px solid #333;
+	}
+}
+</style>
+
+<div id="container">
+	<div class="col50 colleft">
+	<table>
+	<tr>
+		<td>Age</td><td><input name="age" type="number"></td>
+	</tr>
+	<tr>
+		<td>Height (cm)</td><td><input name="height" type="number"></td>
+	</tr>
+	<tr>
+		<td>Weight (Kg)</td><td><input name="weight" type="number"></td>
+	</tr>
+	<tr>
+		<td>Diet Carbohydrate (%)</td><td><input type="number" id="Carbohydrate" class="range" value="60" min="0" max="100"></td>
+	</tr>
+	<tr>
+		<td>Diet Protein (%)</td><td><input type="number" id="Protein" class="range" value="20" min="0" max="100"></td>
+	</tr>
+	<tr>
+		<td>Diet Fat (%)</td><td><input type="number" id="Fat" class="range" value="20" min="0" max="100"></td>
+	</tr>
+	<tr>
+		<td>Weekly sports activity</td>
+		<td>
+			<select name="activity">
+				<option selected="selected" value=""></option>
+				<option value="1">1 - Sedentary</option>
+				<option value="2">2</option>
+				<option value="3">3</option>
+				<option value="4">4</option>
+				<option value="5">5 - Very intense</option>
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td>Gender</td><td>M <input type="radio" name="gen" value="Males"> F <input type="radio" name="gen" value="Females"></td>
+	</tr>
+	<tr>
+		<td>Extra</td><td>Pregnancy <input type="radio" name="extra" value="Pregnancy"> Lactation <input type="radio" name="extra" value="Lactation"></td>
+	</tr>
+	</table>
+	<button id="go">GO!</button>
+	<table id="mq"></table>
+	<table id="gda"></table>
+	</div>
+	<div class="col50">
+		<a name="detail"></a>
+		<div id="vegetables_search_content">
+			Search Vegetables: <input id="vegetables" /> <button id="vegetables_search">Search</button>
+		</div>
+		<table id="detail"></table>
+	</div>
+</div>
+
+<link rel="stylesheet" href="lib/jquery-ui.css">
+<script src="lib/jquery-3.4.1.js"></script>
+<script src="lib/jquery-ui.js"></script>
+
+<script>
+(function() {
+	function efficientVegetable(){
+		this.gda;
+		this.food;
+		this.rese;
+		this.activity_cal={
+			"Males":{
+				"1":13,
+				"2":14,
+				"3":15,
+				"4":16,
+				"5":17
+			},
+			"Females":{
+				"1":11.5,
+				"2":12.5,
+				"3":13.5,
+				"4":14.5,
+				"5":15.5
+			}
+		};
+		var self=this;
+
+		this.getJson=function(file){
+			var ret;
+			$.ajax({
+				url: file,
+				dataType: 'json',
+				async: false,
+				success: function(json){
+					ret=json;
+				},
+				error: function(){
+					ret=false;
+				}
+			});
+			return ret;
+		}
+
+		this.gdaCalculate=function(gen,age,weight,height,activity,extra){
+			var sel='[';
+			if(typeof extra !== "undefined")
+				sel+='"'+extra+'"';
+			else if(age<=8)
+				sel+='"Children"';
+			else
+				sel+='"'+gen+'"';
+
+			sel+='][';
+			if(age<=3)
+				sel+='"a1b3"';
+			if(age>=4 && age<=8)
+				sel+='"a4b8"';
+			if(age>=9 && age<=13)
+				sel+='"a9b13"';
+			if(age>=14 && age<=18)
+				sel+='"a14b18"';
+			if(age>=19 && age<=30)
+				sel+='"a19b30"';
+			if(age>=31 && age<=50)
+				sel+='"a31b50"';
+			if(age>=51 && age<=70)
+				sel+='"a51b70"';
+			if(age>=71)
+				sel+='"b70"';
+			sel+=']';
+
+			//peso ideale
+			if(gen=="Females")
+				var ideal_weight=(1.97*(height-152)+100)*0.454;
+			if(gen=="Males")
+				var ideal_weight=(2.36*(height-152)+106)*0.454;
+
+			//calcolo calorie
+			var act_ind=eval('self.activity_cal["'+gen+'"]["'+activity+'"]');
+			var cal= weight*(act_ind/0.454);
+
+			//calcolo grassi, carboidrati, proteine
+			var balance=self.dietBalancing(cal);
+
+			//creo l'oggetto da ritornare
+			var ret={};
+			ret["Ideal weight"]={value:ideal_weight, unit:"kg"};
+			ret["Calories"]={value:cal, unit:"kcal"};
+			ret["Carbohydrate"]={value:balance.Carbohydrate, unit:"g"};
+			ret["Protein"]={value:balance.Protein, unit:"g"};
+			ret["Fat"]={value:balance.Fat, unit:"g"};
+
+			for (var key in self.gda) {
+				ret[key]={value:eval('self.gda["'+key+'"]'+sel), unit:eval('self.gda["'+key+'"]["unit"]')};
+			}
+			return ret;
+		}
+		
+		this.tofloat=function(n){
+			if(typeof n !== "undefined")
+				n=n.toString().replace(",",".");
+			return parseFloat(n);
+		}
+		
+		this.dietBalancing=function(cal){
+			var carb=((cal/100)*parseInt($("#Carbohydrate").val()))/4;
+			var prot=((cal/100)*parseInt($("#Protein").val()))/4;
+			var gras=((cal/100)*parseInt($("#Fat").val()))/9;
+			return {"Carbohydrate":carb, "Protein":prot, "Fat":gras};
+		}
+		
+		this.difference=function(a,b){
+			if(a>b)
+				return a-b;
+			else
+				return b-a;
+		}
+
+		this.getFoodBalancing=function(elems){
+			var c=self.difference(((elems.Carbohydrate*4)/elems.Calories)*100,33.3);
+			var p=self.difference(((elems.Protein*4)/elems.Calories)*100,33.3);
+			var f=self.difference(((elems.Fat*9)/elems.Calories)*100,33.3);
+			return c+p+f;
+		}
+
+		//getMostProductive dato un valore (proteine, calorie, grassi ecc..)
+		//ritornerà il vegetale più produttivo per l'elem passato espresso in g al mese
+		//es: si vuol sapere le proteine? la funzione ti dirà che coltivando per un ciclo produttivo un metro quadro di soia (ad esempio) si otterranno tot grammi di proteine
+		//Se l'elemeno che cerchiamo è proteine, il software selezionerà la soia
+		this.getMostProductive=function(elem){
+			var most=new Array("",0);
+			for (var key_f in self.food) {
+				var key_food=key_f;
+				if(elem=="Protein" && key_food.toLowerCase().indexOf("soia")==-1)
+					continue;
+				
+				//getFoodBalancing: un alimento che ha il 33,3% di grassi, proteine e carboidrati restituirà un indice 0
+				//un alimento che ha il 90% di grassi, 5% proteine, 5% carboidrati restituirà un indice alto, ad esempio 80
+				//la funzione è decommentata perchè non ha portato vantaggi allo script
+				/*foodbalance=self.getFoodBalancing({
+					"Calories":self.tofloat(self.food[key_food]["Calories"]),
+					"Protein":self.tofloat(self.food[key_food]["Protein"]),
+					"Fat":self.tofloat(self.food[key_food]["Fat"]),
+					"Carbohydrate":self.tofloat(self.food[key_food]["Carbohydrate"])
+				});
+				if(foodbalance>50)
+					continue;*/
+
+				if(self.exclude.food[key_food]==1)
+					continue;
+				if(
+					key_food.toLowerCase().indexOf("secch")!=-1 || 
+					key_food.toLowerCase().indexOf("semi")!=-1 || 
+					key_food.toLowerCase().indexOf("crema di")!=-1 || 
+					key_food.toLowerCase().indexOf("crocchette di")!=-1 || 
+					key_food.toLowerCase().indexOf("bucce di")!=-1 ||  
+					key_food.toLowerCase().indexOf("amido di")!=-1 || 
+					key_food.toLowerCase().indexOf("foglie di")!=-1 || 
+					key_food.toLowerCase().indexOf("passata di")!=-1 ||
+					key_food.toLowerCase().indexOf("salsa di")!=-1 || 
+					key_food.toLowerCase().indexOf("farina di")!=-1 || 
+					key_food.toLowerCase().indexOf("fritte")!=-1 ||   
+					key_food.toLowerCase().indexOf("sott'aceto")!=-1 || 
+					key_food.toLowerCase().indexOf("scatola")!=-1 
+				)
+					continue;
+
+				if(key_food.indexOf("Farina 0")!=-1 || key_food.indexOf("Farina 00")!=-1 || key_food.indexOf("Polenta")!=-1 || key_food.indexOf("Pasta")!=-1 || key_food.indexOf("Spaghetti")!=-1 || key_food.indexOf("Spaghetto")!=-1 || key_food.indexOf("Bulgur")!=-1 || key_food.indexOf("Crusca")!=-1 || key_food.indexOf("Kamut")!=-1 || key_food.indexOf("Cous cous")!=-1 || key_food.indexOf("triticale")!=-1 || key_food.indexOf("Farina integrale")!=-1 || key_food.indexOf("Semola")!=-1)
+					key_food="Grano";
+				else if(key_food.indexOf("Tempè")!=-1 || key_food.indexOf("Tofu")!=-1)
+					key_food="Soia";
+				else if(key_food.indexOf("malto")!=-1)
+					key_food="Orzo perlato";
+				else if(key_food.indexOf("Caldarroste")!=-1)
+					key_food="Castagne secche";
+
+				for (var key_r in self.rese) {
+					var key_resa=key_r;
+					if(key_resa.indexOf("Grano")!=-1)
+						key_resa="Grano turco";
+
+					if(key_food.indexOf(key_resa)!=-1){
+						var resa=self.rese[key_resa].value;
+						if(resa.indexOf("-")!=-1){
+							resa=resa.split("-");
+							resa=(parseInt(resa[0])+parseInt(resa[1]))/2;
+						}
+						resa=parseInt(resa);
+						resa=self.convert_unit(resa,self.rese[key_resa].unit,"kg/mq");
+
+						//i valori dentro food.json sono espressi in 100 grammi
+						//quindi moltiplico per 10 in modo da avere il valore in kg
+						//poi lo moltiplico per i kg che vengono prodotti in un mq
+						resa=(self.tofloat(self.food[key_food][elem])*10)*resa;
+
+						if(resa>most[1]){
+							most[0]=key_food;
+							most[1]=resa;
+							most[2]=key_resa;
+						}
+					}
+				}
+			}
+			return most;
+		}
+
+		this.convert_unit=function(val, unit_from, unit_to){
+			val=self.tofloat(val);
+			if(unit_from==unit_to){
+				return val;
+			}else if((unit_from=="g" && unit_to=="L") || (unit_from=="mg" && unit_to=="g")){
+				return val*0.001;
+			}else if((unit_from=="mg" && unit_to=="ug")){
+				return val*1000;
+			}else if((unit_from=="ug" && unit_to=="g")){
+				return val*0.000001;
+			}else if((unit_from=="t/ha" && unit_to=="kg/mq")){
+				return (val*1000)/10000;
+			}else if((unit_from=="q.li/ha" && unit_to=="kg/mq")){
+				return (val*100)/10000;
+			}
+			return val;
+		}
+
+		this.merge_obj=function(ob1, ob2, op){
+			for(key in ob2){
+				if(key=="Calories" || key=="Protein" || key=="Fat" || key=="Carbohydrate")
+					var new_val=self.convert_unit(ob2[key].replace(",","."),"","");
+				else
+					var new_val=self.convert_unit(ob2[key].replace(",","."),self.food.UNITS[key],self.gda[key].unit);
+				if(typeof ob1[key] !== "undefined"){
+					if(op=="+")
+						ob1[key]+=new_val;
+					else if(op=="-")
+						ob1[key]-=new_val;
+				}else
+					ob1[key]=new_val;
+			}
+			return ob1;
+		}
+		
+		this.shuffle=function(array){
+			var currentIndex = array.length, temporaryValue, randomIndex ;
+
+			// While there remain elements to shuffle...
+			while (0 !== currentIndex) {
+				// Pick a remaining element...
+				randomIndex = Math.floor(Math.random() * currentIndex);
+				currentIndex -= 1;
+
+				// And swap it with the current element.
+				temporaryValue = array[currentIndex];
+				array[currentIndex] = array[randomIndex];
+				array[randomIndex] = temporaryValue;
+			}
+			return array;
+		}
+
+		this.checkGda=function(gda, diet, listkeys){
+			for(listkey in listkeys){
+				key=listkeys[listkey];
+			//for(key in diet){
+				if(self.exclude.gda[key]==1)
+					continue;
+
+				//un ciclo produttivo dura mediamente 4 mesi quindi lo divido
+				if((diet[key]/(30*4))<gda[key].value)
+					return [key,"+"];
+			}
+			return true;
+		}
+
+		this.gda=this.getJson("gda.json");
+		this.food=this.getJson("food.json");
+		this.rese=this.getJson("rese.json");
+		this.exclude=this.getJson("exclude.json");
+	}
+
+	var EV=new efficientVegetable();
+
+	var button=$("#go");
+	button.click(function(event){
+		event.stopPropagation();
+		main();
+	});
+
+	availableTags = [];
+	for(var i in EV.rese){
+		availableTags.push(i);
+	}
+
+	$("#vegetables").autocomplete({
+		source: availableTags
+	});
+
+	function show_detail(vegkey, gda){
+		var vegetable = EV.food[vegkey];
+		$("#detail").html("<tr><td style='font-weight:bold;'>"+vegkey+"</td><td></td></tr><tr><td>Productivity</td><td>"+EV.rese[vegkey].value+' '+EV.rese[vegkey].unit+" per production cycle, generally 4 months</td></tr>");
+		for (var key in gda) {
+			if(key != "Ideal weight" && typeof vegetable[key] !== "undefined")
+				$("#detail").append("<tr><td>"+key+"</td><td>"+vegetable[key]+' '+gda[key].unit+" (Gda: "+Math.ceil(gda[key].value)+")</td></tr>");
+		}
+	}
+	
+	/*************************************************************************/
+	var list_random=false;
+	if(list_random){
+		var countcmain=0;
+		var cmain=0;
+		var old_cmain=0;
+		setInterval(function(){
+			if(cmain==old_cmain && cmain>=1){
+				countcmain++;
+				if(countcmain>=3){
+					countcmain=0;
+					cmain=0;
+					main();
+				}
+			}
+			old_cmain=cmain;
+		},5000);
+	}
+
+	function rowclass(count_row){
+		if(count_row%2==0)
+			return 'pari';
+		else
+			return 'dispari';
+	}
+	
+	function main(){
+		var gen=$('input[name=gen]:checked').val();
+		var extra=$('input[name=extra]:checked').val();
+		var age=parseInt($('input[name=age]').val());
+		var weight=parseInt($('input[name=weight]').val());
+		var height=parseInt($('input[name=height]').val());
+		var activity=$('select[name=activity]').val();
+
+		required = "";
+		if(typeof gen == "undefined"){ required += "Gender "; }
+		if(isNaN(age)){ required += "Age "; }
+		if(isNaN(weight)){ required += "Weight "; }
+		if(isNaN(height)){ required += "Height "; }
+		if(activity == ""){ required += "Activity "; }
+		
+		if(required != ""){
+			alert("Field required: "+required);
+			return false;
+		}
+
+		//get gda
+		var gda=EV.gdaCalculate(gen,age,weight,height,activity,extra);
+
+		//calcola i mq
+		var new_diet={};
+		var Mq={}, details={}, productives={};	
+
+		var mp=EV.getMostProductive("Protein");
+		productives["Protein"]=mp;
+		
+		//random list
+
+		var listkeys="α-LinolenicAcid,Vitamin B 12,Pantothenic Acid,Magnesium,Zinc,Protein,Vitamin B 6,Choline,Vitamin C,Potassium,Linoleic Acid,Selenium,Phosphorus,Vitamin A,Carbohydrate,Copper,Vitamin D,Fat,Water,Vitamin K,Sodium,Calcium,Iron,Calories,Thiamin,Vitamin E".split(",");
+
+		var listkeys="Pantothenic Acid,Zinc,Fat,Vitamin B 6,Potassium,Protein,Choline,Selenium,Copper,Calcium,Vitamin E,α-LinolenicAcid,Vitamin C,Carbohydrate,Phosphorus,Calories,Magnesium,Vitamin D,Vitamin B 12,Iron,Water,Sodium,Vitamin K,Vitamin A,Thiamin,Linoleic Acid".split(",");
+		
+		if(list_random)
+			listkeys=EV.shuffle(listkeys);
+		
+		new_diet=EV.merge_obj(new_diet, EV.food[mp[0]],"+");
+		while(1){
+			var check=EV.checkGda(gda, new_diet, listkeys);
+			if(check===true){
+				break;
+			}else{
+				if(typeof productives[check[0]] === "undefined"){
+					var mp=EV.getMostProductive(check[0]);
+					productives[check[0]]=mp;
+				} else
+					mp=productives[check[0]];
+				new_diet=EV.merge_obj(new_diet, EV.food[mp[0]],check[1]);
+
+				if(typeof Mq[mp[2]] === "undefined")
+					Mq[mp[2]]=0;
+				if(typeof details[mp[0]] === "undefined")
+					details[mp[0]]=0;
+				Mq[mp[2]]+=1;
+			}
+		}
+
+		//show
+		if(!list_random){
+			$("#mq").html("");
+			var tot=0;
+			var count_row = 1;
+			for (var key in Mq) {
+				var detail="";
+				for (var det in details)
+					if(det.indexOf(key)!=-1)
+						detail+=det+", ";
+
+				tot+=Mq[key];
+
+				//$("#mq").append("<tr><td>"+key+" ("+detail+")</td><td>"+Mq[key]+"mq</td></tr>");
+				$("#mq").append("<tr class='"+rowclass(count_row)+"'><td><a href='#detail' class='detail'>"+key+"</a></td><td>"+Mq[key]+" mq</td></tr>");
+				count_row++;
+			}
+			$("#mq").append("<tr class='"+rowclass(count_row)+"'><td><strong>Total</strong></td><td><strong>"+tot+" mq</strong></td></tr>");
+
+			$("#gda").html("");
+			for (var key in gda) {
+				//un ciclo produttivo dura mediamente 4 mesi quindi lo divido
+				if(key == "Ideal weight")
+					$("#gda").append("<tr><td>"+key+"</td><td>"+Math.ceil(gda[key].value)+' '+gda[key].unit+"</td></tr>");
+				else if(!isNaN(new_diet[key]))
+					$("#gda").append("<tr><td>"+key+"</td><td>"+Math.ceil(new_diet[key]/(30*4))+' '+gda[key].unit+" (Gda: "+Math.ceil(gda[key].value)+")</td></tr>");
+			}
+		}
+
+		$(document).delegate(".detail","click",function(){
+			show_detail($(this).text(),gda);
+		});
+
+		$("#vegetables_search_content").css("display","block");
+		$("#vegetables_search").click(function(){
+			show_detail($("#vegetables").val(),gda);
+		});
+		/*if(list_random){
+			var tot=0;
+			for (var key in Mq)
+				tot+=Mq[key];
+
+			$.ajax({
+				url: "http://localhost/orto/best_list.php",
+				method: "POST",
+				async:false,
+				data: { list : listkeys.join(), tot: tot },
+				/*success:function(e){alert(JSON.stringify(e));},
+				error:function(e){alert(JSON.stringify(e));}*/
+			/*});
+
+			cmain++;
+			//button.click();
+			main();
+		}*/
+	}
+})();
+</script>

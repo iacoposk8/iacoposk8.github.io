@@ -49,7 +49,7 @@ This project that I developed in 2014 allows you to calculate the smallest size 
 ---
 
 ## Pc charity
-logo pc charity
+![Logo pc charity](/img/charity.png)
 
 Pc charity is software that is used to do charity with the computer.
 It sounds too good to be true but that's it, is free and does not ask working hours, just turn on your computer Pc charity starts and taking advantage of the unused power of your computer generates money that will be donated to charity.
@@ -57,7 +57,7 @@ It sounds too good to be true but that's it, is free and does not ask working ho
 ---
 
 ## Fare rap
-logo fare rap
+![Logo fare rap](/img/farerap.png)
 
 Fare rap is a portal in Italian of rap and hip hop, which specializes in finding mc's and emerging producers.
 The site is several years that is online and has become increasingly important by the work of great bloggers who have become part of the team.
@@ -68,7 +68,7 @@ There are several services in addition to the blog, there is a forum, chat for f
 ---
 
 ## Joomla extension
-logo htm tool
+![Logo html tool](/img/logo_html_tool.png)
 
 In the-html-tool.com my old site, as well as various projects, I introduced the extensions of joomla.
 Working as a web developer, every now we needed extensions that do not exist, in that case the development and share them.

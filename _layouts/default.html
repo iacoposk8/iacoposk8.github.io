@@ -9,7 +9,7 @@
   <main id="content" class="main-content" role="main" {% if page.width %}style="max-width: {{ page.width }}px;"{% endif %}>
     {{ content }}
   </main>
-  {% if !page.nofooter  %}
+  {% if page.nofooter == nil  %}
   <footer class="site-footer">
     {% assign year = 'now' | date: '%Y' %}
     © {{ year }} Iacopo Guarneri. All rights reserved.<br />

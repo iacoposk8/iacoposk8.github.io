@@ -5,6 +5,8 @@ title: Projects
 ## Best country to live in
 I took different indices such as peace, temperature, purchasing power, welfare, health system, education etc. and making an average I created a map and a table with the ranking of the best countries to live.
 
+<a href="/projects/best-country" class="btn btn-primary btn-xl">Search</a>
+
 ---
 
 ## Smartphone - Apple Vs other brands

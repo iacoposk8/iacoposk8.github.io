@@ -53,6 +53,22 @@ button, input[type="submit"]{
 <script src="https://cdn.datatables.net/fixedheader/3.2.3/js/dataTables.fixedHeader.min.js"></script>
 <script src="https://cdn.datatables.net/fixedcolumns/4.1.0/js/dataTables.fixedColumns.min.js"></script>
 
+<!-- HTML -->
+<div id="chartdiv"></div>
+
+<div id="form">
+	<p class="translate" attr-translate="search_description"></p>
+	<input type="radio" name="partial" value="0" /> 
+	<span class="translate" attr-translate="all_data"></span><br />
+	<input type="radio" name="partial" value="1" checked /> 
+	<span class="translate" attr-translate="partial_data"></span>
+	<br />
+	<table></table>
+	<button onclick="show()">Send</button>
+</div>
+
+<div id="table_container"></div>
+
 <script>
 const database = [
 {"type":"header","version":"4.8.5","comment":"Export to JSON plugin for PHPMyAdmin"},
@@ -2096,7 +2112,6 @@ function show(){
 
 	let tableContainer = document.getElementById('table_container');
 	tableContainer.innerHTML = '<table id="example" class="display" style="width:100%"><thead><tr id="header_row" height="95"><th>State</th><th>Score</th></tr></thead><tbody></tbody><tfoot><tr><th>State</th><th>Score</th></tr></tfoot></table>';
-	document.body.appendChild(tableContainer);
 
 	let theadRow = tableContainer.querySelector('#header_row');
 
@@ -2346,19 +2361,3 @@ $(document).ready(function () {
 	show();
 });
 </script>
-
-<!-- HTML -->
-<div id="chartdiv"></div>
-
-<div id="form">
-	<p class="translate" attr-translate="search_description"></p>
-	<input type="radio" name="partial" value="0" /> 
-	<span class="translate" attr-translate="all_data"></span><br />
-	<input type="radio" name="partial" value="1" checked /> 
-	<span class="translate" attr-translate="partial_data"></span>
-	<br />
-	<table></table>
-	<button onclick="show()">Send</button>
-</div>
-
-<div id="table_container"></div>

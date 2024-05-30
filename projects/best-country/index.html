@@ -40,8 +40,6 @@ button, input[type="submit"]{
 }
 </style>
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
 <!-- Resources -->
 <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
 <script src="https://cdn.amcharts.com/lib/5/map.js"></script>
@@ -54,22 +52,6 @@ button, input[type="submit"]{
 
 <script src="https://cdn.datatables.net/fixedheader/3.2.3/js/dataTables.fixedHeader.min.js"></script>
 <script src="https://cdn.datatables.net/fixedcolumns/4.1.0/js/dataTables.fixedColumns.min.js"></script>
-
-<!-- HTML -->
-<div id="chartdiv"></div>
-
-<div id="form">
-	<p class="translate" attr-translate="search_description"></p>
-	<input type="radio" name="partial" value="0" /> 
-	<span class="translate" attr-translate="all_data"></span><br />
-	<input type="radio" name="partial" value="1" checked /> 
-	<span class="translate" attr-translate="partial_data"></span>
-	<br />
-	<table></table>
-	<button onclick="show()">Send</button>
-</div>
-
-<div id="table_container"></div>
 
 <script>
 const database = [
@@ -2364,3 +2346,19 @@ $(document).ready(function () {
 	show();
 });
 </script>
+
+<!-- HTML -->
+<div id="chartdiv"></div>
+
+<div id="form">
+	<p class="translate" attr-translate="search_description"></p>
+	<input type="radio" name="partial" value="0" /> 
+	<span class="translate" attr-translate="all_data"></span><br />
+	<input type="radio" name="partial" value="1" checked /> 
+	<span class="translate" attr-translate="partial_data"></span>
+	<br />
+	<table></table>
+	<button onclick="show()">Send</button>
+</div>
+
+<div id="table_container"></div>

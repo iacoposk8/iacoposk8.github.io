@@ -1,0 +1,2367 @@
+---
+layout: default
+title: Best country to live in
+---
+
+<!-- Styles -->
+<style>
+*{
+	font-family: arial;
+}
+#chartdiv {
+  width: 100%;
+  height: 500px;
+}
+#form{
+	width: 100%;
+	max-width: 500px;
+}
+#form{
+	clear: left;
+	margin: 50px auto 20px auto;
+	padding-top: 50px;
+}
+#form p{
+	font-weight: bold;
+	font-size: 16px;
+}
+#header_row, .header_col{
+	background: #fff;
+}
+button, input[type="submit"]{
+	background: #3498db;
+	color: #fff;
+	border: 1px solid #004c80;
+	font-size: 20px;
+	border-radius: 3px;
+	padding: 5px 20px;
+	text-align: center;
+	cursor: pointer;
+}
+</style>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Resources -->
+<script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/map.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/geodata/worldLow.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+
+<script src="https://code.jquery.com/jquery-3.5.0.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.12.0/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.12.0/js/jquery.dataTables.min.js"></script>
+
+<script src="https://cdn.datatables.net/fixedheader/3.2.3/js/dataTables.fixedHeader.min.js"></script>
+<script src="https://cdn.datatables.net/fixedcolumns/4.1.0/js/dataTables.fixedColumns.min.js"></script>
+
+<!-- HTML -->
+<div id="chartdiv"></div>
+
+<div id="hidemap">
+<div id="form">
+	<p class="translate" attr-translate="search_description"></p>
+	<input type="radio" name="partial" value="0" /> 
+	<span class="translate" attr-translate="all_data"></span><br />
+	<input type="radio" name="partial" value="1" checked /> 
+	<span class="translate" attr-translate="partial_data"></span>
+	<br />
+	<table></table>
+	<button onclick="show()">Send</button>
+</div>
+
+<div id="table_container"></div>
+
+<script>
+const database = [
+{"type":"header","version":"4.8.5","comment":"Export to JSON plugin for PHPMyAdmin"},
+{"type":"database","name":"iacopoguarneri_projects_world"},
+{"type":"table","name":"Anxiety","database":"iacopoguarneri_projects_world","data":
+[
+{"state":"Afghanistan","score":"5.0337272904394"},
+{"state":"African Region (WHO)","score":"3.5930880333776"},
+{"state":"Albania","score":"4.0992772546705"},
+{"state":"Algeria","score":"5.0529413325420"},
+{"state":"American Samoa","score":"4.2544952119650"},
+{"state":"Andorra","score":"6.0083341784190"},
+{"state":"Angola","score":"4.0102139000410"},
+{"state":"Antigua and Barbuda","score":"4.5412806343865"},
+{"state":"Argentina","score":"5.3559304144904"},
+{"state":"Armenia","score":"3.3665382949015"},
+{"state":"Australia","score":"6.4060481593850"},
+{"state":"Austria","score":"6.5818541408061"},
+{"state":"Azerbaijan","score":"2.6424851184137"},
+{"state":"Bahamas","score":"4.5605268076359"},
+{"state":"Bahrain","score":"5.1519617196234"},
+{"state":"Bangladesh","score":"3.2738968254495"},
+{"state":"Barbados","score":"4.5551700938286"},
+{"state":"Belarus","score":"3.7597861899126"},
+{"state":"Belgium","score":"5.5528451607076"},
+{"state":"Belize","score":"4.3693323693561"},
+{"state":"Benin","score":"3.2920958784289"},
+{"state":"Bermuda","score":"4.5905363555291"},
+{"state":"Bhutan","score":"3.3751477440124"},
+{"state":"Bolivia","score":"5.9889241170740"},
+{"state":"Bosnia and Herzegovina","score":"3.7810819297812"},
+{"state":"Botswana","score":"3.7185296600777"},
+{"state":"Brazil","score":"7.7735376913478"},
+{"state":"Brunei","score":"3.0939462353718"},
+{"state":"Bulgaria","score":"3.6354078595928"},
+{"state":"Burkina Faso","score":"3.1549623230479"},
+{"state":"Burundi","score":"3.7066771073247"},
+{"state":"Cambodia","score":"4.7149224452558"},
+{"state":"Cameroon","score":"3.2848869133595"},
+{"state":"Canada","score":"4.7735808666889"},
+{"state":"Cape Verde","score":"3.2331910547111"},
+{"state":"Central African Republic","score":"4.4532927973974"},
+{"state":"Chad","score":"3.4293268617313"},
+{"state":"Chile","score":"5.9240082566720"},
+{"state":"China","score":"3.3863834841871"},
+{"state":"Colombia","score":"4.9807438914910"},
+{"state":"Comoros","score":"3.6822753471921"},
+{"state":"Congo","score":"3.8115814351542"},
+{"state":"Cook Islands","score":"4.3089351609609"},
+{"state":"Costa Rica","score":"4.4672887202005"},
+{"state":"Cote d'Ivoire","score":"3.3030889494409"},
+{"state":"Croatia","score":"3.8675396681388"},
+{"state":"Cuba","score":"4.4902486999014"},
+{"state":"Cyprus","score":"7.0146898100546"},
+{"state":"Czechia","score":"3.4029517274143"},
+{"state":"Democratic Republic of Congo","score":"3.8549561114137"},
+{"state":"Denmark","score":"5.3887199287464"},
+{"state":"Djibouti","score":"3.3860918414178"},
+{"state":"Dominica","score":"4.4947306670476"},
+{"state":"Dominican Republic","score":"4.7072954702266"},
+{"state":"East Asia & Pacific (WB)","score":"3.4472734785359"},
+{"state":"Eastern Mediterranean Region (WHO)","score":"4.8442592718207"},
+{"state":"Ecuador","score":"5.5134490971979"},
+{"state":"Egypt","score":"4.8073338019876"},
+{"state":"El Salvador","score":"4.6526841123100"},
+{"state":"England","score":"4.8680813416937"},
+{"state":"Equatorial Guinea","score":"3.8903775186017"},
+{"state":"Eritrea","score":"3.8452720821671"},
+{"state":"Estonia","score":"3.6508687662224"},
+{"state":"Eswatini","score":"3.6229978639600"},
+{"state":"Ethiopia","score":"3.5361734345547"},
+{"state":"Europe & Central Asia (WB)","score":"4.7013333701571"},
+{"state":"European Region (WHO)","score":"4.6946703588270"},
+{"state":"Fiji","score":"4.2015056749252"},
+{"state":"Finland","score":"4.3850726060105"},
+{"state":"France","score":"6.9110112800599"},
+{"state":"G20","score":"3.8761751162301"},
+{"state":"Gabon","score":"4.0594323132103"},
+{"state":"Gambia","score":"3.4059864149164"},
+{"state":"Georgia","score":"2.6601879720839"},
+{"state":"Germany","score":"6.8054827231503"},
+{"state":"Ghana","score":"3.0706063966089"},
+{"state":"Greece","score":"6.3092896037493"},
+{"state":"Greenland","score":"5.2961891663154"},
+{"state":"Grenada","score":"4.4797732241948"},
+{"state":"Guam","score":"4.2205099369443"},
+{"state":"Guatemala","score":"4.4573760254265"},
+{"state":"Guinea","score":"3.3932863784685"},
+{"state":"Guinea-Bissau","score":"3.1538569550573"},
+{"state":"Guyana","score":"4.5346160899001"},
+{"state":"Haiti","score":"4.7390553236649"},
+{"state":"Honduras","score":"4.2653218621000"},
+{"state":"Hungary","score":"3.6681436482188"},
+{"state":"Iceland","score":"5.6009852219542"},
+{"state":"India","score":"3.0397474100825"},
+{"state":"Indonesia","score":"3.6987737858195"},
+{"state":"Iran","score":"7.6197482865434"},
+{"state":"Iraq","score":"5.6046671115239"},
+{"state":"Ireland","score":"7.6153096101256"},
+{"state":"Israel","score":"4.0480371642162"},
+{"state":"Italy","score":"5.9782458837673"},
+{"state":"Jamaica","score":"4.2350829520124"},
+{"state":"Japan","score":"2.5370936236803"},
+{"state":"Jordan","score":"5.2301540778761"},
+{"state":"Kazakhstan","score":"2.2590559175893"},
+{"state":"Kenya","score":"3.5199281558449"},
+{"state":"Kiribati","score":"4.2206236748900"},
+{"state":"Kuwait","score":"4.9244586662714"},
+{"state":"Kyrgyzstan","score":"2.1825224452700"},
+{"state":"Laos","score":"4.7489304044739"},
+{"state":"Latin America & Caribbean (WB)","score":"5.7623266953245"},
+{"state":"Latvia","score":"4.0495149213792"},
+{"state":"Lebanon","score":"6.4245247248658"},
+{"state":"Lesotho","score":"3.7021639483358"},
+{"state":"Liberia","score":"3.5480277809371"},
+{"state":"Libya","score":"5.5621078782844"},
+{"state":"Lithuania","score":"4.5771271484017"},
+{"state":"Luxembourg","score":"5.8101094963089"},
+{"state":"Madagascar","score":"4.0703678779878"},
+{"state":"Malawi","score":"3.9574161786154"},
+{"state":"Malaysia","score":"4.8788309407139"},
+{"state":"Maldives","score":"3.7441243165575"},
+{"state":"Mali","score":"2.7742048513909"},
+{"state":"Malta","score":"6.8708229628611"},
+{"state":"Marshall Islands","score":"4.1660908139302"},
+{"state":"Mauritania","score":"2.8218420460349"},
+{"state":"Mauritius","score":"3.9636303051095"},
+{"state":"Mexico","score":"3.7430921535811"},
+{"state":"Micronesia (country)","score":"4.1897614317295"},
+{"state":"Middle East & North Africa (WB)","score":"5.5336532430261"},
+{"state":"Moldova","score":"4.3646621369529"},
+{"state":"Monaco","score":"6.0577013428313"},
+{"state":"Mongolia","score":"2.2697367623473"},
+{"state":"Montenegro","score":"3.9333624841448"},
+{"state":"Morocco","score":"5.0285240092007"},
+{"state":"Mozambique","score":"4.1109718213439"},
+{"state":"Myanmar","score":"4.0948016026516"},
+{"state":"Namibia","score":"3.6114467862732"},
+{"state":"Nauru","score":"4.2400430064297"},
+{"state":"Nepal","score":"3.3887520538145"},
+{"state":"Netherlands","score":"7.4492927088679"},
+{"state":"New Zealand","score":"8.0374198928438"},
+{"state":"Nicaragua","score":"4.6276700551671"},
+{"state":"Niger","score":"3.0160289836135"},
+{"state":"Nigeria","score":"3.0341083228709"},
+{"state":"Niue","score":"4.2291048586568"},
+{"state":"North America (WB)","score":"6.0260553226192"},
+{"state":"North Korea","score":"3.8163105864782"},
+{"state":"North Macedonia","score":"3.8517898248690"},
+{"state":"Northern Ireland","score":"7.0654105498182"},
+{"state":"Northern Mariana Islands","score":"4.2145287664716"},
+{"state":"Norway","score":"7.3015497030247"},
+{"state":"OECD Countries","score":"5.1770024357731"},
+{"state":"Oman","score":"4.8035267182436"},
+{"state":"Pakistan","score":"3.6101828781820"},
+{"state":"Palau","score":"4.1517577705912"},
+{"state":"Palestine","score":"5.8542839049820"},
+{"state":"Panama","score":"3.8846462076782"},
+{"state":"Papua New Guinea","score":"4.0821328658099"},
+{"state":"Paraguay","score":"6.6540150542934"},
+{"state":"Peru","score":"5.8396874171628"},
+{"state":"Philippines","score":"4.7454851338326"},
+{"state":"Poland","score":"3.3506431437047"},
+{"state":"Portugal","score":"8.7911725806259"},
+{"state":"Puerto Rico","score":"4.6904779727872"},
+{"state":"Qatar","score":"4.5442940080786"},
+{"state":"Region of the Americas (WHO)","score":"5.8414757542243"},
+{"state":"Romania","score":"3.5130423308286"},
+{"state":"Russia","score":"3.3797960305704"},
+{"state":"Rwanda","score":"3.7661379710916"},
+{"state":"Saint Kitts and Nevis","score":"4.5515326145821"},
+{"state":"Saint Lucia","score":"4.5103917658974"},
+{"state":"Saint Vincent and the Grenadines","score":"4.4831578425343"},
+{"state":"Samoa","score":"4.2031116207867"},
+{"state":"San Marino","score":"6.0927384482635"},
+{"state":"Sao Tome and Principe","score":"3.1870084699065"},
+{"state":"Saudi Arabia","score":"4.7721840240471"},
+{"state":"Scotland","score":"4.5683276484864"},
+{"state":"Senegal","score":"2.9464022393902"},
+{"state":"Serbia","score":"3.5731329747123"},
+{"state":"Seychelles","score":"3.9441887997032"},
+{"state":"Sierra Leone","score":"3.7162479956978"},
+{"state":"Singapore","score":"2.9702854233795"},
+{"state":"Slovakia","score":"3.6829668512271"},
+{"state":"Slovenia","score":"3.6615956603229"},
+{"state":"Solomon Islands","score":"4.1398589370248"},
+{"state":"Somalia","score":"3.3342364420312"},
+{"state":"South Africa","score":"3.9236740599726"},
+{"state":"South Asia (WB)","score":"3.1828632844979"},
+{"state":"South Korea","score":"3.4945065171672"},
+{"state":"South Sudan","score":"5.0836199700662"},
+{"state":"South-East Asia Region (WHO)","score":"3.2066252108625"},
+{"state":"Spain","score":"5.3645227001094"},
+{"state":"Sri Lanka","score":"4.2451747474878"},
+{"state":"Sub-Saharan Africa (WB)","score":"3.5840598296181"},
+{"state":"Sudan","score":"4.9418465803700"},
+{"state":"Suriname","score":"4.3162024285552"},
+{"state":"Sweden","score":"5.2104654953992"},
+{"state":"Switzerland","score":"7.4854009709279"},
+{"state":"Syria","score":"5.9080156255579"},
+{"state":"Taiwan","score":"3.9603079550627"},
+{"state":"Tajikistan","score":"2.5369027190969"},
+{"state":"Tanzania","score":"3.9099930544132"},
+{"state":"Thailand","score":"3.5726614017670"},
+{"state":"Timor","score":"3.9064955361745"},
+{"state":"Togo","score":"3.6550440418115"},
+{"state":"Tokelau","score":"4.1859176721431"},
+{"state":"Tonga","score":"4.2548968950437"},
+{"state":"Trinidad and Tobago","score":"4.0817017101719"},
+{"state":"Tunisia","score":"5.4652815442559"},
+{"state":"Turkey","score":"4.7587273014724"},
+{"state":"Turkmenistan","score":"2.4946772866777"},
+{"state":"Tuvalu","score":"4.1733518380444"},
+{"state":"Uganda","score":"4.1474374531939"},
+{"state":"Ukraine","score":"3.3784110041537"},
+{"state":"United Arab Emirates","score":"4.4607878197047"},
+{"state":"United Kingdom","score":"4.8982193394605"},
+{"state":"United States","score":"6.1635639462782"},
+{"state":"United States Virgin Islands","score":"4.6142398393815"},
+{"state":"Uruguay","score":"5.5774935937660"},
+{"state":"Uzbekistan","score":"2.1403563815487"},
+{"state":"Vanuatu","score":"4.1467813074394"},
+{"state":"Venezuela","score":"4.1844643967712"},
+{"state":"Vietnam","score":"2.3891140605377"},
+{"state":"Wales","score":"4.6728826286172"},
+{"state":"Western Pacific Region (WHO)","score":"3.4142131472074"},
+{"state":"World","score":"3.9447847752481"},
+{"state":"World Bank High Income","score":"5.3106348917249"},
+{"state":"World Bank Low Income","score":"3.7631916634758"},
+{"state":"World Bank Lower Middle Income","score":"3.4351148897529"},
+{"state":"World Bank Upper Middle Income","score":"4.1814231071927"},
+{"state":"Yemen","score":"4.9269274302382"},
+{"state":"Zambia","score":"4.0465255581278"},
+{"state":"Zimbabwe","score":"3.2839337292205"}
+]
+}
+,{"type":"table","name":"Depression","database":"iacopoguarneri_projects_world","data":
+[
+{"state":"Afghanistan","score":"5.1314577139488"},
+{"state":"African Region (WHO)","score":"4.5920064795266"},
+{"state":"Albania","score":"2.6279891559461"},
+{"state":"Algeria","score":"4.3729172070715"},
+{"state":"American Samoa","score":"2.7973177075246"},
+{"state":"Andorra","score":"3.9743956665765"},
+{"state":"Angola","score":"5.8553903260195"},
+{"state":"Antigua and Barbuda","score":"3.1734639429596"},
+{"state":"Argentina","score":"2.5877136765478"},
+{"state":"Armenia","score":"3.1881737579699"},
+{"state":"Australia","score":"4.8278465171509"},
+{"state":"Austria","score":"3.4246485053405"},
+{"state":"Azerbaijan","score":"2.9359258150536"},
+{"state":"Bahamas","score":"3.2113212001831"},
+{"state":"Bahrain","score":"4.7245156171871"},
+{"state":"Bangladesh","score":"4.7548840455448"},
+{"state":"Barbados","score":"3.3446159672643"},
+{"state":"Belarus","score":"4.1282525431855"},
+{"state":"Belgium","score":"3.8968730078834"},
+{"state":"Belize","score":"3.4556478928828"},
+{"state":"Benin","score":"4.5350396313611"},
+{"state":"Bermuda","score":"3.3694009347638"},
+{"state":"Bhutan","score":"4.1569960534179"},
+{"state":"Bolivia","score":"3.5465177101150"},
+{"state":"Bosnia and Herzegovina","score":"2.9529462197921"},
+{"state":"Botswana","score":"4.4551804125344"},
+{"state":"Brazil","score":"3.9880242717976"},
+{"state":"Brunei","score":"1.7361380335192"},
+{"state":"Bulgaria","score":"2.8802642738757"},
+{"state":"Burkina Faso","score":"4.4320286605208"},
+{"state":"Burundi","score":"4.7932667088365"},
+{"state":"Cambodia","score":"3.0372126598916"},
+{"state":"Cameroon","score":"4.7268061763751"},
+{"state":"Canada","score":"3.6354613096921"},
+{"state":"Cape Verde","score":"5.0748340355096"},
+{"state":"Central African Republic","score":"5.9880671810854"},
+{"state":"Chad","score":"5.2243333446583"},
+{"state":"Chile","score":"3.9517579490812"},
+{"state":"China","score":"2.9153307294570"},
+{"state":"Colombia","score":"2.3514431279268"},
+{"state":"Comoros","score":"4.4162975504928"},
+{"state":"Congo","score":"5.6364699658608"},
+{"state":"Cook Islands","score":"3.3336102902381"},
+{"state":"Costa Rica","score":"3.4216817283580"},
+{"state":"Cote d'Ivoire","score":"4.0113798909077"},
+{"state":"Croatia","score":"3.2355924478239"},
+{"state":"Cuba","score":"4.0202143585474"},
+{"state":"Cyprus","score":"3.3763204117322"},
+{"state":"Czechia","score":"3.1061755901738"},
+{"state":"Democratic Republic of Congo","score":"5.4998788140139"},
+{"state":"Denmark","score":"3.8509454061073"},
+{"state":"Djibouti","score":"4.6415060648583"},
+{"state":"Dominica","score":"3.2398427146385"},
+{"state":"Dominican Republic","score":"3.9989360449208"},
+{"state":"East Asia & Pacific (WB)","score":"2.8291104716406"},
+{"state":"Eastern Mediterranean Region (WHO)","score":"4.4603016891210"},
+{"state":"Ecuador","score":"3.5104524310436"},
+{"state":"Egypt","score":"4.1277903920821"},
+{"state":"El Salvador","score":"3.5950761133051"},
+{"state":"England","score":"4.5166564352402"},
+{"state":"Equatorial Guinea","score":"5.8576948526181"},
+{"state":"Eritrea","score":"4.9877667817272"},
+{"state":"Estonia","score":"3.9910732091900"},
+{"state":"Eswatini","score":"4.5916053843397"},
+{"state":"Ethiopia","score":"4.7443822695756"},
+{"state":"Europe & Central Asia (WB)","score":"3.7891333368176"},
+{"state":"European Region (WHO)","score":"3.7931618519089"},
+{"state":"Fiji","score":"3.0345476673447"},
+{"state":"Finland","score":"4.5456509013429"},
+{"state":"France","score":"4.2251002636805"},
+{"state":"G20","score":"3.4081964730038"},
+{"state":"Gabon","score":"5.6493648347451"},
+{"state":"Gambia","score":"5.6568528657047"},
+{"state":"Georgia","score":"3.5432551829626"},
+{"state":"Germany","score":"3.7017843031307"},
+{"state":"Ghana","score":"4.4639383398551"},
+{"state":"Greece","score":"5.5049909914716"},
+{"state":"Greenland","score":"6.3646151632487"},
+{"state":"Grenada","score":"3.3841243033797"},
+{"state":"Guam","score":"3.3617990996131"},
+{"state":"Guatemala","score":"3.8350239044395"},
+{"state":"Guinea","score":"4.4444137843338"},
+{"state":"Guinea-Bissau","score":"4.5820457842433"},
+{"state":"Guyana","score":"5.0999648914175"},
+{"state":"Haiti","score":"3.7165124429195"},
+{"state":"Honduras","score":"3.2896057249750"},
+{"state":"Hungary","score":"3.0399894543226"},
+{"state":"Iceland","score":"3.2227335813350"},
+{"state":"India","score":"3.7490340912525"},
+{"state":"Indonesia","score":"2.5212566215211"},
+{"state":"Iran","score":"5.0959540073134"},
+{"state":"Iraq","score":"4.1292151860685"},
+{"state":"Ireland","score":"4.6489296406293"},
+{"state":"Israel","score":"4.4680956028174"},
+{"state":"Italy","score":"3.8279089534577"},
+{"state":"Jamaica","score":"3.2010296501342"},
+{"state":"Japan","score":"2.2960088133318"},
+{"state":"Jordan","score":"4.4015415867801"},
+{"state":"Kazakhstan","score":"3.6744786855540"},
+{"state":"Kenya","score":"4.8639715599614"},
+{"state":"Kiribati","score":"3.0590787084691"},
+{"state":"Kuwait","score":"4.3468302320889"},
+{"state":"Kyrgyzstan","score":"3.5829635486190"},
+{"state":"Laos","score":"2.8540455885148"},
+{"state":"Latin America & Caribbean (WB)","score":"3.5283399513967"},
+{"state":"Latvia","score":"4.0493271599828"},
+{"state":"Lebanon","score":"4.9400556418035"},
+{"state":"Lesotho","score":"5.7390111963754"},
+{"state":"Liberia","score":"4.6100723035392"},
+{"state":"Libya","score":"4.6032643132294"},
+{"state":"Lithuania","score":"4.2942013139908"},
+{"state":"Luxembourg","score":"3.5446075793440"},
+{"state":"Madagascar","score":"4.8652352870188"},
+{"state":"Malawi","score":"4.2193258277084"},
+{"state":"Malaysia","score":"3.8858338229442"},
+{"state":"Maldives","score":"3.0460766220369"},
+{"state":"Mali","score":"3.6040291349385"},
+{"state":"Malta","score":"3.4436310305354"},
+{"state":"Marshall Islands","score":"2.9949867146051"},
+{"state":"Mauritania","score":"3.7564829117139"},
+{"state":"Mauritius","score":"3.9529504032474"},
+{"state":"Mexico","score":"3.7671148215294"},
+{"state":"Micronesia (country)","score":"3.0220602772010"},
+{"state":"Middle East & North Africa (WB)","score":"4.6105029020717"},
+{"state":"Moldova","score":"3.4465355029838"},
+{"state":"Monaco","score":"4.4666506722341"},
+{"state":"Mongolia","score":"4.1977760356531"},
+{"state":"Montenegro","score":"3.0294395298219"},
+{"state":"Morocco","score":"5.3206557292613"},
+{"state":"Mozambique","score":"5.0863810645064"},
+{"state":"Myanmar","score":"2.2582559507850"},
+{"state":"Namibia","score":"3.7403208988405"},
+{"state":"Nauru","score":"3.2921877585550"},
+{"state":"Nepal","score":"5.0642615677650"},
+{"state":"Netherlands","score":"3.8979066440067"},
+{"state":"New Zealand","score":"4.1207560695922"},
+{"state":"Nicaragua","score":"3.4501598068548"},
+{"state":"Niger","score":"4.3039696008778"},
+{"state":"Nigeria","score":"3.8714164958679"},
+{"state":"Niue","score":"3.3021419614826"},
+{"state":"North America (WB)","score":"4.6279431713263"},
+{"state":"North Korea","score":"2.8283088845948"},
+{"state":"North Macedonia","score":"2.7571779731329"},
+{"state":"Northern Ireland","score":"4.6145868880155"},
+{"state":"Northern Mariana Islands","score":"2.9259799822521"},
+{"state":"Norway","score":"3.5102348681894"},
+{"state":"OECD Countries","score":"3.9453110877030"},
+{"state":"Oman","score":"4.1280719740367"},
+{"state":"Pakistan","score":"4.0968829455565"},
+{"state":"Palau","score":"3.2495468808821"},
+{"state":"Palestine","score":"6.5438149836323"},
+{"state":"Panama","score":"3.1200514212431"},
+{"state":"Papua New Guinea","score":"3.1396172412330"},
+{"state":"Paraguay","score":"3.8991759098723"},
+{"state":"Peru","score":"2.3264160156145"},
+{"state":"Philippines","score":"2.8901311065898"},
+{"state":"Poland","score":"2.4761203203531"},
+{"state":"Portugal","score":"4.8122532478396"},
+{"state":"Puerto Rico","score":"3.0437571262896"},
+{"state":"Qatar","score":"4.2113387233572"},
+{"state":"Region of the Americas (WHO)","score":"3.8368672033326"},
+{"state":"Romania","score":"2.8335989841878"},
+{"state":"Russia","score":"3.3217931124933"},
+{"state":"Rwanda","score":"5.2542761340829"},
+{"state":"Saint Kitts and Nevis","score":"4.1482115227155"},
+{"state":"Saint Lucia","score":"3.4728420851702"},
+{"state":"Saint Vincent and the Grenadines","score":"3.5116334576485"},
+{"state":"Samoa","score":"2.9247924560659"},
+{"state":"San Marino","score":"4.4982025609353"},
+{"state":"Sao Tome and Principe","score":"3.8337091466801"},
+{"state":"Saudi Arabia","score":"4.4177170394391"},
+{"state":"Scotland","score":"4.2666428316559"},
+{"state":"Senegal","score":"4.1031807387532"},
+{"state":"Serbia","score":"3.0155577667920"},
+{"state":"Seychelles","score":"2.7908218131317"},
+{"state":"Sierra Leone","score":"4.4556246526816"},
+{"state":"Slovakia","score":"2.8977200823665"},
+{"state":"Slovenia","score":"3.3656394642704"},
+{"state":"Solomon Islands","score":"3.0869386304516"},
+{"state":"Somalia","score":"4.9375545628747"},
+{"state":"South Africa","score":"4.4548217091166"},
+{"state":"South Asia (WB)","score":"3.9077673740483"},
+{"state":"South Sudan","score":"4.8509668187616"},
+{"state":"South-East Asia Region (WHO)","score":"3.5809459374537"},
+{"state":"Spain","score":"5.1916511749221"},
+{"state":"Sri Lanka","score":"3.0151471793310"},
+{"state":"Sub-Saharan Africa (WB)","score":"4.6250758598631"},
+{"state":"Sudan","score":"4.6056701515075"},
+{"state":"Suriname","score":"4.8855379065332"},
+{"state":"Sweden","score":"4.4730403148074"},
+{"state":"Switzerland","score":"4.0847102363463"},
+{"state":"Syria","score":"4.3543916244492"},
+{"state":"Taiwan","score":"2.7704066517933"},
+{"state":"Tajikistan","score":"2.9735928682030"},
+{"state":"Tanzania","score":"4.7701383086341"},
+{"state":"Thailand","score":"2.9918567389048"},
+{"state":"Timor","score":"2.8866669971293"},
+{"state":"Togo","score":"4.5791895694315"},
+{"state":"Tokelau","score":"3.2642426953147"},
+{"state":"Tonga","score":"2.8221258269100"},
+{"state":"Trinidad and Tobago","score":"4.0343328611515"},
+{"state":"Tunisia","score":"5.3439511289651"},
+{"state":"Turkey","score":"4.1564052488970"},
+{"state":"Turkmenistan","score":"3.2492501348577"},
+{"state":"Tuvalu","score":"3.2546388495051"},
+{"state":"Uganda","score":"6.6931466606814"},
+{"state":"Ukraine","score":"4.2024326310097"},
+{"state":"United Arab Emirates","score":"3.7620558868544"},
+{"state":"United Kingdom","score":"4.5000008789763"},
+{"state":"United States","score":"4.7337612459508"},
+{"state":"United States Virgin Islands","score":"3.5484204263341"},
+{"state":"Uruguay","score":"3.0744039219680"},
+{"state":"Uzbekistan","score":"3.3436066324369"},
+{"state":"Vanuatu","score":"3.0611794586135"},
+{"state":"Venezuela","score":"3.3634811574109"},
+{"state":"Vietnam","score":"2.5831525229016"},
+{"state":"Wales","score":"4.5476007254781"},
+{"state":"Western Pacific Region (WHO)","score":"2.8663606248943"},
+{"state":"World","score":"3.5904871529820"},
+{"state":"World Bank High Income","score":"3.9576195877883"},
+{"state":"World Bank Low Income","score":"4.7636023775293"},
+{"state":"World Bank Lower Middle Income","score":"3.7225775015647"},
+{"state":"World Bank Upper Middle Income","score":"3.3229327727066"},
+{"state":"Yemen","score":"5.0419758984029"},
+{"state":"Zambia","score":"4.3017091523376"},
+{"state":"Zimbabwe","score":"3.5545708659722"}
+]
+}
+,{"type":"table","name":"GlobalPeaceIndex","database":"iacopoguarneri_projects_world","data":
+[
+{"state":"Iceland","score":"1.100"},
+{"state":"New Zealand","score":"1.253"},
+{"state":"Denmark","score":"1.256"},
+{"state":"Portugal","score":"1.267"},
+{"state":"Slovenia","score":"1.315"},
+{"state":"Austria","score":"1.317"},
+{"state":"Switzerland","score":"1.323"},
+{"state":"Ireland","score":"1.326"},
+{"state":"Czech Republic","score":"1.329"},
+{"state":"Canada","score":"1.330"},
+{"state":"Singapore","score":"1.347"},
+{"state":"Japan","score":"1.373"},
+{"state":"Finland","score":"1.402"},
+{"state":"Norway","score":"1.438"},
+{"state":"Sweden","score":"1.460"},
+{"state":"Australia","score":"1.470"},
+{"state":"Croatia","score":"1.480"},
+{"state":"Germany","score":"1.480"},
+{"state":"Hungary","score":"1.494"},
+{"state":"Belgium","score":"1.496"},
+{"state":"Netherlands","score":"1.506"},
+{"state":"Bhutan","score":"1.510"},
+{"state":"Malaysia","score":"1.515"},
+{"state":"Poland","score":"1.524"},
+{"state":"Romania","score":"1.530"},
+{"state":"Slovakia","score":"1.557"},
+{"state":"Bulgaria","score":"1.577"},
+{"state":"Mauritius","score":"1.592"},
+{"state":"Qatar","score":"1.605"},
+{"state":"Estonia","score":"1.612"},
+{"state":"Spain","score":"1.621"},
+{"state":"Italy","score":"1.652"},
+{"state":"United Kingdom","score":"1.658"},
+{"state":"Taiwan","score":"1.662"},
+{"state":"Latvia","score":"1.686"},
+{"state":"Kuwait","score":"1.688"},
+{"state":"Lithuania","score":"1.689"},
+{"state":"Ghana","score":"1.715"},
+{"state":"Costa Rica","score":"1.735"},
+{"state":"North Macedonia","score":"1.744"},
+{"state":"Botswana","score":"1.753"},
+{"state":"Indonesia","score":"1.783"},
+{"state":"Mongolia","score":"1.783"},
+{"state":"Serbia","score":"1.797"},
+{"state":"Laos","score":"1.809"},
+{"state":"Sierra Leone","score":"1.813"},
+{"state":"Uruguay","score":"1.817"},
+{"state":"Albania","score":"1.824"},
+{"state":"Chile","score":"1.831"},
+{"state":"Vietnam","score":"1.835"},
+{"state":"Montenegro","score":"1.847"},
+{"state":"United Arab Emirates","score":"1.848"},
+{"state":"The Gambia","score":"1.853"},
+{"state":"Senegal","score":"1.864"},
+{"state":"France","score":"1.868"},
+{"state":"Timor-Leste","score":"1.873"},
+{"state":"South Korea","score":"1.877"},
+{"state":"Tanzania","score":"1.892"},
+{"state":"Malawi","score":"1.909"},
+{"state":"Moldova","score":"1.909"},
+{"state":"Cyprus","score":"1.912"},
+{"state":"Equatorial Guinea","score":"1.915"},
+{"state":"Jordan","score":"1.916"},
+{"state":"Panama","score":"1.919"},
+{"state":"Namibia","score":"1.927"},
+{"state":"Greece","score":"1.932"},
+{"state":"Kazakhstan","score":"1.936"},
+{"state":"Argentina","score":"1.945"},
+{"state":"Eswatini","score":"1.955"},
+{"state":"Madagascar","score":"1.963"},
+{"state":"Zambia","score":"1.964"},
+{"state":"Bosnia and Herzegovina","score":"1.970"},
+{"state":"Oman","score":"1.982"},
+{"state":"Jamaica","score":"1.992"},
+{"state":"Paraguay","score":"1.997"},
+{"state":"Kyrgyz Republic","score":"1.998"},
+{"state":"Liberia","score":"1.998"},
+{"state":"Cambodia","score":"2.008"},
+{"state":"Morocco","score":"2.015"},
+{"state":"Angola","score":"2.017"},
+{"state":"Kosovo","score":"2.017"},
+{"state":"Dominican Republic","score":"2.024"},
+{"state":"Rwanda","score":"2.028"},
+{"state":"Trinidad and Tobago","score":"2.029"},
+{"state":"Nepal","score":"2.033"},
+{"state":"Peru","score":"2.034"},
+{"state":"Cuba","score":"2.042"},
+{"state":"Ecuador","score":"2.044"},
+{"state":"Georgia","score":"2.054"},
+{"state":"Uzbekistan","score":"2.062"},
+{"state":"Bangladesh","score":"2.068"},
+{"state":"Guinea","score":"2.069"},
+{"state":"Gabon","score":"2.074"},
+{"state":"Armenia","score":"2.075"},
+{"state":"Sri Lanka","score":"2.083"},
+{"state":"Benin","score":"2.093"},
+{"state":"Tajikistan","score":"2.095"},
+{"state":"Tunisia","score":"2.108"},
+{"state":"Guinea-Bissau","score":"2.113"},
+{"state":"China","score":"2.114"},
+{"state":"Guyana","score":"2.114"},
+{"state":"Bahrain","score":"2.121"},
+{"state":"Cote d'Ivoire","score":"2.123"},
+{"state":"Mozambique","score":"2.123"},
+{"state":"Bolivia","score":"2.140"},
+{"state":"Djibouti","score":"2.146"},
+{"state":"Papua New Guinea","score":"2.149"},
+{"state":"Haiti","score":"2.151"},
+{"state":"Turkmenistan","score":"2.154"},
+{"state":"El Salvador","score":"2.184"},
+{"state":"Guatemala","score":"2.195"},
+{"state":"Lesotho","score":"2.202"},
+{"state":"Thailand","score":"2.205"},
+{"state":"Uganda","score":"2.219"},
+{"state":"Togo","score":"2.239"},
+{"state":"Kenya","score":"2.254"},
+{"state":"Belarus","score":"2.285"},
+{"state":"Mauritania","score":"2.290"},
+{"state":"Republic of the Congo","score":"2.291"},
+{"state":"Algeria","score":"2.310"},
+{"state":"Azerbaijan","score":"2.334"},
+{"state":"United States of America","score":"2.337"},
+{"state":"South Africa","score":"2.344"},
+{"state":"Honduras","score":"2.371"},
+{"state":"Saudi Arabia","score":"2.376"},
+{"state":"Egypt","score":"2.397"},
+{"state":"Philippines","score":"2.417"},
+{"state":"Brazil","score":"2.430"},
+{"state":"Burundi","score":"2.434"},
+{"state":"Nicaragua","score":"2.445"},
+{"state":"Myanmar","score":"2.457"},
+{"state":"Chad","score":"2.489"},
+{"state":"Zimbabwe","score":"2.490"},
+{"state":"Burkina Faso","score":"2.527"},
+{"state":"India","score":"2.553"},
+{"state":"Eritrea","score":"2.555"},
+{"state":"Niger","score":"2.589"},
+{"state":"Palestine","score":"2.610"},
+{"state":"Ethiopia","score":"2.613"},
+{"state":"Mexico","score":"2.620"},
+{"state":"Israel","score":"2.633"},
+{"state":"Iran","score":"2.637"},
+{"state":"Ukraine","score":"2.660"},
+{"state":"Colombia","score":"2.694"},
+{"state":"Cameroon","score":"2.700"},
+{"state":"Nigeria","score":"2.712"},
+{"state":"Lebanon","score":"2.797"},
+{"state":"Mali","score":"2.813"},
+{"state":"Turkey","score":"2.843"},
+{"state":"Pakistan","score":"2.868"},
+{"state":"North Korea","score":"2.923"},
+{"state":"Venezuela","score":"2.934"},
+{"state":"Sudan","score":"2.936"},
+{"state":"Russia","score":"2.993"},
+{"state":"Central African Republic","score":"3.131"},
+{"state":"Libya","score":"3.166"},
+{"state":"Democratic Republic of the Congo","score":"3.196"},
+{"state":"Somalia","score":"3.211"},
+{"state":"Iraq","score":"3.257"},
+{"state":"South Sudan","score":"3.363"},
+{"state":"Syria","score":"3.371"},
+{"state":"Yemen","score":"3.407"},
+{"state":"Afghanistan","score":"3.631"}
+]
+}
+,{"type":"table","name":"HealthSystems","database":"iacopoguarneri_projects_world","data":
+[
+{"state":"France","score":"1"},
+{"state":"Italy","score":"2"},
+{"state":"San Marino","score":"3"},
+{"state":"Andorra","score":"4"},
+{"state":"Malta","score":"5"},
+{"state":"Singapore","score":"6"},
+{"state":"Spain","score":"7"},
+{"state":"Oman","score":"8"},
+{"state":"Austria","score":"9"},
+{"state":"Japan","score":"10"},
+{"state":"Norway","score":"11"},
+{"state":"Portugal","score":"12"},
+{"state":"Monaco","score":"13"},
+{"state":"Greece","score":"14"},
+{"state":"Iceland","score":"15"},
+{"state":"Luxembourg","score":"16"},
+{"state":"Netherlands","score":"17"},
+{"state":"United Kingdom","score":"18"},
+{"state":"Ireland","score":"19"},
+{"state":"Switzerland","score":"20"},
+{"state":"Belgium","score":"21"},
+{"state":"Colombia","score":"22"},
+{"state":"Sweden","score":"23"},
+{"state":"Cyprus","score":"24"},
+{"state":"Germany","score":"25"},
+{"state":"Saudi Arabia","score":"26"},
+{"state":"United Arab Emirates","score":"27"},
+{"state":"Israel","score":"28"},
+{"state":"Morocco","score":"29"},
+{"state":"Canada","score":"30"},
+{"state":"Finland","score":"31"},
+{"state":"Australia","score":"32"},
+{"state":"Chile","score":"33"},
+{"state":"Denmark","score":"34"},
+{"state":"Dominica","score":"35"},
+{"state":"Costa Rica","score":"36"},
+{"state":"United States","score":"37"},
+{"state":"Slovenia","score":"38"},
+{"state":"Cuba","score":"39"},
+{"state":"Brunei","score":"40"},
+{"state":"New Zealand","score":"41"},
+{"state":"Bahrain","score":"42"},
+{"state":"Croatia","score":"43"},
+{"state":"Qatar","score":"44"},
+{"state":"Kuwait","score":"45"},
+{"state":"Barbados","score":"46"},
+{"state":"Thailand","score":"47"},
+{"state":"Czech Republic","score":"48"},
+{"state":"Malaysia","score":"49"},
+{"state":"Poland","score":"50"},
+{"state":"Dominican Republic","score":"51"},
+{"state":"Tunisia","score":"52"},
+{"state":"Jamaica","score":"53"},
+{"state":"Venezuela","score":"54"},
+{"state":"Albania","score":"55"},
+{"state":"Seychelles","score":"56"},
+{"state":"Paraguay","score":"57"},
+{"state":"South Korea","score":"58"},
+{"state":"Senegal","score":"59"},
+{"state":"Philippines","score":"60"},
+{"state":"Mexico","score":"61"},
+{"state":"Slovakia","score":"62"},
+{"state":"Egypt","score":"63"},
+{"state":"Kazakhstan","score":"64"},
+{"state":"Uruguay","score":"65"},
+{"state":"Hungary","score":"66"},
+{"state":"Trinidad and Tobago","score":"67"},
+{"state":"Saint Lucia","score":"68"},
+{"state":"Belize","score":"69"},
+{"state":"Turkey","score":"70"},
+{"state":"Nicaragua","score":"71"},
+{"state":"Belarus","score":"72"},
+{"state":"Lithuania","score":"73"},
+{"state":"Saint Vincent and the Grenadines","score":"74"},
+{"state":"Argentina","score":"75"},
+{"state":"Sri Lanka","score":"76"},
+{"state":"Estonia","score":"77"},
+{"state":"Guatemala","score":"78"},
+{"state":"Ukraine","score":"79"},
+{"state":"Solomon Islands","score":"80"},
+{"state":"Algeria","score":"81"},
+{"state":"Palau","score":"82"},
+{"state":"Jordan","score":"83"},
+{"state":"Mauritius","score":"84"},
+{"state":"Grenada","score":"85"},
+{"state":"Antigua and Barbuda","score":"86"},
+{"state":"Libya","score":"87"},
+{"state":"Bangladesh","score":"88"},
+{"state":"Macedonia","score":"89"},
+{"state":"Bosnia-Herzegovina","score":"90"},
+{"state":"Lebanon","score":"91"},
+{"state":"Indonesia","score":"92"},
+{"state":"Iran","score":"93"},
+{"state":"Panama","score":"95"},
+{"state":"Fiji","score":"96"},
+{"state":"Benin","score":"97"},
+{"state":"Bahamas","score":"98"},
+{"state":"Nauru","score":"98"},
+{"state":"Romania","score":"99"},
+{"state":"Saint Kitts and Nevis","score":"100"},
+{"state":"Moldova","score":"101"},
+{"state":"Bulgaria","score":"102"},
+{"state":"Iraq","score":"103"},
+{"state":"Armenia","score":"104"},
+{"state":"Latvia","score":"105"},
+{"state":"FR Yugoslavia","score":"106"},
+{"state":"Cook Islands","score":"107"},
+{"state":"Syria","score":"108"},
+{"state":"Azerbaijan","score":"109"},
+{"state":"Suriname","score":"110"},
+{"state":"Ecuador","score":"111"},
+{"state":"India","score":"112"},
+{"state":"Cape Verde","score":"113"},
+{"state":"Georgia","score":"114"},
+{"state":"El Salvador","score":"115"},
+{"state":"Tonga","score":"116"},
+{"state":"Uzbekistan","score":"117"},
+{"state":"Comoros","score":"118"},
+{"state":"Samoa","score":"119"},
+{"state":"Yemen","score":"120"},
+{"state":"Niue","score":"121"},
+{"state":"Pakistan","score":"122"},
+{"state":"Federated States of Micronesia","score":"123"},
+{"state":"Bhutan","score":"124"},
+{"state":"Brazil","score":"125"},
+{"state":"Bolivia","score":"126"},
+{"state":"Vanuatu","score":"127"},
+{"state":"Guyana","score":"128"},
+{"state":"Peru","score":"129"},
+{"state":"Russia","score":"130"},
+{"state":"Honduras","score":"131"},
+{"state":"Burkina Faso","score":"132"},
+{"state":"Sao Tome and Principe","score":"133"},
+{"state":"Sudan","score":"134"},
+{"state":"Ghana","score":"135"},
+{"state":"Tuvalu","score":"136"},
+{"state":"Ivory Coast","score":"137"},
+{"state":"Haiti","score":"138"},
+{"state":"Gabon","score":"139"},
+{"state":"Kenya","score":"140"},
+{"state":"Marshall Islands","score":"141"},
+{"state":"Kiribati","score":"142"},
+{"state":"Burundi","score":"143"},
+{"state":"People's Republic of China","score":"144"},
+{"state":"Mongolia","score":"145"},
+{"state":"Gambia","score":"146"},
+{"state":"Maldives","score":"147"},
+{"state":"Papua New Guinea","score":"148"},
+{"state":"Uganda","score":"149"},
+{"state":"Nepal","score":"150"},
+{"state":"Kyrgyzstan","score":"151"},
+{"state":"Togo","score":"152"},
+{"state":"Turkmenistan","score":"153"},
+{"state":"Tajikistan","score":"154"},
+{"state":"Zimbabwe","score":"155"},
+{"state":"Tanzania","score":"156"},
+{"state":"Djibouti","score":"157"},
+{"state":"Eritrea","score":"158"},
+{"state":"Madagascar","score":"159"},
+{"state":"Vietnam","score":"160"},
+{"state":"Guinea","score":"161"},
+{"state":"Mauritania","score":"162"},
+{"state":"Mali","score":"163"},
+{"state":"Cameroon","score":"164"},
+{"state":"Laos","score":"165"},
+{"state":"Congo","score":"166"},
+{"state":"North Korea","score":"167"},
+{"state":"Namibia","score":"168"},
+{"state":"Botswana","score":"169"},
+{"state":"Niger","score":"170"},
+{"state":"Equatorial Guinea","score":"171"},
+{"state":"Rwanda","score":"172"},
+{"state":"Afghanistan","score":"173"},
+{"state":"Cambodia","score":"174"},
+{"state":"South Africa","score":"175"},
+{"state":"Guinea-Bissau","score":"176"},
+{"state":"Swaziland","score":"177"},
+{"state":"Chad","score":"178"},
+{"state":"Somalia","score":"179"},
+{"state":"Ethiopia","score":"180"},
+{"state":"Angola","score":"181"},
+{"state":"Zambia","score":"182"},
+{"state":"Lesotho","score":"183"},
+{"state":"Mozambique","score":"184"},
+{"state":"Malawi","score":"185"},
+{"state":"Liberia","score":"186"},
+{"state":"Nigeria","score":"187"},
+{"state":"Democratic Republic of the Congo","score":"188"},
+{"state":"Central African Republic","score":"189"},
+{"state":"Myanmar","score":"190"},
+{"state":"Sierra Leone","score":"191"}
+]
+}
+,{"type":"table","name":"Learning","database":"iacopoguarneri_projects_world","data":
+[
+{"state":"Albania","score":"436.73"},
+{"state":"Algeria","score":"375.14"},
+{"state":"Argentina","score":"429.38"},
+{"state":"Argentina (Buenos Aires)","score":"414.19"},
+{"state":"Australia","score":"509.22"},
+{"state":"Austria","score":"519.54"},
+{"state":"Bahrain","score":"452.36"},
+{"state":"Belgium","score":"529.11"},
+{"state":"Belgium Flemish","score":"541.15"},
+{"state":"Botswana","score":"398.47"},
+{"state":"Brazil","score":"408.76"},
+{"state":"Bulgaria","score":"490.67"},
+{"state":"Canada","score":"519.69"},
+{"state":"Canada (Ontario)","score":"517.91"},
+{"state":"Canada (Quebec)","score":"539.36"},
+{"state":"Chile","score":"455.97"},
+{"state":"China","score":"554.72"},
+{"state":"Colombia","score":"413.67"},
+{"state":"Costa Rica","score":"422.54"},
+{"state":"Croatia","score":"491.55"},
+{"state":"Cyprus","score":"518.00"},
+{"state":"Czechia","score":"516.20"},
+{"state":"Denmark","score":"534.18"},
+{"state":"Dominican Republic","score":"337.71"},
+{"state":"Ecuador","score":"414.71"},
+{"state":"Egypt","score":"397.83"},
+{"state":"England","score":"532.06"},
+{"state":"Estonia","score":"542.42"},
+{"state":"Finland","score":"531.13"},
+{"state":"France","score":"499.18"},
+{"state":"Georgia","score":"459.68"},
+{"state":"Germany","score":"524.26"},
+{"state":"Greece","score":"477.87"},
+{"state":"Guatemala","score":"389.02"},
+{"state":"Hong Kong","score":"605.40"},
+{"state":"Hungary","score":"522.50"},
+{"state":"Iceland","score":"511.80"},
+{"state":"Indonesia","score":"396.71"},
+{"state":"Iran","score":"433.92"},
+{"state":"Ireland","score":"535.42"},
+{"state":"Israel","score":"514.24"},
+{"state":"Italy","score":"500.75"},
+{"state":"Japan","score":"590.89"},
+{"state":"Jordan","score":"387.01"},
+{"state":"Kazakhstan","score":"536.11"},
+{"state":"Kuwait","score":"372.30"},
+{"state":"Latvia","score":"508.22"},
+{"state":"Lebanon","score":"454.42"},
+{"state":"Lithuania","score":"523.24"},
+{"state":"Luxembourg","score":"508.88"},
+{"state":"Macao","score":"561.90"},
+{"state":"Malaysia","score":"474.05"},
+{"state":"Malta","score":"498.00"},
+{"state":"Mexico","score":"443.36"},
+{"state":"Mexico (Nuevo Leo)","score":"472.38"},
+{"state":"Moldova","score":"443.29"},
+{"state":"Montenegro","score":"441.38"},
+{"state":"Morocco","score":"380.75"},
+{"state":"Netherlands","score":"530.27"},
+{"state":"New Zealand","score":"492.69"},
+{"state":"Nicaragua","score":"365.66"},
+{"state":"North Macedonia","score":"389.00"},
+{"state":"Northern Ireland","score":"564.28"},
+{"state":"Norway","score":"530.48"},
+{"state":"Oman","score":"414.85"},
+{"state":"Panama","score":"368.96"},
+{"state":"Paraguay","score":"366.83"},
+{"state":"Peru","score":"419.49"},
+{"state":"Poland","score":"528.84"},
+{"state":"Portugal","score":"525.21"},
+{"state":"Puerto Rico","score":"396.29"},
+{"state":"Qatar","score":"438.90"},
+{"state":"Romania","score":"469.42"},
+{"state":"Russia","score":"551.63"},
+{"state":"Saudi Arabia","score":"375.60"},
+{"state":"Serbia","score":"512.22"},
+{"state":"Singapore","score":"619.17"},
+{"state":"Slovakia","score":"495.32"},
+{"state":"Slovenia","score":"518.04"},
+{"state":"South Africa","score":"374.06"},
+{"state":"South Korea","score":"607.23"},
+{"state":"Spain","score":"504.83"},
+{"state":"Spain (regions)","score":"510.09"},
+{"state":"Sweden","score":"509.15"},
+{"state":"Switzerland","score":"543.83"},
+{"state":"Taiwan","score":"597.75"},
+{"state":"Thailand","score":"440.25"},
+{"state":"Trinidad and Tobago","score":"438.75"},
+{"state":"Tunisia","score":"384.12"},
+{"state":"Turkey","score":"470.39"},
+{"state":"United Arab Emirates","score":"460.49"},
+{"state":"United Arab Emirates (Abu Dhabi)","score":"437.07"},
+{"state":"United Arab Emirates (Dubai)","score":"510.09"},
+{"state":"United Kingdom","score":"515.80"},
+{"state":"United States","score":"529.09"},
+{"state":"United States (Massachusetts)","score":"522.62"},
+{"state":"United States (North Carolina)","score":"495.27"},
+{"state":"Uruguay","score":"445.45"},
+{"state":"Vietnam","score":"520.04"}
+]
+}
+,{"type":"table","name":"MentalHealt","database":"iacopoguarneri_projects_world","data":
+[
+{"state":"Afghanistan","value":"0.10839856474643"},
+{"state":"Albania","value":"1.43182763781330"},
+{"state":"Algeria","value":"0.81401997516951"},
+{"state":"American Samoa","value":"6.86072058795600"},
+{"state":"Andean Latin America","value":"2.41088187315553"},
+{"state":"Andorra","value":"18.15203851209631"},
+{"state":"Angola","value":"0.75562233705766"},
+{"state":"Antigua and Barbuda","value":"0.69147857630898"},
+{"state":"Argentina","value":"2.04405306366813"},
+{"state":"Armenia","value":"3.38583102887439"},
+{"state":"Australasia","value":"13.77929946846054"},
+{"state":"Australia","value":"14.59645034526121"},
+{"state":"Austria","value":"48.24412048277277"},
+{"state":"Azerbaijan","value":"3.83886506085134"},
+{"state":"Bahamas","value":"1.21525030674466"},
+{"state":"Bahrain","value":"0.34904128210464"},
+{"state":"Bangladesh","value":"0.52944544049726"},
+{"state":"Barbados","value":"1.40832148635419"},
+{"state":"Belarus","value":"2.41729162467676"},
+{"state":"Belgium","value":"17.34128552342207"},
+{"state":"Belize","value":"0.58955506723354"},
+{"state":"Benin","value":"0.30046775576017"},
+{"state":"Bermuda","value":"0.56917677660826"},
+{"state":"Bhutan","value":"0.92025403549183"},
+{"state":"Bolivia","value":"1.92405121263212"},
+{"state":"Bosnia and Herzegovina","value":"1.47626897714652"},
+{"state":"Botswana","value":"2.03214801415899"},
+{"state":"Brazil","value":"3.82770000840284"},
+{"state":"Brunei","value":"46.65718463728522"},
+{"state":"Bulgaria","value":"3.34570521375050"},
+{"state":"Burkina Faso","value":"0.24625653496371"},
+{"state":"Burundi","value":"0.22674564200538"},
+{"state":"Cambodia","value":"0.08970951848554"},
+{"state":"Cameroon","value":"1.00321557475897"},
+{"state":"Canada","value":"14.66769692137246"},
+{"state":"Cape Verde","value":"0.78835071330459"},
+{"state":"Caribbean","value":"4.82242789603620"},
+{"state":"Central African Republic","value":"0.45202531953841"},
+{"state":"Central Asia","value":"4.06410819358542"},
+{"state":"Central Europe","value":"5.81335429143858"},
+{"state":"Central Europe, Eastern Europe, and Central Asia","value":"4.64587550872525"},
+{"state":"Central Latin America","value":"2.08160390697958"},
+{"state":"Central Sub-Saharan Africa","value":"0.63562291950671"},
+{"state":"Chad","value":"0.21400939657924"},
+{"state":"Chile","value":"0.36917267016037"},
+{"state":"China","value":"2.62616052476083"},
+{"state":"Colombia","value":"0.27903534518028"},
+{"state":"Comoros","value":"0.73761227212310"},
+{"state":"Congo","value":"1.84540188813018"},
+{"state":"Costa Rica","value":"0.35467912136449"},
+{"state":"Cote d'Ivoire","value":"0.43241985190494"},
+{"state":"Croatia","value":"4.46880081858812"},
+{"state":"Cuba","value":"3.37252219137846"},
+{"state":"Cyprus","value":"0.70030965036557"},
+{"state":"Czechia","value":"3.09400582446038"},
+{"state":"Democratic Republic of Congo","value":"0.47357912312521"},
+{"state":"Denmark","value":"10.21895833714395"},
+{"state":"Djibouti","value":"0.48446846154187"},
+{"state":"Dominica","value":"1.64528893036570"},
+{"state":"Dominican Republic","value":"12.84198606866657"},
+{"state":"East Asia","value":"2.66567807027421"},
+{"state":"Eastern Europe","value":"4.39866679612620"},
+{"state":"Eastern Sub-Saharan Africa","value":"0.51048463366221"},
+{"state":"Ecuador","value":"0.59735809707848"},
+{"state":"Egypt","value":"0.60588749397102"},
+{"state":"El Salvador","value":"2.84841357008554"},
+{"state":"England","value":"20.76888149355475"},
+{"state":"Equatorial Guinea","value":"1.74040718293958"},
+{"state":"Eritrea","value":"0.49207238889571"},
+{"state":"Estonia","value":"60.85995438312123"},
+{"state":"Eswatini","value":"1.88083082348387"},
+{"state":"Ethiopia","value":"0.19939395464172"},
+{"state":"Fiji","value":"4.76853211136562"},
+{"state":"Finland","value":"23.05530041723920"},
+{"state":"France","value":"24.83019164630570"},
+{"state":"Gabon","value":"1.81105110595682"},
+{"state":"Gambia","value":"0.46211985716228"},
+{"state":"Georgia","value":"5.00593085304235"},
+{"state":"Germany","value":"33.57429970962470"},
+{"state":"Ghana","value":"1.08128821837471"},
+{"state":"Greece","value":"16.39433819840956"},
+{"state":"Greenland","value":"9.81355010353656"},
+{"state":"Grenada","value":"0.61693551343346"},
+{"state":"Guam","value":"8.72193881389238"},
+{"state":"Guatemala","value":"1.31961823355506"},
+{"state":"Guinea","value":"0.31225992758004"},
+{"state":"Guinea-Bissau","value":"0.33186263238877"},
+{"state":"Guyana","value":"0.79457025310050"},
+{"state":"Haiti","value":"0.26855585483299"},
+{"state":"High SDI","value":"19.56653889562943"},
+{"state":"High-income","value":"20.06742242439043"},
+{"state":"High-income Asia Pacific","value":"38.73848266457838"},
+{"state":"High-middle SDI","value":"3.06424893927163"},
+{"state":"Honduras","value":"3.03245137667708"},
+{"state":"Hungary","value":"2.95584605276320"},
+{"state":"Iceland","value":"3.56624057467983"},
+{"state":"India","value":"1.05106074620639"},
+{"state":"Indonesia","value":"0.24364798902034"},
+{"state":"Iran","value":"9.46957584034229"},
+{"state":"Iraq","value":"0.28901636703280"},
+{"state":"Ireland","value":"3.83273903249465"},
+{"state":"Israel","value":"0.87765545953104"},
+{"state":"Italy","value":"10.90028819623620"},
+{"state":"Jamaica","value":"1.06470317431280"},
+{"state":"Japan","value":"44.00954687940838"},
+{"state":"Jordan","value":"0.96745470983431"},
+{"state":"Kazakhstan","value":"3.80520825523881"},
+{"state":"Kenya","value":"1.21991949407355"},
+{"state":"Kiribati","value":"2.19738932959813"},
+{"state":"Kuwait","value":"11.01843508174259"},
+{"state":"Kyrgyzstan","value":"8.83945679975069"},
+{"state":"Laos","value":"0.13497225881420"},
+{"state":"Latin America and Caribbean","value":"3.09773416552957"},
+{"state":"Latvia","value":"3.20066893137991"},
+{"state":"Lebanon","value":"1.86329325058766"},
+{"state":"Lesotho","value":"1.50237768064585"},
+{"state":"Liberia","value":"0.30761916656081"},
+{"state":"Libya","value":"2.85416908085769"},
+{"state":"Lithuania","value":"0.42303111992598"},
+{"state":"Low SDI","value":"0.39716482390444"},
+{"state":"Low-middle SDI","value":"1.01814323120139"},
+{"state":"Luxembourg","value":"61.80652109127203"},
+{"state":"Madagascar","value":"0.36856567564880"},
+{"state":"Malawi","value":"0.48197974216631"},
+{"state":"Malaysia","value":"0.39733493117933"},
+{"state":"Maldives","value":"0.11981627551580"},
+{"state":"Mali","value":"0.22265506964854"},
+{"state":"Malta","value":"16.05815225068957"},
+{"state":"Marshall Islands","value":"6.55416213568365"},
+{"state":"Mauritania","value":"0.52042851987281"},
+{"state":"Mauritius","value":"0.32303916237823"},
+{"state":"Mexico","value":"2.92359562019540"},
+{"state":"Micronesia (country)","value":"4.40085516055468"},
+{"state":"Middle SDI","value":"1.88242156325514"},
+{"state":"Moldova","value":"19.77608752673813"},
+{"state":"Mongolia","value":"3.70187542876412"},
+{"state":"Montenegro","value":"2.77759386254063"},
+{"state":"Morocco","value":"0.34607500209691"},
+{"state":"Mozambique","value":"0.38287268395986"},
+{"state":"Myanmar","value":"0.19280429368069"},
+{"state":"Namibia","value":"1.52094863601022"},
+{"state":"Nepal","value":"0.36795558556171"},
+{"state":"Netherlands","value":"44.35196166757896"},
+{"state":"New Zealand","value":"9.10264537317085"},
+{"state":"Nicaragua","value":"1.99624141827269"},
+{"state":"Niger","value":"0.13475541613285"},
+{"state":"Nigeria","value":"0.74080180480307"},
+{"state":"North Africa and Middle East","value":"2.05601801441502"},
+{"state":"North America","value":"13.55501852187828"},
+{"state":"North Korea","value":"0.62244004702487"},
+{"state":"North Macedonia","value":"2.74105468508104"},
+{"state":"Northern Ireland","value":"24.67000085014895"},
+{"state":"Northern Mariana Islands","value":"4.61078470732782"},
+{"state":"Norway","value":"14.74359464127905"},
+{"state":"Oceania","value":"2.05990062154831"},
+{"state":"Oman","value":"0.50869396539930"},
+{"state":"Pakistan","value":"0.97260273988119"},
+{"state":"Palestine","value":"0.78279763292499"},
+{"state":"Panama","value":"13.64264009014687"},
+{"state":"Papua New Guinea","value":"1.51694646897527"},
+{"state":"Paraguay","value":"12.30245847153864"},
+{"state":"Peru","value":"3.51171254999113"},
+{"state":"Philippines","value":"0.15542317155370"},
+{"state":"Poland","value":"11.44175135363730"},
+{"state":"Portugal","value":"0.24508746120319"},
+{"state":"Puerto Rico","value":"9.03679552161368"},
+{"state":"Qatar","value":"0.37873792950709"},
+{"state":"Romania","value":"2.66839299944471"},
+{"state":"Russia","value":"4.18733760710116"},
+{"state":"Rwanda","value":"0.44963905398564"},
+{"state":"Saint Lucia","value":"0.59840002563120"},
+{"state":"Saint Vincent and the Grenadines","value":"0.51482927732329"},
+{"state":"Samoa","value":"3.94986126250103"},
+{"state":"Sao Tome and Principe","value":"0.99438438975522"},
+{"state":"Saudi Arabia","value":"0.73768452788608"},
+{"state":"Scotland","value":"27.67534709317536"},
+{"state":"Senegal","value":"0.35666210192346"},
+{"state":"Serbia","value":"1.94839174695007"},
+{"state":"Seychelles","value":"0.41950388919027"},
+{"state":"Sierra Leone","value":"0.33336320175717"},
+{"state":"Singapore","value":"0.89082242751887"},
+{"state":"Slovakia","value":"3.49362244240965"},
+{"state":"Slovenia","value":"2.97971770722138"},
+{"state":"Solomon Islands","value":"1.58359144749247"},
+{"state":"Somalia","value":"0.19639548267947"},
+{"state":"South Africa","value":"2.95155086914489"},
+{"state":"South Asia","value":"0.99093549185886"},
+{"state":"South Korea","value":"32.58542101311469"},
+{"state":"South Sudan","value":"0.22881173522474"},
+{"state":"Southeast Asia","value":"0.24252299591075"},
+{"state":"Southeast Asia, East Asia, and Oceania","value":"1.88493648259738"},
+{"state":"Southern Latin America","value":"1.59819723378934"},
+{"state":"Southern Sub-Saharan Africa","value":"2.58808682682522"},
+{"state":"Spain","value":"6.35753320762480"},
+{"state":"Sri Lanka","value":"0.29969791574375"},
+{"state":"Sub-Saharan Africa","value":"0.76327123283406"},
+{"state":"Sudan","value":"0.20680132614647"},
+{"state":"Suriname","value":"0.66355322920956"},
+{"state":"Sweden","value":"9.82962196630410"},
+{"state":"Switzerland","value":"54.72528240700529"},
+{"state":"Syria","value":"0.54669894626936"},
+{"state":"Taiwan","value":"7.42442843763839"},
+{"state":"Tajikistan","value":"2.75556369653798"},
+{"state":"Tanzania","value":"0.64399125588766"},
+{"state":"Thailand","value":"0.40486347037553"},
+{"state":"Timor","value":"0.14355823555931"},
+{"state":"Togo","value":"0.42685678347300"},
+{"state":"Tonga","value":"3.16310397234397"},
+{"state":"Trinidad and Tobago","value":"0.57156936626077"},
+{"state":"Tropical Latin America","value":"4.08347423292579"},
+{"state":"Tunisia","value":"0.52121912941994"},
+{"state":"Turkey","value":"1.45378738238032"},
+{"state":"Turkmenistan","value":"3.33931033585522"},
+{"state":"Uganda","value":"0.48398527242646"},
+{"state":"Ukraine","value":"2.80783868782355"},
+{"state":"United Arab Emirates","value":"1.06038244526548"},
+{"state":"United Kingdom","value":"21.43238297240746"},
+{"state":"United States","value":"13.44825933634003"},
+{"state":"United States Virgin Islands","value":"0.17893586761653"},
+{"state":"Uruguay","value":"2.32826071482333"},
+{"state":"Uzbekistan","value":"3.82505014600830"},
+{"state":"Vanuatu","value":"3.13909284438792"},
+{"state":"Venezuela","value":"0.38507636089789"},
+{"state":"Vietnam","value":"0.20742527890990"},
+{"state":"Wales","value":"20.52882244399223"},
+{"state":"Western Europe","value":"21.37328080309361"},
+{"state":"Western Sub-Saharan Africa","value":"0.61939441636934"},
+{"state":"World","value":"4.10793167693731"},
+{"state":"Yemen","value":"0.11968681027296"},
+{"state":"Zambia","value":"0.95899535097832"},
+{"state":"Zimbabwe","value":"1.47002009839648"}
+]
+}
+,{"type":"table","name":"PPP","database":"iacopoguarneri_projects_world","data":
+[
+{"state":"Monaco","value":"190.513"},
+{"state":"Liechtenstein","value":"180.367"},
+{"state":"Luxembourg","value":"118.360"},
+{"state":"Singapore","value":"98.526"},
+{"state":"Ireland","value":"93.612"},
+{"state":"Qatar","value":"89.949"},
+{"state":"Bermuda","value":"80.830"},
+{"state":"Cayman Islands","value":"71.594"},
+{"state":"Switzerland","value":"71.352"},
+{"state":"United Arab Emirates","value":"69.958"},
+{"state":"Brunei","value":"65.662"},
+{"state":"United States","value":"63.544"},
+{"state":"San Marino","value":"63.420"},
+{"state":"Norway","value":"63.198"},
+{"state":"Denmark","value":"60.399"},
+{"state":"Hong Kong","value":"59.238"},
+{"state":"Netherlands","value":"59.229"},
+{"state":"Macau","value":"57.807"},
+{"state":"Iceland","value":"55.216"},
+{"state":"Austria","value":"55.098"},
+{"state":"Sweden","value":"54.563"},
+{"state":"Germany","value":"53.694"},
+{"state":"Australia","value":"52.518"},
+{"state":"Belgium","value":"51.968"},
+{"state":"Kuwait","value":"51.962"},
+{"state":"Finland","value":"51.090"},
+{"state":"Canada","value":"48.073"},
+{"state":"Saudi Arabia","value":"46.763"},
+{"state":"France","value":"46.227"},
+{"state":"United Kingdom","value":"44.916"},
+{"state":"New Zealand","value":"44.252"},
+{"state":"Bahrain","value":"43.181"},
+{"state":"South Korea","value":"43.124"},
+{"state":"Malta","value":"42.640"},
+{"state":"Japan","value":"42.197"},
+{"state":"Israel","value":"41.855"},
+{"state":"Italy","value":"41.840"},
+{"state":"Czech Republic","value":"41.737"},
+{"state":"Slovenia","value":"39.593"},
+{"state":"Aruba","value":"38.897"},
+{"state":"Lithuania","value":"38.735"},
+{"state":"Cyprus","value":"38.458"},
+{"state":"Estonia","value":"38.395"},
+{"state":"Spain","value":"38.335"},
+{"state":"Sint Maarten","value":"35.977"},
+{"state":"Puerto Rico","value":"35.279"},
+{"state":"Portugal","value":"34.496"},
+{"state":"Poland","value":"34.265"},
+{"state":"Hungary","value":"33.084"},
+{"state":"Bahamas","value":"32.454"},
+{"state":"Latvia","value":"32.019"},
+{"state":"Romania","value":"31.946"},
+{"state":"Slovakia","value":"31.832"},
+{"state":"Croatia","value":"28.504"},
+{"state":"Greece","value":"28.464"},
+{"state":"Oman","value":"28.449"},
+{"state":"Russia","value":"28.213"},
+{"state":"Turkey","value":"28.120"},
+{"state":"Malaysia","value":"27.887"},
+{"state":"Panama","value":"26.776"},
+{"state":"Kazakhstan","value":"26.729"},
+{"state":"Seychelles","value":"25.700"},
+{"state":"Chile","value":"25.068"},
+{"state":"Trinidad and Tobago","value":"25.031"},
+{"state":"Saint Kitts and Nevis","value":"24.537"},
+{"state":"Bulgaria","value":"24.367"},
+{"state":"Uruguay","value":"22.795"},
+{"state":"Turks and Caicos Islands","value":"22.286"},
+{"state":"Costa Rica","value":"21.032"},
+{"state":"Argentina","value":"20.768"},
+{"state":"Montenegro","value":"20.567"},
+{"state":"Mauritius","value":"20.539"},
+{"state":"Belarus","value":"20.200"},
+{"state":"Guyana","value":"19.706"},
+{"state":"Serbia","value":"19.231"},
+{"state":"Antigua and Barbuda","value":"18.942"},
+{"state":"Mexico","value":"18.833"},
+{"state":"Palau","value":"18.316"},
+{"state":"Thailand","value":"18.236"},
+{"state":"Equatorial Guinea","value":"17.942"},
+{"state":"Dominican Republic","value":"17.937"},
+{"state":"Venezuela","value":"17.528"},
+{"state":"China","value":"17.312"},
+{"state":"World","value":"17.110"},
+{"state":"Suriname","value":"17.016"},
+{"state":"North Macedonia","value":"16.927"},
+{"state":"Botswana","value":"16.921"},
+{"state":"Turkmenistan","value":"16.196"},
+{"state":"Grenada","value":"15.893"},
+{"state":"Bosnia and Herzegovina","value":"15.612"},
+{"state":"Gabon","value":"15.191"},
+{"state":"Georgia","value":"14.863"},
+{"state":"Brazil","value":"14.836"},
+{"state":"Colombia","value":"14.565"},
+{"state":"Azerbaijan","value":"14.452"},
+{"state":"Nauru","value":"14.100"},
+{"state":"Albania","value":"13.818"},
+{"state":"Maldives","value":"13.766"},
+{"state":"Barbados","value":"13.577"},
+{"state":"Armenia","value":"13.284"},
+{"state":"Sri Lanka","value":"13.225"},
+{"state":"Iran","value":"13.116"},
+{"state":"Ukraine","value":"13.057"},
+{"state":"Paraguay","value":"13.013"},
+{"state":"Moldova","value":"13.002"},
+{"state":"Saint Lucia","value":"12.944"},
+{"state":"Saint Vincent and the Grenadines","value":"12.770"},
+{"state":"Egypt","value":"12.608"},
+{"state":"Lebanon","value":"12.289"},
+{"state":"Mongolia","value":"12.101"},
+{"state":"South Africa","value":"12.096"},
+{"state":"Indonesia","value":"12.074"},
+{"state":"Peru","value":"11.879"},
+{"state":"Fiji","value":"11.601"},
+{"state":"Bhutan","value":"11.508"},
+{"state":"Kosovo","value":"11.368"},
+{"state":"Algeria","value":"11.268"},
+{"state":"Ecuador","value":"10.896"},
+{"state":"Libya","value":"10.847"},
+{"state":"Dominica","value":"10.435"},
+{"state":"Jordan","value":"10.356"},
+{"state":"Tunisia","value":"10.262"},
+{"state":"Iraq","value":"9.764"},
+{"state":"Namibia","value":"9.382"},
+{"state":"Jamaica","value":"9.222"},
+{"state":"Eswatini","value":"8.854"},
+{"state":"Guatemala","value":"8.854"},
+{"state":"Vietnam","value":"8.651"},
+{"state":"El Salvador","value":"8.499"},
+{"state":"Philippines","value":"8.390"},
+{"state":"Bolivia","value":"8.367"},
+{"state":"Laos","value":"8.235"},
+{"state":"Uzbekistan","value":"7.378"},
+{"state":"Morocco","value":"7.296"},
+{"state":"Samoa","value":"6.778"},
+{"state":"Tonga","value":"6.648"},
+{"state":"Angola","value":"6.539"},
+{"state":"Belize","value":"6.456"},
+{"state":"India","value":"6.454"},
+{"state":"Cape Verde","value":"6.377"},
+{"state":"Pakistan","value":"6.370"},
+{"state":"Djibouti","value":"5.782"},
+{"state":"Palestine","value":"5.690"},
+{"state":"Ghana","value":"5.596"},
+{"state":"Nicaragua","value":"5.570"},
+{"state":"Ivory Coast","value":"5.458"},
+{"state":"Honduras","value":"5.421"},
+{"state":"Mauritania","value":"5.257"},
+{"state":"Nigeria","value":"5.187"},
+{"state":"Bangladesh","value":"5.083"},
+{"state":"Kyrgyzstan","value":"4.965"},
+{"state":"Myanmar","value":"4.794"},
+{"state":"Tuvalu","value":"4.653"},
+{"state":"Kenya","value":"4.452"},
+{"state":"Cambodia","value":"4.422"},
+{"state":"Papua New Guinea","value":"4.326"},
+{"state":"Sao Tome and Principe","value":"4.274"},
+{"state":"Sudan","value":"4.244"},
+{"state":"Marshall Islands","value":"4.200"},
+{"state":"Nepal","value":"4.009"},
+{"state":"Tajikistan","value":"3.858"},
+{"state":"Cameroon","value":"3.773"},
+{"state":"Yemen","value":"3.689"},
+{"state":"Congo","value":"3.639"},
+{"state":"Micronesia","value":"3.613"},
+{"state":"Benin","value":"3.506"},
+{"state":"Senegal","value":"3.481"},
+{"state":"Zambia","value":"3.450"},
+{"state":"East Timor","value":"3.356"},
+{"state":"Comoros","value":"3.313"},
+{"state":"Haiti","value":"2.925"},
+{"state":"Vanuatu","value":"2.915"},
+{"state":"Zimbabwe","value":"2.895"},
+{"state":"Guinea","value":"2.818"},
+{"state":"Tanzania","value":"2.780"},
+{"state":"Solomon Islands","value":"2.619"},
+{"state":"Ethiopia","value":"2.423"},
+{"state":"Kiribati","value":"2.418"},
+{"state":"Lesotho","value":"2.405"},
+{"state":"Mali","value":"2.339"},
+{"state":"Uganda","value":"2.297"},
+{"state":"Burkina Faso","value":"2.279"},
+{"state":"Gambia","value":"2.278"},
+{"state":"Togo","value":"2.224"},
+{"state":"Rwanda","value":"2.214"},
+{"state":"Afghanistan","value":"2.088"},
+{"state":"Guinea-Bissau","value":"1.949"},
+{"state":"Sierra Leone","value":"1.739"},
+{"state":"Eritrea","value":"1.626"},
+{"state":"Chad","value":"1.603"},
+{"state":"Madagascar","value":"1.593"},
+{"state":"Malawi","value":"1.568"},
+{"state":"Liberia","value":"1.428"},
+{"state":"Mozambique","value":"1.297"},
+{"state":"Niger","value":"1.263"},
+{"state":"South Sudan","value":"1.235"},
+{"state":"DR Congo","value":"1.131"},
+{"state":"Central African Republic","value":"0.979"},
+{"state":"Somalia","value":"0.875"},
+{"state":"Burundi","value":"0.771"}
+]
+}
+,{"type":"table","name":"Suicide","database":"iacopoguarneri_projects_world","data":
+[
+{"state":"Afghanistan","score":"6.125510704627"},
+{"state":"African Region (WHO)","score":"10.279146492699"},
+{"state":"Albania","score":"4.927489086180"},
+{"state":"Algeria","score":"3.611027826301"},
+{"state":"American Samoa","score":"7.377393093429"},
+{"state":"Andorra","score":"7.142658827883"},
+{"state":"Angola","score":"12.289974611345"},
+{"state":"Antigua and Barbuda","score":"2.769951618232"},
+{"state":"Argentina","score":"10.411852430822"},
+{"state":"Armenia","score":"7.928105667065"},
+{"state":"Australia","score":"10.388880548760"},
+{"state":"Austria","score":"11.265618083180"},
+{"state":"Azerbaijan","score":"3.555766377723"},
+{"state":"Bahamas","score":"2.828738188152"},
+{"state":"Bahrain","score":"4.779231131061"},
+{"state":"Bangladesh","score":"4.696879023762"},
+{"state":"Barbados","score":"3.911838108226"},
+{"state":"Belarus","score":"18.989673154706"},
+{"state":"Belgium","score":"14.955020850040"},
+{"state":"Belize","score":"7.356939266926"},
+{"state":"Benin","score":"10.872595745381"},
+{"state":"Bermuda","score":"3.151250324942"},
+{"state":"Bhutan","score":"5.865627200967"},
+{"state":"Bolivia","score":"6.834038841898"},
+{"state":"Bosnia and Herzegovina","score":"8.355047784871"},
+{"state":"Botswana","score":"19.030105697533"},
+{"state":"Brazil","score":"5.681944214940"},
+{"state":"Brunei","score":"5.755562458692"},
+{"state":"Bulgaria","score":"10.793242305176"},
+{"state":"Burkina Faso","score":"12.902401687535"},
+{"state":"Burundi","score":"12.395352437109"},
+{"state":"Cambodia","score":"5.123497969541"},
+{"state":"Cameroon","score":"13.261468766258"},
+{"state":"Canada","score":"11.011049287616"},
+{"state":"Cape Verde","score":"16.033924483055"},
+{"state":"Central African Republic","score":"19.353344570697"},
+{"state":"Chad","score":"13.028649178993"},
+{"state":"Chile","score":"9.760797091972"},
+{"state":"China","score":"6.804010204242"},
+{"state":"Colombia","score":"5.345701283905"},
+{"state":"Comoros","score":"7.287806721518"},
+{"state":"Congo","score":"12.422419108882"},
+{"state":"Cook Islands","score":"12.372997554222"},
+{"state":"Costa Rica","score":"7.545571481167"},
+{"state":"Cote d'Ivoire","score":"13.194867210679"},
+{"state":"Croatia","score":"11.076743493014"},
+{"state":"Cuba","score":"10.951077397581"},
+{"state":"Cyprus","score":"4.218740542220"},
+{"state":"Czechia","score":"10.615023267212"},
+{"state":"Democratic Republic of Congo","score":"12.108865858187"},
+{"state":"Denmark","score":"8.447870818284"},
+{"state":"Djibouti","score":"9.415608997618"},
+{"state":"Dominica","score":"4.905543549515"},
+{"state":"Dominican Republic","score":"6.329608778918"},
+{"state":"East Asia & Pacific (WB)","score":"7.234075211138"},
+{"state":"Eastern Mediterranean Region (WHO)","score":"6.011895556281"},
+{"state":"Ecuador","score":"9.406797036606"},
+{"state":"Egypt","score":"3.551134391225"},
+{"state":"El Salvador","score":"8.323343108292"},
+{"state":"England","score":"6.629918390902"},
+{"state":"Equatorial Guinea","score":"10.189793963022"},
+{"state":"Eritrea","score":"14.276553922853"},
+{"state":"Estonia","score":"12.176770641629"},
+{"state":"Eswatini","score":"24.534852697342"},
+{"state":"Ethiopia","score":"10.128312077853"},
+{"state":"Europe & Central Asia (WB)","score":"12.158106870271"},
+{"state":"European Region (WHO)","score":"12.080980081946"},
+{"state":"Fiji","score":"9.605636326782"},
+{"state":"Finland","score":"12.997132659248"},
+{"state":"France","score":"12.488512823866"},
+{"state":"G20","score":"10.151488334444"},
+{"state":"Gabon","score":"13.353200536915"},
+{"state":"Gambia","score":"9.986000160945"},
+{"state":"Georgia","score":"6.998107366269"},
+{"state":"Germany","score":"9.507900179497"},
+{"state":"Ghana","score":"9.737964903321"},
+{"state":"Greece","score":"3.497055463609"},
+{"state":"Greenland","score":"53.335574389239"},
+{"state":"Grenada","score":"4.589452828414"},
+{"state":"Guam","score":"18.802116388732"},
+{"state":"Guatemala","score":"5.495840973272"},
+{"state":"Guinea","score":"11.070658949895"},
+{"state":"Guinea-Bissau","score":"14.948479782835"},
+{"state":"Guyana","score":"32.620074975791"},
+{"state":"Haiti","score":"9.624718053838"},
+{"state":"Honduras","score":"3.262113586966"},
+{"state":"Hungary","score":"13.676150522726"},
+{"state":"Iceland","score":"8.715072933151"},
+{"state":"India","score":"13.799162152510"},
+{"state":"Indonesia","score":"2.992018771482"},
+{"state":"Iran","score":"4.670944623862"},
+{"state":"Iraq","score":"5.540071675970"},
+{"state":"Ireland","score":"8.065870299395"},
+{"state":"Israel","score":"5.606955338445"},
+{"state":"Italy","score":"4.998540971794"},
+{"state":"Jamaica","score":"2.916239774193"},
+{"state":"Japan","score":"14.209059906510"},
+{"state":"Jordan","score":"2.545684269203"},
+{"state":"Kazakhstan","score":"22.687638556519"},
+{"state":"Kenya","score":"10.892822454394"},
+{"state":"Kiribati","score":"26.553227785961"},
+{"state":"Kuwait","score":"2.748620196673"},
+{"state":"Kyrgyzstan","score":"9.753415326405"},
+{"state":"Laos","score":"6.347867849942"},
+{"state":"Latin America & Caribbean (WB)","score":"6.583911725279"},
+{"state":"Latvia","score":"15.786697913955"},
+{"state":"Lebanon","score":"3.308127297692"},
+{"state":"Lesotho","score":"42.170262531956"},
+{"state":"Liberia","score":"8.855673033459"},
+{"state":"Libya","score":"4.592123508152"},
+{"state":"Lithuania","score":"23.871305715733"},
+{"state":"Luxembourg","score":"8.652421548952"},
+{"state":"Madagascar","score":"9.777004596140"},
+{"state":"Malawi","score":"11.705520725026"},
+{"state":"Malaysia","score":"5.853218686925"},
+{"state":"Maldives","score":"3.768183464355"},
+{"state":"Mali","score":"8.075892071978"},
+{"state":"Malta","score":"4.161664892198"},
+{"state":"Marshall Islands","score":"21.719604737022"},
+{"state":"Mauritania","score":"6.200388442919"},
+{"state":"Mauritius","score":"8.045819962707"},
+{"state":"Mexico","score":"6.014454506224"},
+{"state":"Micronesia (country)","score":"23.129365070187"},
+{"state":"Middle East & North Africa (WB)","score":"4.453342114792"},
+{"state":"Moldova","score":"11.712698894319"},
+{"state":"Monaco","score":"10.347042979677"},
+{"state":"Mongolia","score":"16.734157927718"},
+{"state":"Montenegro","score":"14.460850734509"},
+{"state":"Morocco","score":"7.036060457427"},
+{"state":"Mozambique","score":"15.956847469035"},
+{"state":"Myanmar","score":"3.563829615695"},
+{"state":"Namibia","score":"13.434653764132"},
+{"state":"Nauru","score":"22.559120132107"},
+{"state":"Nepal","score":"12.307272300548"},
+{"state":"Netherlands","score":"9.056826813938"},
+{"state":"New Zealand","score":"10.700272668598"},
+{"state":"Nicaragua","score":"5.719217348227"},
+{"state":"Niger","score":"9.059476835475"},
+{"state":"Nigeria","score":"7.139150297291"},
+{"state":"Niue","score":"11.777518920953"},
+{"state":"North America (WB)","score":"11.594782026103"},
+{"state":"North Korea","score":"9.601048517768"},
+{"state":"North Macedonia","score":"7.749599610115"},
+{"state":"Northern Ireland","score":"9.475371848773"},
+{"state":"Northern Mariana Islands","score":"17.290851480337"},
+{"state":"Norway","score":"8.893432533366"},
+{"state":"OECD Countries","score":"10.245915927183"},
+{"state":"Oman","score":"2.625783978029"},
+{"state":"Pakistan","score":"8.791109994780"},
+{"state":"Palau","score":"13.530313418623"},
+{"state":"Palestine","score":"2.977771886280"},
+{"state":"Panama","score":"4.727132324300"},
+{"state":"Papua New Guinea","score":"3.588242847157"},
+{"state":"Paraguay","score":"6.098729067264"},
+{"state":"Peru","score":"2.924131055354"},
+{"state":"Philippines","score":"4.278733489469"},
+{"state":"Poland","score":"13.683172992240"},
+{"state":"Portugal","score":"7.969692474228"},
+{"state":"Puerto Rico","score":"5.565747974459"},
+{"state":"Qatar","score":"4.017674292455"},
+{"state":"Region of the Americas (WHO)","score":"8.512320625240"},
+{"state":"Romania","score":"8.605847295096"},
+{"state":"Russia","score":"22.772238813158"},
+{"state":"Rwanda","score":"9.490917659058"},
+{"state":"Saint Kitts and Nevis","score":"3.290789715020"},
+{"state":"Saint Lucia","score":"6.582396503429"},
+{"state":"Saint Vincent and the Grenadines","score":"6.498155536282"},
+{"state":"Samoa","score":"13.106482756624"},
+{"state":"San Marino","score":"9.244892619429"},
+{"state":"Sao Tome and Principe","score":"2.561318031988"},
+{"state":"Saudi Arabia","score":"4.274465475603"},
+{"state":"Scotland","score":"10.413146956997"},
+{"state":"Senegal","score":"12.214977192390"},
+{"state":"Serbia","score":"12.543894404386"},
+{"state":"Seychelles","score":"7.762042055422"},
+{"state":"Sierra Leone","score":"9.867023285517"},
+{"state":"Singapore","score":"6.590485202706"},
+{"state":"Slovakia","score":"9.837954671651"},
+{"state":"Slovenia","score":"13.756383907755"},
+{"state":"Solomon Islands","score":"24.585132442922"},
+{"state":"Somalia","score":"12.668923833711"},
+{"state":"South Africa","score":"13.497058841805"},
+{"state":"South Asia (WB)","score":"12.456179323208"},
+{"state":"South Korea","score":"19.542001123048"},
+{"state":"South Sudan","score":"8.537549163535"},
+{"state":"South-East Asia Region (WHO)","score":"11.189289314970"},
+{"state":"Spain","score":"5.753265144278"},
+{"state":"Sri Lanka","score":"19.191408081325"},
+{"state":"Sub-Saharan Africa (WB)","score":"10.601188205046"},
+{"state":"Sudan","score":"5.707370859007"},
+{"state":"Suriname","score":"24.115840469739"},
+{"state":"Sweden","score":"10.733506476084"},
+{"state":"Switzerland","score":"9.595740133625"},
+{"state":"Syria","score":"2.289098312132"},
+{"state":"Taiwan","score":"13.365553771573"},
+{"state":"Tajikistan","score":"5.588442959388"},
+{"state":"Tanzania","score":"10.056370012209"},
+{"state":"Thailand","score":"8.628065688898"},
+{"state":"Timor","score":"5.644331033031"},
+{"state":"Togo","score":"11.766150547817"},
+{"state":"Tokelau","score":"10.160823708797"},
+{"state":"Tonga","score":"5.162761783539"},
+{"state":"Trinidad and Tobago","score":"9.909123336893"},
+{"state":"Tunisia","score":"3.303175914062"},
+{"state":"Turkey","score":"2.832107179057"},
+{"state":"Turkmenistan","score":"8.680383401685"},
+{"state":"Tuvalu","score":"16.160438203741"},
+{"state":"Uganda","score":"10.794353048714"},
+{"state":"Ukraine","score":"26.344097350786"},
+{"state":"United Arab Emirates","score":"5.305595359528"},
+{"state":"United Kingdom","score":"7.104617543204"},
+{"state":"United States","score":"11.671278872944"},
+{"state":"United States Virgin Islands","score":"6.205655608387"},
+{"state":"Uruguay","score":"16.517083886027"},
+{"state":"Uzbekistan","score":"11.336943259244"},
+{"state":"Vanuatu","score":"19.278366332442"},
+{"state":"Venezuela","score":"7.931856813034"},
+{"state":"Vietnam","score":"7.945194666433"},
+{"state":"Wales","score":"8.452511912049"},
+{"state":"Western Pacific Region (WHO)","score":"7.646028822128"},
+{"state":"World","score":"9.389701743558"},
+{"state":"World Bank High Income","score":"10.806666810938"},
+{"state":"World Bank Low Income","score":"10.937212528414"},
+{"state":"World Bank Lower Middle Income","score":"10.056114334428"},
+{"state":"World Bank Upper Middle Income","score":"7.843497017681"},
+{"state":"Yemen","score":"6.137930383290"},
+{"state":"Zambia","score":"13.825075215803"},
+{"state":"Zimbabwe","score":"23.411727916197"}
+]
+}
+,{"type":"table","name":"Temperatures","database":"iacopoguarneri_projects_world","data":
+[
+{"state":"Mali","average":"28.83","min":"19.40","max":"34.60","variation":"15.20"},
+{"state":"Burkina Faso","average":"28.71","min":"22.90","max":"33.90","variation":"11.00"},
+{"state":"Senegal","average":"28.65","min":"23.30","max":"32.80","variation":"9.50"},
+{"state":"Tuvalu","average":"28.45","min":"27.10","max":"29.60","variation":"2.50"},
+{"state":"Djibouti","average":"28.38","min":"22.70","max":"34.10","variation":"11.40"},
+{"state":"Mauritania","average":"28.34","min":"19.10","max":"34.50","variation":"15.40"},
+{"state":"Bahrain","average":"28.23","min":"13.80","max":"39.60","variation":"25.80"},
+{"state":"Palau","average":"28.04","min":"26.70","max":"29.30","variation":"2.60"},
+{"state":"Qatar","average":"28.02","min":"15.10","max":"37.80","variation":"22.70"},
+{"state":"Gambia","average":"27.97","min":"23.30","max":"31.30","variation":"8.00"},
+{"state":"Benin","average":"27.93","min":"24.90","max":"31.90","variation":"7.00"},
+{"state":"Marshall Islands","average":"27.93","min":"26.60","max":"29.00","variation":"2.40"},
+{"state":"Niger","average":"27.83","min":"17.10","max":"34.60","variation":"17.50"},
+{"state":"Maldives","average":"27.80","min":"27.20","max":"28.90","variation":"1.70"},
+{"state":"Sudan","average":"27.74","min":"18.70","max":"33.20","variation":"14.50"},
+{"state":"South Sudan","average":"27.72","min":"25.00","max":"31.80","variation":"6.80"},
+{"state":"Ghana","average":"27.68","min":"25.00","max":"31.10","variation":"6.10"},
+{"state":"Northern Mariana Islands","average":"27.64","min":"25.90","max":"30.00","variation":"4.10"},
+{"state":"United Arab Emirates","average":"27.63","min":"16.50","max":"35.70","variation":"19.20"},
+{"state":"Singapore","average":"27.60","min":"26.10","max":"29.30","variation":"3.20"},
+{"state":"Samoa","average":"27.59","min":"25.80","max":"29.50","variation":"3.70"},
+{"state":"Seychelles","average":"27.55","min":"25.50","max":"29.40","variation":"3.90"},
+{"state":"Cambodia","average":"27.51","min":"23.30","max":"31.00","variation":"7.70"},
+{"state":"Kiribati","average":"27.49","min":"27.20","max":"27.80","variation":"0.60"},
+{"state":"Guinea-Bissau","average":"27.43","min":"23.40","max":"31.10","variation":"7.70"},
+{"state":"Saint Vincent and the Grenadines","average":"27.42","min":"25.00","max":"29.10","variation":"4.10"},
+{"state":"Togo","average":"27.38","min":"24.40","max":"30.90","variation":"6.50"},
+{"state":"Chad","average":"27.37","min":"18.90","max":"32.70","variation":"13.80"},
+{"state":"Sri Lanka","average":"27.28","min":"25.00","max":"29.30","variation":"4.30"},
+{"state":"Grenada","average":"27.24","min":"25.00","max":"28.90","variation":"3.90"},
+{"state":"Nigeria","average":"27.24","min":"23.20","max":"31.50","variation":"8.30"},
+{"state":"Somalia","average":"27.09","min":"24.80","max":"29.30","variation":"4.50"},
+{"state":"Eritrea","average":"26.92","min":"20.30","max":"31.10","variation":"10.80"},
+{"state":"Thailand","average":"26.79","min":"21.40","max":"31.20","variation":"9.80"},
+{"state":"C?te d?Ivoire","average":"26.76","min":"24.30","max":"30.30","variation":"6.00"},
+{"state":"Barbados","average":"26.73","min":"24.90","max":"28.10","variation":"3.20"},
+{"state":"Micronesia (Federated States of)","average":"26.65","min":"25.40","max":"27.70","variation":"2.30"},
+{"state":"Antigua and Barbuda","average":"26.61","min":"24.30","max":"28.30","variation":"4.00"},
+{"state":"Brunei Darussalam","average":"26.56","min":"25.00","max":"28.00","variation":"3.00"},
+{"state":"Sierra Leone","average":"26.54","min":"24.30","max":"29.40","variation":"5.10"},
+{"state":"Trinidad and Tobago","average":"26.37","min":"24.60","max":"27.90","variation":"3.30"},
+{"state":"Saint Lucia","average":"26.34","min":"24.20","max":"28.00","variation":"3.80"},
+{"state":"Kuwait","average":"26.18","min":"10.00","max":"39.00","variation":"29.00"},
+{"state":"Guinea","average":"26.14","min":"23.40","max":"30.10","variation":"6.70"},
+{"state":"Indonesia","average":"26.14","min":"25.40","max":"26.90","variation":"1.50"},
+{"state":"Guyana","average":"26.12","min":"24.50","max":"28.10","variation":"3.60"},
+{"state":"Suriname","average":"26.07","min":"24.30","max":"28.00","variation":"3.70"},
+{"state":"Oman","average":"26.04","min":"18.90","max":"31.40","variation":"12.50"},
+{"state":"Venezuela (Bolivarian Republic of)","average":"25.86","min":"24.30","max":"27.90","variation":"3.60"},
+{"state":"Cuba","average":"25.83","min":"20.00","max":"28.60","variation":"8.60"},
+{"state":"Philippines","average":"25.82","min":"23.60","max":"27.80","variation":"4.20"},
+{"state":"Malaysia","average":"25.75","min":"24.50","max":"27.20","variation":"2.70"},
+{"state":"Liberia","average":"25.69","min":"23.80","max":"28.20","variation":"4.40"},
+{"state":"Solomon Islands","average":"25.61","min":"24.50","max":"26.50","variation":"2.00"},
+{"state":"Belize","average":"25.59","min":"21.40","max":"28.40","variation":"7.00"},
+{"state":"Bangladesh","average":"25.53","min":"17.10","max":"29.70","variation":"12.60"},
+{"state":"Brazil","average":"25.51","min":"22.70","max":"27.20","variation":"4.50"},
+{"state":"Saudi Arabia","average":"25.47","min":"13.70","max":"34.30","variation":"20.60"},
+{"state":"Panama","average":"25.40","min":"23.70","max":"27.20","variation":"3.50"},
+{"state":"Gabon","average":"25.36","min":"22.40","max":"27.30","variation":"4.90"},
+{"state":"Central African Republic","average":"25.31","min":"23.00","max":"28.40","variation":"5.40"},
+{"state":"Nicaragua","average":"25.29","min":"22.90","max":"27.30","variation":"4.40"},
+{"state":"El Salvador","average":"25.24","min":"22.50","max":"27.90","variation":"5.40"},
+{"state":"Haiti","average":"25.13","min":"22.30","max":"27.50","variation":"5.20"},
+{"state":"Saint Kitts and Nevis","average":"25.11","min":"22.60","max":"27.00","variation":"4.40"},
+{"state":"Kenya","average":"25.09","min":"22.90","max":"28.00","variation":"5.10"},
+{"state":"Papua New Guinea","average":"25.08","min":"23.70","max":"26.20","variation":"2.50"},
+{"state":"Bahamas","average":"25.06","min":"17.20","max":"29.30","variation":"12.10"},
+{"state":"Timor-Leste","average":"24.99","min":"22.40","max":"26.70","variation":"4.30"},
+{"state":"Jamaica","average":"24.97","min":"21.70","max":"27.10","variation":"5.40"},
+{"state":"Puerto Rico","average":"24.93","min":"22.10","max":"27.10","variation":"5.00"},
+{"state":"Cameroon","average":"24.87","min":"22.90","max":"27.90","variation":"5.00"},
+{"state":"Congo","average":"24.85","min":"22.40","max":"26.80","variation":"4.40"},
+{"state":"Costa Rica","average":"24.85","min":"22.90","max":"26.80","variation":"3.90"},
+{"state":"Colombia","average":"24.79","min":"23.50","max":"26.60","variation":"3.10"},
+{"state":"India","average":"24.68","min":"16.30","max":"31.10","variation":"14.80"},
+{"state":"Viet Nam","average":"24.62","min":"18.40","max":"28.50","variation":"10.10"},
+{"state":"Tonga","average":"24.58","min":"21.50","max":"28.10","variation":"6.60"},
+{"state":"Equatorial Guinea","average":"24.54","min":"22.30","max":"26.60","variation":"4.30"},
+{"state":"Comoros","average":"24.52","min":"21.70","max":"26.60","variation":"4.90"},
+{"state":"Democratic Republic of the Congo","average":"24.36","min":"22.50","max":"25.60","variation":"3.10"},
+{"state":"Mozambique","average":"24.33","min":"19.40","max":"27.70","variation":"8.30"},
+{"state":"Fiji","average":"24.30","min":"21.00","max":"26.60","variation":"5.60"},
+{"state":"Dominican Republic","average":"24.19","min":"21.20","max":"26.70","variation":"5.50"},
+{"state":"Vanuatu","average":"24.03","min":"21.70","max":"26.20","variation":"4.50"},
+{"state":"Honduras","average":"23.99","min":"20.80","max":"26.30","variation":"5.50"},
+{"state":"Lao People's Democratic Republic","average":"23.74","min":"17.40","max":"27.60","variation":"10.20"},
+{"state":"Paraguay","average":"23.73","min":"15.00","max":"28.90","variation":"13.90"},
+{"state":"Mauritius","average":"23.69","min":"20.00","max":"27.10","variation":"7.10"},
+{"state":"Guatemala","average":"23.67","min":"20.20","max":"26.30","variation":"6.10"},
+{"state":"Yemen","average":"23.63","min":"17.90","max":"29.10","variation":"11.20"},
+{"state":"Myanmar","average":"23.36","min":"17.30","max":"27.30","variation":"10.00"},
+{"state":"Uganda","average":"23.34","min":"21.50","max":"26.00","variation":"4.50"},
+{"state":"Cabo Verde","average":"23.23","min":"19.60","max":"26.30","variation":"6.70"},
+{"state":"Algeria","average":"23.22","min":"10.90","max":"34.10","variation":"23.20"},
+{"state":"Sao Tome and Principe","average":"23.20","min":"20.40","max":"25.20","variation":"4.80"},
+{"state":"Ethiopia","average":"23.04","min":"20.00","max":"26.30","variation":"6.30"},
+{"state":"Egypt","average":"23.00","min":"11.90","max":"31.60","variation":"19.70"},
+{"state":"United Republic of Tanzania","average":"22.86","min":"20.10","max":"24.80","variation":"4.70"},
+{"state":"Madagascar","average":"22.65","min":"18.40","max":"25.50","variation":"7.10"},
+{"state":"Libya","average":"22.64","min":"11.50","max":"32.00","variation":"20.50"},
+{"state":"Iraq","average":"22.58","min":"5.40","max":"35.80","variation":"30.40"},
+{"state":"Malawi","average":"22.51","min":"17.70","max":"26.60","variation":"8.90"},
+{"state":"Dominica","average":"22.48","min":"20.30","max":"24.20","variation":"3.90"},
+{"state":"Zambia","average":"22.27","min":"17.00","max":"26.70","variation":"9.70"},
+{"state":"New Caledonia","average":"22.24","min":"18.10","max":"26.50","variation":"8.40"},
+{"state":"Botswana","average":"22.22","min":"13.40","max":"28.20","variation":"14.80"},
+{"state":"Australia","average":"21.94","min":"13.20","max":"29.90","variation":"16.70"},
+{"state":"Angola","average":"21.83","min":"18.00","max":"24.40","variation":"6.40"},
+{"state":"Zimbabwe","average":"21.83","min":"15.20","max":"26.40","variation":"11.20"},
+{"state":"Ecuador","average":"21.65","min":"19.80","max":"23.50","variation":"3.70"},
+{"state":"Mexico","average":"21.31","min":"14.10","max":"26.80","variation":"12.70"},
+{"state":"Bolivia (Plurinational State of)","average":"20.95","min":"16.20","max":"24.00","variation":"7.80"},
+{"state":"Eswatini","average":"20.79","min":"14.40","max":"25.80","variation":"11.40"},
+{"state":"Pakistan","average":"20.75","min":"7.30","max":"30.40","variation":"23.10"},
+{"state":"Burundi","average":"20.68","min":"18.90","max":"22.60","variation":"3.70"},
+{"state":"Namibia","average":"20.56","min":"13.50","max":"26.10","variation":"12.60"},
+{"state":"Israel","average":"20.51","min":"9.40","max":"29.30","variation":"19.90"},
+{"state":"Tunisia","average":"20.34","min":"8.70","max":"32.10","variation":"23.40"},
+{"state":"Peru","average":"19.70","min":"17.60","max":"21.70","variation":"4.10"},
+{"state":"Cyprus","average":"19.63","min":"7.40","max":"30.50","variation":"23.10"},
+{"state":"Malta","average":"19.61","min":"10.40","max":"29.20","variation":"18.80"},
+{"state":"Jordan","average":"19.42","min":"6.00","max":"29.90","variation":"23.90"},
+{"state":"Rwanda","average":"19.41","min":"17.60","max":"20.70","variation":"3.10"},
+{"state":"Syrian Arab Republic","average":"18.58","min":"3.20","max":"31.60","variation":"28.40"},
+{"state":"South Africa","average":"18.28","min":"9.70","max":"24.90","variation":"15.20"},
+{"state":"Morocco","average":"18.04","min":"8.20","max":"28.60","variation":"20.40"},
+{"state":"Uruguay","average":"17.93","min":"8.80","max":"25.80","variation":"17.00"},
+{"state":"Iran (Islamic Republic of)","average":"17.86","min":"-0.10","max":"31.30","variation":"31.40"},
+{"state":"Turkmenistan","average":"16.14","min":"-6.80","max":"32.40","variation":"39.20"},
+{"state":"Lebanon","average":"16.00","min":"3.50","max":"26.40","variation":"22.90"},
+{"state":"Portugal","average":"15.62","min":"7.30","max":"24.40","variation":"17.10"},
+{"state":"Argentina","average":"14.55","min":"5.20","max":"22.50","variation":"17.30"},
+{"state":"Greece","average":"14.24","min":"2.20","max":"25.60","variation":"23.40"},
+{"state":"Monaco","average":"13.95","min":"3.40","max":"24.60","variation":"21.20"},
+{"state":"Spain","average":"13.93","min":"4.20","max":"24.60","variation":"20.40"},
+{"state":"Afghanistan","average":"13.57","min":"-4.00","max":"27.10","variation":"31.10"},
+{"state":"Uzbekistan","average":"13.34","min":"-11.60","max":"30.60","variation":"42.20"},
+{"state":"Nepal","average":"13.21","min":"2.70","max":"20.80","variation":"18.10"},
+{"state":"Azerbaijan","average":"12.93","min":"-5.20","max":"27.80","variation":"33.00"},
+{"state":"Italy","average":"12.81","min":"1.70","max":"24.20","variation":"22.50"},
+{"state":"Lesotho","average":"12.65","min":"4.60","max":"19.00","variation":"14.40"},
+{"state":"Albania","average":"12.03","min":"-0.60","max":"23.60","variation":"24.20"},
+{"state":"Bhutan","average":"11.98","min":"2.30","max":"18.60","variation":"16.30"},
+{"state":"France","average":"11.69","min":"1.00","max":"22.80","variation":"21.80"},
+{"state":"Croatia","average":"11.66","min":"-2.80","max":"23.80","variation":"26.60"},
+{"state":"Turkey","average":"11.66","min":"-3.50","max":"24.60","variation":"28.10"},
+{"state":"Republic of Korea","average":"11.40","min":"-6.70","max":"26.50","variation":"33.20"},
+{"state":"Bulgaria","average":"11.31","min":"-4.00","max":"23.80","variation":"27.80"},
+{"state":"Serbia","average":"11.28","min":"-4.80","max":"23.90","variation":"28.70"},
+{"state":"Hungary","average":"11.15","min":"-5.20","max":"23.90","variation":"29.10"},
+{"state":"Japan","average":"11.13","min":"-2.20","max":"25.30","variation":"27.50"},
+{"state":"Belgium","average":"10.68","min":"-1.10","max":"21.60","variation":"22.70"},
+{"state":"Republic of Moldova","average":"10.66","min":"-7.40","max":"24.80","variation":"32.20"},
+{"state":"North Macedonia","average":"10.64","min":"-3.90","max":"22.90","variation":"26.80"},
+{"state":"Netherlands","average":"10.40","min":"-1.00","max":"21.00","variation":"22.00"},
+{"state":"Bosnia and Herzegovina","average":"10.24","min":"-4.20","max":"22.60","variation":"26.80"},
+{"state":"New Zealand","average":"10.11","min":"3.60","max":"17.30","variation":"13.70"},
+{"state":"Luxembourg","average":"10.02","min":"-2.70","max":"22.10","variation":"24.80"},
+{"state":"Romania","average":"9.86","min":"-6.50","max":"22.60","variation":"29.10"},
+{"state":"Ireland","average":"9.67","min":"1.80","max":"17.20","variation":"15.40"},
+{"state":"Germany","average":"9.63","min":"-3.60","max":"21.70","variation":"25.30"},
+{"state":"Slovenia","average":"9.58","min":"-4.10","max":"21.70","variation":"25.80"},
+{"state":"Ukraine","average":"9.25","min":"-9.30","max":"23.70","variation":"33.00"},
+{"state":"Montenegro","average":"9.19","min":"-4.80","max":"21.60","variation":"26.40"},
+{"state":"Andorra","average":"9.18","min":"-2.10","max":"20.60","variation":"22.70"},
+{"state":"United Kingdom of Great Britain and Northern Ireland","average":"9.07","min":"0.10","max":"17.20","variation":"17.10"},
+{"state":"Poland","average":"8.85","min":"-6.70","max":"21.30","variation":"28.00"},
+{"state":"Denmark","average":"8.76","min":"-3.90","max":"19.70","variation":"23.60"},
+{"state":"Czechia","average":"8.73","min":"-5.80","max":"21.20","variation":"27.00"},
+{"state":"Chile","average":"8.71","min":"2.70","max":"14.10","variation":"11.40"},
+{"state":"Slovakia","average":"8.34","min":"-7.20","max":"20.90","variation":"28.10"},
+{"state":"Georgia","average":"7.67","min":"-10.60","max":"21.60","variation":"32.20"},
+{"state":"United States of America","average":"7.63","min":"-6.90","max":"21.40","variation":"28.30"},
+{"state":"Belarus","average":"7.50","min":"-11.30","max":"21.70","variation":"33.00"},
+{"state":"Lithuania","average":"7.43","min":"-10.60","max":"21.20","variation":"31.80"},
+{"state":"Austria","average":"7.25","min":"-6.00","max":"19.20","variation":"25.20"},
+{"state":"Armenia","average":"7.15","min":"-13.30","max":"22.70","variation":"36.00"},
+{"state":"China","average":"7.10","min":"-10.50","max":"21.00","variation":"31.50"},
+{"state":"Kazakhstan","average":"6.91","min":"-18.00","max":"25.50","variation":"43.50"},
+{"state":"Latvia","average":"6.86","min":"-10.90","max":"21.00","variation":"31.90"},
+{"state":"Liechtenstein","average":"6.71","min":"-5.70","max":"18.40","variation":"24.10"},
+{"state":"Faroe Islands","average":"6.52","min":"1.40","max":"12.50","variation":"11.10"},
+{"state":"Estonia","average":"6.31","min":"-12.00","max":"21.10","variation":"33.10"},
+{"state":"Democratic People's Republic of Korea","average":"6.19","min":"-15.30","max":"23.10","variation":"38.40"},
+{"state":"Switzerland","average":"6.08","min":"-6.00","max":"17.70","variation":"23.70"},
+{"state":"Tajikistan","average":"3.75","min":"-14.90","max":"17.90","variation":"32.80"},
+{"state":"Sweden","average":"2.62","min":"-12.90","max":"17.30","variation":"30.20"},
+{"state":"Finland","average":"2.52","min":"-16.10","max":"19.10","variation":"35.20"},
+{"state":"Iceland","average":"2.31","min":"-6.00","max":"10.80","variation":"16.80"},
+{"state":"Kyrgyzstan","average":"2.22","min":"-19.30","max":"17.50","variation":"36.80"},
+{"state":"Norway","average":"1.78","min":"-12.00","max":"15.20","variation":"27.20"},
+{"state":"Mongolia","average":"0.67","min":"-25.70","max":"20.70","variation":"46.40"},
+{"state":"Russian Federation","average":"-5.16","min":"-29.70","max":"16.10","variation":"45.80"},
+{"state":"Canada","average":"-6.36","min":"-27.60","max":"12.80","variation":"40.40"},
+{"state":"Greenland","average":"-17.18","min":"-30.40","max":"-1.50","variation":"28.90"}
+]
+}
+,{"type":"table","name":"WelfareSpending","database":"iacopoguarneri_projects_world","data":
+[
+{"state":"France","value":"31.2"},
+{"state":"Belgium","value":"28.9"},
+{"state":"Finland","value":"28.7"},
+{"state":"Italy","value":"28.2"},
+{"state":"Denmark","value":"28.0"},
+{"state":"Austria","value":"26.6"},
+{"state":"Sweden","value":"26.1"},
+{"state":"Germany","value":"25.1"},
+{"state":"Norway","value":"25.0"},
+{"state":"Spain","value":"23.7"},
+{"state":"Greece","value":"23.5"},
+{"state":"Portugal","value":"22.6"},
+{"state":"Luxembourg","value":"22.4"},
+{"state":"Japan","value":"21.9"},
+{"state":"Slovenia","value":"21.2"},
+{"state":"Poland","value":"21.1"},
+{"state":"United Kingdom","value":"20.6"},
+{"state":"Hungary","value":"19.4"},
+{"state":"New Zealand","value":"18.9"},
+{"state":"Czech Republic","value":"18.7"},
+{"state":"United States","value":"18.7"},
+{"state":"Estonia","value":"18.4"},
+{"state":"Australia","value":"17.8"},
+{"state":"Canada","value":"17.3"},
+{"state":"Slovakia","value":"17.0"},
+{"state":"Netherlands","value":"16.7"},
+{"state":"Latvia","value":"16.2"},
+{"state":"Lithuania","value":"16.2"},
+{"state":"Israel","value":"16.0"},
+{"state":"Switzerland","value":"16.0"},
+{"state":"Iceland","value":"16.0"},
+{"state":"Ireland","value":"14.4"},
+{"state":"Turkey","value":"12.5"},
+{"state":"South Korea","value":"11.1"},
+{"state":"Chile","value":"10.9"},
+{"state":"Singapore","value":"16.45"}
+]
+}
+];
+
+function normalize(tab, type, val, min, max) {
+    const postValue = parseFloat(document.querySelector(`[name="${tab}"]`).value);
+    if (postValue === 0) {
+        return 0;
+    } else {
+        val *= postValue / 100;
+        min *= postValue / 100;
+        max *= postValue / 100;
+    }
+    let ret;
+    if (type === "negative_index") {
+        ret = 1 - ((val - min) / (max - min));
+    } else if (type.startsWith("around_value_")) {
+        const around = parseFloat(type.replace("around_value_", ""));
+        min = Math.abs(around - min);
+        max = Math.abs(around - max);
+        if (min < max) {
+            max = min;
+        }
+        const res = Math.abs(val - around) / Math.abs(-17.18 - around);
+        ret = 1 - res;
+    } else {
+        ret = (val - min) / (max - min);
+    }
+
+    if (isNaN(ret)) {
+        ret = 0;
+    }
+
+    return ret;
+}
+
+function translateState(key) {
+    const states = [
+        ["Russia"],
+        ["United Kingdom"],
+        ["United States"],
+        ["Iran"],
+        ["Gambia"],
+        ["Tanzania"],
+        ["Moldova"],
+        ["Venezuela"],
+        ["Bolivia"],
+        ["China"],
+        ["Brunei"],
+        ["Bosnia-Herzegovina", "Bosnia and Herzegovina"],
+        ["Micronesia", "Federated States of Micronesia"],
+        ["Cabo Verde", "Cape Verde"],
+        ["Timor", "Timor-Leste"],
+        ["Ivoire", "Côte d'Ivoire"],
+        ["Ivory ", "Côte d'Ivoire"],
+        ["Syrian", "Syria"],
+        ["Swaziland", "Eswatini"],
+        ["Laos", "Lao People's Democratic Republic"],
+        ["Democratic Republic of the Congo", "Democratic Republic of Congo"],
+        ["Congo", "Republic of Congo"],
+        ["Democratic People's Republic of Korea", "North Korea"],
+        ["Republic of Korea", "South Korea"],
+        ["Czech Republic", "Czechia"],
+        ["Palestine", "Palestinian Territories"],
+        ["Kyrgyz Republic", "Kyrgyzstan"],
+        ["Macedonia", "North Macedonia"]
+    ];
+
+    if (key === "Viet Nam") return "Vietnam";
+
+    for (const state of states) {
+        if (state.length === 1) {
+            if (key.includes(state[0])) return state[0];
+        } else {
+            if (key.includes(state[0])) return state[1];
+        }
+    }
+
+    return key;
+}
+
+function translate(key){
+	var lang = navigator.language || navigator.userLanguage; 
+	if(lang == "it-IT"){
+		if(key == "GlobalPeaceIndex")
+			return "Pace";
+		if(key == "PPP")
+			return "Potere d&apos;acquisto";
+		if(key == "Learning")
+			return "Istruzione";
+		if(key == "Temperatures")
+			return "Temperature";
+		if(key == "WelfareSpending")
+			return "Welfare";
+		if(key == "HealthSystems")
+			return "Sistema sanitario";
+		if(key == "MentalHealt")
+			return "Morti per abuso di sostanze e salute mentale";
+		if(key == "Suicide")
+			return "Suicidi";
+		if(key == "score")
+			return "punteggio*";
+		if(key == "score_info")
+			return "Punteggio calcolato secondo la tua priorità d&apos;importanza";
+		if(key == "search_description")
+			return "Indica l'importanza che hanno per te i seguenti parametri per creare la tua mappa personale e premi sul bottone vai!";
+		if(key == "all_data") 
+			return "Mostra solo gli stati con tutti i dati";
+		if(key == "partial_data") 
+			return "Mostra anche gli stati con dati parziali";
+	} else {
+		if(key == "GlobalPeaceIndex")
+			return "Pace";
+		if(key == "PPP")
+			return "Purchasing power";
+		if(key == "Learning")
+			return "Learning";
+		if(key == "Temperatures")
+			return "Temperature";
+		if(key == "WelfareSpending")
+			return "Welfare";
+		if(key == "HealthSystems")
+			return "Sanitary system";
+		if(key == "MentalHealt")
+			return "Mental healt";
+		if(key == "Suicide")
+			return "Suicide";
+		if(key == "score")
+			return "score*";
+		if(key == "score_info")
+			return "Score calculated according to your priority of importance";
+		if(key == "search_description")
+			return "Indicate the importance that the following parameters have for you to create your personal map and press the go button!";
+		if(key == "all_data") 
+			return "Show only states with all data";
+		if(key == "partial_data") 
+			return "It also shows states with partial data";
+	}
+	return key;
+}
+
+function show(){
+	const js = {};
+	const table = {};
+
+	tabs.forEach(tab => {
+		database.forEach(db_tab => {
+			if(db_tab["type"] == "table" && db_tab["name"] == tab[0]){
+				db_tab["data"].sort((a, b) => b[tab[1]] - a[tab[1]]);
+				var rows = db_tab["data"];
+
+				rows.forEach(row => {
+			        if (excludedStates.includes(row.state)) return;
+
+			        const state = translateState(row.state);
+
+			        if (!names_allowed.includes(state)) {
+			            console.log(`${state} - `); // Sostituisce l'echo
+			        }
+
+			        if (!js[state]) {
+			            js[state] = {};
+			            table[state] = {};
+			        }
+			        if (!js[state][tab[0]]) {
+			            table[state][tab[0]] = [];
+			        }
+			        js[state][tab[0]] = normalize(tab[0], tab[2], row[tab[1]], rows[rows.length - 1][tab[1]], rows[0][tab[1]]);
+
+			        table[state][tab[0]].push(normalize(tab[0], tab[2], row[tab[1]], rows[rows.length - 1][tab[1]], rows[0][tab[1]]));
+			        table[state][tab[0]].push(row[tab[1]]);
+			    });
+			}
+		});
+	});
+
+	let js_avg = [];
+	let partial = document.querySelector('[name="partial"]:checked').value;
+
+	Object.keys(js).forEach(key => {
+	    let j = js[key];
+
+	    if (Object.keys(j).length !== tabs.length && partial == 0) {
+	        return;
+	    }
+
+	    let sum = 0;
+	    let tot = 0;
+
+	    Object.keys(j).forEach(keyi => {
+	        sum += j[keyi];
+	        tot += 1 * (parseFloat(document.querySelector(`[name="${keyi}"]`).value) / 100);
+	    });
+
+	    if (tot === 0) {
+	        js_avg.push({ id: nameid[key], value: 0 });
+	    } else {
+	        js_avg.push({ id: nameid[key], value: sum / tot });
+	    }
+	});
+
+	let tableContainer = document.getElementById('table_container');
+	tableContainer.innerHTML = '<table id="example" class="display" style="width:100%"><thead><tr id="header_row" height="95"><th>State</th><th>Score</th></tr></thead><tbody></tbody><tfoot><tr><th>State</th><th>Score</th></tr></tfoot></table>';
+	document.body.appendChild(tableContainer);
+
+	let theadRow = tableContainer.querySelector('#header_row');
+
+	// Aggiungi le intestazioni di colonna per ogni tab
+	tabs.forEach(tab => {
+	    let th = document.createElement('th');
+	    th.innerHTML = `<span class='translate' attr-translate='${tab[0]}'></span> (<span class='translate' attr-translate='score'></span>)`;
+	    theadRow.appendChild(th);
+
+	    th = document.createElement('th');
+	    th.innerHTML = `<span class='translate' attr-translate='${tab[0]}'></span>`;
+	    theadRow.appendChild(th);
+	});
+
+	let tbody = tableContainer.querySelector('tbody');
+
+	// Popola il corpo della tabella con i dati
+	Object.keys(table).forEach(key => {
+	    let row = table[key];
+	    let tr = document.createElement('tr');
+	    tr.innerHTML = `<td class='header_col'>${key}</td><td>${js_avg.find(avg => avg.id === nameid[key])?.value || 0}</td>`;
+
+	    tabs.forEach(tab => {
+	        if (row[tab[0]]) {
+	            tr.innerHTML += `<td>${row[tab[0]][0]}</td><td>${row[tab[0]][1]}</td>`;
+	        } else {
+	            tr.innerHTML += '<td>No data</td><td>No data</td>';
+	        }
+	    });
+
+	    tbody.appendChild(tr);
+	});
+
+	let tfootRow = tableContainer.querySelector('tfoot tr');
+
+	// Aggiungi le intestazioni di colonna per ogni tab nel footer
+	tabs.forEach(tab => {
+	    let th = document.createElement('th');
+	    th.textContent = `${tab[0]} ${tab[1]}`;
+	    tfootRow.appendChild(th);
+
+	    th = document.createElement('th');
+	    th.textContent = `${tab[0]} ${tab[1]}`;
+	    tfootRow.appendChild(th);
+	});
+
+	let info = document.createElement('div');
+	info.innerHTML = '* <span class="translate" attr-translate="score_info"></span>';
+	tableContainer.appendChild(info);
+
+	am5.ready(function() {
+		var score = js_avg;
+		// Create root element
+		// https://www.amcharts.com/docs/v5/getting-started/#Root_element
+		$("#chartdiv").html('<div id="chartdiv_cnt"></div>');
+		var root = am5.Root.new("chartdiv_cnt");
+
+		// Set themes
+		// https://www.amcharts.com/docs/v5/concepts/themes/
+		root.setThemes([
+		  am5themes_Animated.new(root)
+		]);
+
+		// Create the map chart
+		// https://www.amcharts.com/docs/v5/charts/map-chart/
+		// setting rotationX to -154.8 makes the map Pacific-centered
+		var chart = root.container.children.push(am5map.MapChart.new(root, {
+		  panX: "translateX",
+		  panY: "translateY",
+		  projection: am5map.geoMercator()
+		}));
+
+		// Create main polygon series for countries
+		// https://www.amcharts.com/docs/v5/charts/map-chart/map-polygon-series/
+		var polygonSeries = chart.series.push(am5map.MapPolygonSeries.new(root, {
+		  geoJSON: am5geodata_worldLow,
+		  exclude: ["AQ"],
+		  valueField: "value",
+	  	  calculateAggregates: true
+		}));
+
+		polygonSeries.mapPolygons.template.setAll({
+		  tooltipText: "{name}: {value}"
+		});
+
+		var col_range = [am5.color(0x750000), am5.color(0x03ff00)]
+
+		polygonSeries.set("heatRules", [{
+		  target: polygonSeries.mapPolygons.template,
+		  dataField: "value",
+		  min: col_range[0],
+		  max: col_range[1],
+		  key: "fill"
+		}]);
+
+		polygonSeries.mapPolygons.template.events.on("pointerover", function(ev) {
+		  heatLegend.showValue(ev.target.dataItem.get("value"));
+		});
+
+		polygonSeries.data.setAll(score);
+
+		var heatLegend = chart.children.push(am5.HeatLegend.new(root, {
+		  orientation: "vertical",
+		  startColor: col_range[0],
+		  endColor: col_range[1],
+		  startText: "Worse",
+		  endText: "Best",
+		  stepCount: 5
+		}));
+
+		// change this to template when possible
+		polygonSeries.events.on("datavalidated", function () {
+		  heatLegend.set("startValue", polygonSeries.getPrivate("valueLow"));
+		  heatLegend.set("endValue", polygonSeries.getPrivate("valueHigh"));
+		});
+
+
+		var colorSet = am5.ColorSet.new(root, {});
+
+		var i = 0;
+		polygonSeries.mapPolygons.template.adapters.add("fill", function (fill, target) {
+			//console.log(JSON.stringify(target));
+		  if (i < 10) {
+			i++;
+		  }
+		  else {
+			i = 0;
+		  }
+		  var dataContext = target.dataItem.dataContext;
+		  //console.log(dataContext["id"]+" "+dataContext["name"]);
+		  if (!dataContext.colorWasSet) {
+			dataContext.colorWasSet = true;
+			if(typeof score[dataContext["name"]] === "undefined"){
+				//console.log(dataContext["name"]);
+				score[dataContext["name"]] = 0;
+			}
+
+			if(score[dataContext["name"]] == 0)
+				color = am5.color("#b9b9b9");
+			/*if(score[dataContext["name"]] > 0  && score[dataContext["name"]] < 0.2)
+				color = am5.color("#c25d33");
+			if(score[dataContext["name"]] >= 0.2  && score[dataContext["name"]] < 0.4)
+				color = am5.color("#e7a877"); 
+			if(score[dataContext["name"]] >= 0.4  && score[dataContext["name"]] < 0.6)
+				color = am5.color("#f1ecd7");
+			if(score[dataContext["name"]] >= 0.6  && score[dataContext["name"]] < 0.8)
+				color = am5.color("#a7c2a4");
+			if(score[dataContext["name"]] >= 0.8  && score[dataContext["name"]] <= 1)
+				color = am5.color("#448c82");*/
+			
+
+			//color = am5.color("rgb(0, 0, "+parseInt(score[dataContext["name"]]* 255)+")");
+			target.setRaw("fill", color);
+			return color;
+		  }
+		  else {
+			return fill;
+		  }
+		})
+
+		/*polygonSeries.mapPolygons.template.states.create("hover", { fillOpacity: 1 });
+
+		// Add zoom control
+		// https://www.amcharts.com/docs/v5/charts/map-chart/map-pan-zoom/#Zoom_control
+		chart.set("zoomControl", am5map.ZoomControl.new(root, {}));
+
+		// Set clicking on "water" to zoom out
+		chart.chartContainer.get("background").events.on("click", function() {
+		  chart.goHome();
+		})
+
+		// Make stuff animate on load
+		chart.appear(1000, 100);*/
+
+	}); // end am5.ready()
+
+	var table_dat = $('#example').DataTable({
+    	order: [[1, 'desc']],
+        paging: false,
+        fixedColumns: { left: 1 }
+    });
+    new $.fn.dataTable.FixedHeader( table_dat );
+
+    $(".translate").each(function(){
+    	$(this).html(translate($(this).attr("attr-translate")));
+    });
+    $("span[attr-translate='score']").attr("title",translate("score_info"));
+
+    // Verifica se l'elemento 'partial' è definito, se non lo è, lo imposta a 1
+	/*if (typeof partial === 'undefined' || partial === null) {
+	    partial = 1;
+	}*/
+}
+
+const names_allowed = ["Tuvalu","Bouvet Island","Gibraltar","Glorioso Islands","Juan De Nova Island","Jarvis Island","Baker Island","Howland Island","Johnston Atoll","Midway Islands","Wake Island","Bonair, Saint Eustachius and Saba","Netherlands","Zimbabwe","Zambia","South Africa","Yemen","Samoa","Wallis and Futuna","Palestinian Territories","Vanuatu","Vietnam","US Virgin Islands","British Virgin Islands","Venezuela","Saint Vincent and the Grenadines","Vatican City","Uzbekistan","United States","Uruguay","Ukraine","Uganda","Tanzania","Taiwan","Turkey","Tunisia","Trinidad and Tobago","Tonga","Timor-Leste","Turkmenistan","Tokelau","Tajikistan","Thailand","Togo","Chad","Turks and Caicos Islands","Syria","Seychelles","Sint Maarten","Eswatini","Sweden","Slovenia","Slovakia","Suriname","Sao Tome and Principe","Serbia","Saint Pierre and Miquelon","Somalia","San Marino","El Salvador","Sierra Leone","Solomon Islands","Saint Helena","South Georgia and South Sandwich Islands","Singapore","Senegal","South Sudan","Sudan","Saudi Arabia","Western Sahara","Rwanda","Russia","Romania","Reunion","Qatar","French Polynesia","Paraguay","Portugal","North Korea","Puerto Rico","Poland","Papua New Guinea","Palau","Philippines","Peru","Pitcairn Islands","Panama","Pakistan","Oman","New Zealand","Svalbard and Jan Mayen","Nauru","Nepal","Norway","Niue","Nicaragua","Nigeria","Norfolk Island","Niger","New Caledonia","Namibia","Mayotte","Malaysia","Malawi","Mauritius","Martinique","Montserrat","Mauritania","Mozambique","Northern Mariana Islands","Mongolia","Montenegro","Myanmar","Malta","Mali","North Macedonia","Marshall Islands","Mexico","Maldives","Madagascar","Moldova","Monaco","Morocco","Saint Martin","Macau","Latvia","Luxembourg","Lithuania","Lesotho","Sri Lanka","Liechtenstein","Saint Lucia","Libya","Liberia","Lebanon","Lao People's Democratic Republic","Kuwait","Kosovo","South Korea","Saint Kitts and Nevis","Kiribati","Cambodia","Kyrgyzstan","Kenya","Kazakhstan","Japan","Jordan","Jersey","Jamaica","Italy","Israel","Iceland","Iraq","Iran","Ireland","British Indian Ocean Territory","India","Isle of Man","Indonesia","Hungary","Haiti","Croatia","Honduras","Heard Island and McDonald Islands","Hong Kong","Guyana","Guam","French Guiana","Guatemala","Greenland","Grenada","Greece","Equatorial Guinea","Guinea-Bissau","Gambia","Guadeloupe","Guinea","Ghana","Guernsey","Georgia","Gabon","France","Federated States of Micronesia","Faroe Islands","Falkland Islands","Fiji","Finland","Ethiopia","Estonia","Spain","Eritrea","United Kingdom","Egypt","Ecuador","Algeria","Dominican Republic","Denmark","Dominica","Djibouti","Germany","Czechia","Cyprus","Cayman Islands","Christmas Island","Curaçao","Cuba","Costa Rica","Cape Verde","Comoros","Colombia","Cook Islands","Republic of Congo","Democratic Republic of Congo","Cameroon","Côte d'Ivoire","China","Chile","Switzerland","Cocos (Keeling) Islands","Canada","Central African Republic","Belgium","Botswana","Bhutan","Brunei","Barbados","Brazil","Bolivia","Bermuda","Belize","Belarus","Saint Barthelemy","Bahamas","Bahrain","Bosnia and Herzegovina","Bulgaria","Bangladesh","Burkina Faso","Benin","Burundi","Azerbaijan","Austria","Australia","French Southern and Antarctic Lands","Antarctica","American Samoa","Armenia","Argentina","United Arab Emirates","Andorra","Aland Islands","Albania","Anguilla","Angola","Afghanistan","Antigua and Barbuda","Aruba"];
+
+const nameid = {"Tuvalu":"TV","Bouvet Island":"BV","Gibraltar":"GI","Glorioso Islands":"GO","Juan De Nova Island":"JU","Jarvis Island":"UM-DQ","Baker Island":"UM-FQ","Howland Island":"UM-HQ","Johnston Atoll":"UM-JQ","Midway Islands":"UM-MQ","Wake Island":"UM-WQ","Bonair, Saint Eustachius and Saba":"BQ","Netherlands":"NL","Zimbabwe":"ZW","Zambia":"ZM","South Africa":"ZA","Yemen":"YE","Samoa":"WS","Wallis and Futuna":"WF","Palestinian Territories":"PS","Vanuatu":"VU","Vietnam":"VN","US Virgin Islands":"VI","British Virgin Islands":"VG","Venezuela":"VE","Saint Vincent and the Grenadines":"VC","Vatican City":"VA","Uzbekistan":"UZ","United States":"US","Uruguay":"UY","Ukraine":"UA","Uganda":"UG","Tanzania":"TZ","Taiwan":"TW","Turkey":"TR","Tunisia":"TN","Trinidad and Tobago":"TT","Tonga":"TO","Timor-Leste":"TL","Turkmenistan":"TM","Tokelau":"TK","Tajikistan":"TJ","Thailand":"TH","Togo":"TG","Chad":"TD","Turks and Caicos Islands":"TC","Syria":"SY","Seychelles":"SC","Sint Maarten":"SX","Eswatini":"SZ","Sweden":"SE","Slovenia":"SI","Slovakia":"SK","Suriname":"SR","Sao Tome and Principe":"ST","Serbia":"RS","Saint Pierre and Miquelon":"PM","Somalia":"SO","San Marino":"SM","El Salvador":"SV","Sierra Leone":"SL","Solomon Islands":"SB","Saint Helena":"SH","South Georgia and South Sandwich Islands":"GS","Singapore":"SG","Senegal":"SN","South Sudan":"SS","Sudan":"SD","Saudi Arabia":"SA","Western Sahara":"EH","Rwanda":"RW","Russia":"RU","Romania":"RO","Reunion":"RE","Qatar":"QA","French Polynesia":"PF","Paraguay":"PY","Portugal":"PT","North Korea":"KP","Puerto Rico":"PR","Poland":"PL","Papua New Guinea":"PG","Palau":"PW","Philippines":"PH","Peru":"PE","Pitcairn Islands":"PN","Panama":"PA","Pakistan":"PK","Oman":"OM","New Zealand":"NZ","Svalbard and Jan Mayen":"SJ","Nauru":"NR","Nepal":"NP","Norway":"NO","Niue":"NU","Nicaragua":"NI","Nigeria":"NG","Norfolk Island":"NF","Niger":"NE","New Caledonia":"NC","Namibia":"NA","Mayotte":"YT","Malaysia":"MY","Malawi":"MW","Mauritius":"MU","Martinique":"MQ","Montserrat":"MS","Mauritania":"MR","Mozambique":"MZ","Northern Mariana Islands":"MP","Mongolia":"MN","Montenegro":"ME","Myanmar":"MM","Malta":"MT","Mali":"ML","North Macedonia":"MK","Marshall Islands":"MH","Mexico":"MX","Maldives":"MV","Madagascar":"MG","Moldova":"MD","Monaco":"MC","Morocco":"MA","Saint Martin":"MF","Macau":"MO","Latvia":"LV","Luxembourg":"LU","Lithuania":"LT","Lesotho":"LS","Sri Lanka":"LK","Liechtenstein":"LI","Saint Lucia":"LC","Libya":"LY","Liberia":"LR","Lebanon":"LB","Lao People\'s Democratic Republic":"LA","Kuwait":"KW","Kosovo":"XK","South Korea":"KR","Saint Kitts and Nevis":"KN","Kiribati":"KI","Cambodia":"KH","Kyrgyzstan":"KG","Kenya":"KE","Kazakhstan":"KZ","Japan":"JP","Jordan":"JO","Jersey":"JE","Jamaica":"JM","Italy":"IT","Israel":"IL","Iceland":"IS","Iraq":"IQ","Iran":"IR","Ireland":"IE","British Indian Ocean Territory":"IO","India":"IN","Isle of Man":"IM","Indonesia":"ID","Hungary":"HU","Haiti":"HT","Croatia":"HR","Honduras":"HN","Heard Island and McDonald Islands":"HM","Hong Kong":"HK","Guyana":"GY","Guam":"GU","French Guiana":"GF","Guatemala":"GT","Greenland":"GL","Grenada":"GD","Greece":"GR","Equatorial Guinea":"GQ","Guinea-Bissau":"GW","Gambia":"GM","Guadeloupe":"GP","Guinea":"GN","Ghana":"GH","Guernsey":"GG","Georgia":"GE","Gabon":"GA","France":"FR","Federated States of Micronesia":"FM","Faroe Islands":"FO","Falkland Islands":"FK","Fiji":"FJ","Finland":"FI","Ethiopia":"ET","Estonia":"EE","Spain":"ES","Eritrea":"ER","United Kingdom":"GB","Egypt":"EG","Ecuador":"EC","Algeria":"DZ","Dominican Republic":"DO","Denmark":"DK","Dominica":"DM","Djibouti":"DJ","Germany":"DE","Czechia":"CZ","Cyprus":"CY","Cayman Islands":"KY","Christmas Island":"CX","Curaçao":"CW","Cuba":"CU","Costa Rica":"CR","Cape Verde":"CV","Comoros":"KM","Colombia":"CO","Cook Islands":"CK","Republic of Congo":"CG","Democratic Republic of Congo":"CD","Cameroon":"CM","Côte d\'Ivoire":"CI","China":"CN","Chile":"CL","Switzerland":"CH","Cocos (Keeling) Islands":"CC","Canada":"CA","Central African Republic":"CF","Belgium":"BE","Botswana":"BW","Bhutan":"BT","Brunei":"BN","Barbados":"BB","Brazil":"BR","Bolivia":"BO","Bermuda":"BM","Belize":"BZ","Belarus":"BY","Saint Barthelemy":"BL","Bahamas":"BS","Bahrain":"BH","Bosnia and Herzegovina":"BA","Bulgaria":"BG","Bangladesh":"BD","Burkina Faso":"BF","Benin":"BJ","Burundi":"BI","Azerbaijan":"AZ","Austria":"AT","Australia":"AU","French Southern and Antarctic Lands":"TF","Antarctica":"AQ","American Samoa":"AS","Armenia":"AM","Argentina":"AR","United Arab Emirates":"AE","Andorra":"AD","Aland Islands":"AX","Albania":"AL","Anguilla":"AI","Angola":"AO","Afghanistan":"AF","Antigua and Barbuda":"AG","Aruba":"AW","Aruba":"AW"}
+
+const tabs = [
+	["GlobalPeaceIndex", "score", "negative_index", "https://en.wikipedia.org/wiki/Global_Peace_Index"],
+	["Temperatures", "average", "around_value_13", "https://listfist.com/list-of-countries-by-average-temperature"],
+	["PPP", "value", "positive_index", "https://en.wikipedia.org/wiki/List_of_countries_by_GDP_(PPP)_per_capita"],
+	["WelfareSpending", "value", "positive_index", "https://en.wikipedia.org/wiki/List_of_countries_by_social_welfare_spending"],
+	["HealthSystems", "score", "negative_index", "https://en.wikipedia.org/wiki/World_Health_Organization_ranking_of_health_systems_in_2000"],
+	["Learning", "score", "positive_index", "https://ourworldindata.org/grapher/average-harmonized-learning-outcome-scores?tab=map"],
+	["MentalHealt", "value", "negative_index", "https://ourworldindata.org/grapher/death-rates-from-mental-health-and-substance-use-disorders"],
+	["Suicide", "score", "negative_index", "https://ourworldindata.org/grapher/suicide-death-rates"]
+];
+
+const excludedStates = [
+    "Southeast Asia", "Eastern Sub-Saharan Africa", "Western Sub-Saharan Africa", "Central Sub-Saharan Africa",
+    "Sub-Saharan Africa", "South Asia", "Low SDI", "Low-middle SDI", "Southern Latin America", "Middle SDI",
+    "Southeast Asia, East Asia, and Oceania", "North Africa and Middle East", "Oceania", "Central Latin America",
+    "Andean Latin America", "Southern Sub-Saharan Africa", "East Asia", "High-middle SDI", "Latin America and Caribbean",
+    "Central Asia", "Tropical Latin America", "World", "Eastern Europe", "Central Europe, Eastern Europe, and Central Asia",
+    "Central Europe", "High SDI", "North America", "Yugoslavia", "FR Yugoslavia", "High-income Asia Pacific", "Western Europe",
+    "Scotland", "England", "Northern Ireland", "Wales", "High-income", "Australasia", "Caribbean", "North America (WB)",
+    "Region of the Americas (WHO)", "Latin America & Caribbean (WB)", "Middle East & North Africa (WB)", "World Bank High Income",
+    "OECD Countries", "Eastern Mediterranean Region (WHO)", "Europe & Central Asia (WB)", "European Region (WHO)",
+    "World Bank Upper Middle Income", "G20", "World Bank Low Income", "African Region (WHO)", "Sub-Saharan Africa (WB)",
+    "East Asia & Pacific (WB)", "World Bank Lower Middle Income", "Western Pacific Region (WHO)", "South-East Asia Region (WHO)",
+    "South Asia (WB)", "World Bank Low Income", "North America (WB)", "Sub-Saharan Africa (WB)", "Middle East & North Africa (WB)",
+    "African Region (WHO)", "Eastern Mediterranean Region (WHO)", "World Bank High Income", "OECD Countries", "South Asia (WB)",
+    "Region of the Americas (WHO)", "European Region (WHO)", "Europe & Central Asia (WB)", "World Bank Lower Middle Income",
+    "South-East Asia Region (WHO)", "Latin America & Caribbean (WB)", "World Bank Upper Middle Income", "Western Pacific Region (WHO)",
+    "East Asia & Pacific (WB)", "South Asia (WB)", "Europe & Central Asia (WB)", "European Region (WHO)", "North America (WB)",
+    "South-East Asia Region (WHO)", "World Bank Low Income", "World Bank High Income", "Sub-Saharan Africa (WB)", "African Region (WHO)",
+    "OECD Countries", "World Bank Lower Middle Income", "Region of the Americas (WHO)", "World Bank Upper Middle Income",
+    "Western Pacific Region (WHO)", "East Asia & Pacific (WB)", "Latin America & Caribbean (WB)", "Eastern Mediterranean Region (WHO)",
+    "Middle East & North Africa (WB)", "Macao", "Belgium Flemish", "Canada (Quebec)", "Canada (Ontario)", "United Arab Emirates (Dubai)",
+    "Spain (regions)", "Mexico (Nuevo Leo)", "United Arab Emirates (Abu Dhabi)", "Argentina (Buenos Aires)"
+];
+
+/*
+["Anxiety", "score", "negative_index", "https://ourworldindata.org/grapher/share-with-anxiety-disorders"],
+["Depression", "score", "negative_index", "https://ourworldindata.org/grapher/share-with-depression"],
+*/
+
+$(document).ready(function () {
+	tabs.forEach(tab => {
+	    const tr = document.createElement('tr');
+	    tr.innerHTML = `<td width="170"><a href="${tab[3]}" target="_blank" class="translate" attr-translate="${tab[0]}"></a></td>
+	                    <td><input type="range" name="${tab[0]}" value="100" min="0" max="100" oninput="this.nextElementSibling.value = this.value"><output>100</output></td>`;
+	    document.querySelector('table').appendChild(tr);
+	});
+
+	show();
+});
+</script>

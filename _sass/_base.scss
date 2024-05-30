@@ -354,6 +354,10 @@ header {
     background: $theme-dark;
 }
 
+img {
+    max-width: 100%;
+}
+
 img::selection {
     color: white;
     background: transparent;

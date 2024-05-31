@@ -48,6 +48,8 @@ Click the following button to find out what your Vo2Max is
 ## Html Canvas Animation
 This project dates back to 2010, when flash was widely used to make animations, but html5 was being born and would become official for 2012 (if I remember correctly). So I developed a tool to create animations to be exported and used in the sites.
 
+<a href="/projects/html-canvas-animation" class="btn btn-primary btn-xl">Try!</a>
+
 ---
 
 ## Random midi generator

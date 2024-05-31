@@ -50,9 +50,13 @@ p {
     text-align:center;
 }
 
-.logo{
-    display:inline;
+#logo{
+    display:inline !important;
     max-height:50px;
+}
+
+.navbar-brand{
+    padding: 5px 15px !important;
 }
 
 main#content{

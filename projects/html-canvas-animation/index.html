@@ -1,0 +1,3533 @@
+---
+layout: default
+title: Html Canvas Animation
+---
+
+This project dates back to 2010, when flash was widely used to make animations, but html5 was being born and would become official for 2012 (if I remember correctly). So I developed a tool to create animations to be exported and used in the sites.
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/01MYm4S9fVs?si=CCcvBrrkRy51ON9u" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+<meta http-equiv="Content-type" content='text/html; charset="UTF-8"' />
+
+<script src="sandbox_files/jquery.js"></script>
+<!--<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js"></script>-->
+<script src="sandbox_files/jquery-ui.min.js"></script>
+<!--<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>-->
+
+<script src="sandbox_files/jcanvas.js"></script>
+<script src="sandbox_files/jquery.form.js"></script>
+
+<link rel="stylesheet" href="css/colorpicker.css" type="text/css" />
+<link rel="stylesheet" media="screen" type="text/css" href="css/layout.css" />
+
+<script type="text/javascript" src="js/colorpicker.js"></script>
+<script type="text/javascript" src="js/eye.js"></script>
+<script type="text/javascript" src="js/layout.js?ver=1.0.2"></script>
+
+<script type="text/javascript" src="lingue/en.js"></script>
+
+<div style="margin:0 0 0 831px; position:absolute;">
+<!--<a href="?lang=it" title="cambia la lingua in italiano"><img src="../images/it.png" alt="lingua italiana"></a>
+<a href="?lang=en" title="change the language in English"><img src="../images/en.png" alt="lingua inglese"></a>-->
+</div>
+
+<div id="select_gradient" class="popup_frame" style="visibility:hidden; background:#ccc; width:360px; min-height:100px; position:absolute; left:50%; margin:60px 0 0 -180px;"></div>
+
+	<div id="div_opzioni_generali" style="float:left; height:160px;">
+
+	<div id="opzioni_documento" style='float:left; width:128px; height:35px; background:url("immagini/freccia.png"); padding:17px 0 0 8px; font-size:13px; color:#000;'></div>
+
+	<div style='float:left; margin-top:2px; width:700px; height:47px; padding:5px 0 0 0; background:url("immagini/raggruppo.png");'>
+
+<div id='annulla' style='margin-left:23px; cursor:pointer; width:35px; height:35px; float:left; background:url("immagini/menu.png") repeat-x scroll 0 0;'></div>
+<div id='ripeti' style='cursor:pointer; width:35px; height:35px; float:left; background:url("immagini/menu.png") repeat-x scroll -35px 0;'></div>
+<div id='mostra_dettagli' style='cursor:pointer; width:35px; height:35px; float:left; background:url("immagini/menu.png") repeat-x scroll -70px 0;'></div>
+<div id='mostra_tutorial' style='cursor:pointer; width:35px; height:35px; float:left; background:url("immagini/menu.png") repeat-x scroll -105px 0;'></div>
+<div id='mostra_div_error' style='cursor:pointer; width:35px; height:35px; float:left; background:url("immagini/menu.png") repeat-x scroll -140px 0;'>
+	<div id='segnale_errore' style='margin:5px 0 0 7px; cursor:pointer; width:25px; height:24px; background:url("immagini/lampeggia.png") repeat-x scroll 0px 0; visibility:hidden;'></div>
+</div>
+<div id='puls_tendina_esporta' style='cursor:pointer; width:35px; height:35px; float:left; background:url("immagini/menu.png") repeat-x scroll -245px 0;'></div>
+
+<form method="post" action="salva.php" target="_blank" style="float:left;">
+	<input type="submit" value="" id="salva_progetto" style='cursor:pointer; width:35px; height:35px; background:url("immagini/menu.png") repeat-x scroll -175px 0; border:none;'/>
+	<input id="dati_salvataggio" name="dati_salvataggio" type="hidden" value="">
+	<input id="numero_salvataggio" name="numero_salvataggio" type="hidden" value="0">
+</form>
+
+<div id='puls_tendina_apri' style='cursor:pointer; width:38px; height:35px; float:left; background:url("immagini/menu.png") repeat-x scroll -210px 0;'></div>
+
+		<div id="tendina_esporta" style="height:0px; overflow:hidden; position:absolute; top:40px;">
+			<form method="post" class="popup_frame" action="esporta.php" target="_blank">
+				<input type="submit" value="" id="esporta_button"/>
+				<input type="radio" name="tipo_exp" value="animazione"> <span id="animazione_radio"></span>
+				<input type="radio" name="tipo_exp" value="fissa"> <span id="immagine_fissa_radio"></span>
+				<input id="dati_salvataggio_exp_anim" name="dati_salvataggio_exp_anim" type="hidden" value="">
+				<input id="dati_salvataggio_exp_fis" name="dati_salvataggio_exp_fis" type="hidden" value="">
+			</form>
+		</div>
+		
+		<div id="tendina_apri" style="width:0px; overflow:hidden; position:absolute; left:445px;">
+			<form id="form_apri_xml" class="popup_frame" action="upload.php?tipo=apri_xml" method="post" enctype="multipart/form-data">
+				<input type="file" name="upfile">
+				<input type="submit" value="" id="apri_progetto">
+			</form>
+		</div>
+		<script type='text/javascript'>
+		$("#salva_progetto").click(function()
+		{
+			n_salvataggi++;
+			$("#numero_salvataggio").val(n_salvataggi);
+		});
+
+		$("#puls_tendina_esporta").click(function()
+		{
+			var alza_abbassa;
+			if($("#tendina_esporta").css("height")=="0px"){alza_abbassa="60px";}
+			else{alza_abbassa="0px";}
+
+			$("#tendina_esporta").animate(
+			{
+				height:alza_abbassa
+			},700);
+		});
+		$("#puls_tendina_apri").click(function()
+		{
+			var alza_abbassa;
+			if($("#tendina_apri").css("width")=="0px"){alza_abbassa="400px";}
+			else{alza_abbassa="0px";}
+
+			$("#tendina_apri").animate(
+			{
+				width:alza_abbassa
+			},700);
+		});
+
+		$(document).ready(function() {
+			$("#form_apri_xml").ajaxForm(function(resp)
+			{
+				resp=resp.replace(/\s+$|^\s+/g,""); //eliminare gli spazi
+				ritorno=resp.split(",");
+				if(ritorno[0]=="corretto")
+				{
+					$(document).ready(function() {
+ 						var url_xml="apri_xml/"+ritorno[1];
+					  	$.ajax({ type: "GET", url: url_xml, dataType: "xml",
+					     
+					    	success: function(xml) {
+					       
+					      		$(xml).find('var').each(function() {
+						 
+								var valori_salvati = $(this).find('val').text();
+								storico=new Array();
+								storico[0]=valori_salvati;
+								ripristina(0);						 
+					      		});    
+					    	},
+					    	error: function(request, error, tipo_errore) { alert(error+': '+ tipo_errore); }
+					  	});
+					});
+				}
+				else
+				{
+					alert(resp);
+				}
+			});
+		});
+		</script>
+		</div>
+
+	<div id="div_error_cont" class="popup_frame" style="visibility:hidden; width:300px;  margin:150px 0 0 -150px; position:absolute; left:50%; background:#aaa;">
+		<img id="chiudi_div_error" style="cursor:pointer;" src="immagini/x.png">
+		<div id="div_error"></div>
+	</div>
+
+	<div id="div_opzioni_generali2" style="float:left; height:160px; width:840px;">
+
+		<div id="creazione_oggetto" style='float:left; width:128px; height:35px; background:url("immagini/freccia.png"); padding:17px 0 0 8px; font-size:13px; color:#000;'></div>
+
+		<div style='float:left; margin-top:2px; width:700px; height:47px; padding:5px 0 0 0; background:url("immagini/raggruppo.png");'>
+		<input type="text" id="colorpickerField1" value="rgba(255, 255, 0, 1)" style="margin-left:23px; background:rgba(255, 255, 0, 1); height:33px; width:145px; border:1px solid #000; cursor:pointer; float:left;">
+		<input type="text" id="colorpickerField2" value="rgba(0, 0, 255, 1)" style="background:rgba(0, 0, 255, 1); height:33px; width:145px; border:1px solid #000; cursor:pointer; float:left;">
+
+		<div id="strumenti">
+		<div id='seleziona' style='cursor:pointer; width:35px; height:35px; float:left; background:url("immagini/strumenti.png") repeat-x scroll 0 0'></div> 
+		<div id='cerchio' style='cursor:pointer; width:35px; height:35px; float:left; background:url("immagini/strumenti.png") repeat-x scroll -35px 0'></div> 
+		<div id='quadrato' style='cursor:pointer; width:35px; height:35px; float:left; background:url("immagini/strumenti.png") repeat-x scroll -70px 0'></div> 
+		<div id='ellisse' style='cursor:pointer; width:35px; height:35px; float:left; background:url("immagini/strumenti.png") repeat-x scroll -105px 0'></div> 
+		<div id='poligono' style='cursor:pointer; width:35px; height:35px; float:left; background:url("immagini/strumenti.png") repeat-x scroll -140px 0'></div>
+		<div id='testo' style='cursor:pointer; width:35px; height:35px; float:left; background:url("immagini/strumenti.png") repeat-x scroll -175px 0'></div>
+		<div id='linea' style='cursor:pointer; width:35px; height:35px; float:left; background:url("immagini/strumenti.png") repeat-x scroll -210px 0'></div>
+		<div id='immagine' style='cursor:pointer; width:35px; height:35px; float:left; background:url("immagini/strumenti.png") repeat-x scroll -245px 0'></div>
+		<div id='multi_selezione' style='cursor:pointer; width:38px; height:35px; float:left; background:url("immagini/strumenti.png") repeat-x scroll -280px 0'></div>
+		</div>
+		</div>
+	
+		<div class="div_creazione_oggetto" style="width:940px;">
+			<div id="modifica_area_lavoro" style='float:left; clear:both; width:128px; height:35px; background:url("immagini/freccia.png"); padding:17px 0 0 8px; font-size:13px; color:#000;'></div>
+
+			<div style='float:left; width:700px; height:52px; background:url("immagini/raggruppo.png");'>
+
+			<div style="margin-left:23px; float:left;">
+				<span id="colore_len"></span><br />
+				<input type="text" id="colorpickerField3" value="rgba(255, 255, 255, 1)" style="background:rgba(255, 255, 255, 1); width:145px; border:1px solid #000; cursor:pointer;">
+			</div>
+			<div style="float:left;">
+				<span id="trasparenza_len"></span><br />
+				<input type="text" id="opacita" value="1" style="background:rgba(255, 255, 255, 1); width:90px; border:1px solid #000; cursor:pointer; float:left;">
+			</div> 
+			<div style="float:left;">
+				<span id="larghezza_len"></span><br />
+				<input type="text" id="base" value="920" style="background:rgba(255, 255, 255, 1); width:90px; border:1px solid #000; cursor:pointer; float:left;">
+			</div>
+			<div style="float:left;">
+				<span id="altezza_len"></span><br />
+				<input type="text" id="altezza" value="450" style="background:rgba(255, 255, 255, 1); width:90px; border:1px solid #000; cursor:pointer; float:left;">
+			</div>
+			<div style="float:left;">
+				<span id="spessore_len"></span><br />
+				<input type="text" id="spessore" value="5" style="background:rgba(255, 255, 255, 1); width:90px; border:1px solid #000; cursor:pointer; float:left;">
+			</div>
+
+			<div id="scala"></div>
+			</div>
+
+		</div>
+	</div>
+<div style="clear:both;"></div>
+</div>
+
+<script type="text/javascript">
+
+function RGB(r,g,b){this.r=r; this.g=g; this.b=b;}
+$('#colorpickerField1, #colorpickerField2, #colorpickerField3').ColorPicker({
+	onSubmit: function(hsb, hex, rgb, el) {
+		$(el).ColorPickerHide();
+		$(el).css("background","#"+hex);
+
+		var valore=$(el).css("background-color");
+		var valore="rgba"+valore.slice(3,valore.length-1)+", 1)";
+		$(el).val(valore);
+	},
+	onBeforeShow: function () {
+		if(this.value!="")
+		{
+			var prov_rgb=this.value;
+			prov_rgb=prov_rgb.split(",");
+			var r=prov_rgb[0].substr(5,prov_rgb[0].length);
+			var g=prov_rgb[1].substr(0,prov_rgb[1].length);
+			var b=prov_rgb[2].substr(0,prov_rgb[2].length);
+		}
+		else{r=0; g=0; b=0;}
+
+		var r_g_b=new RGB(r,g,b)
+		$(this).ColorPickerSetColor(r_g_b);
+	}
+})
+.bind('keyup', function(){
+	$(this).ColorPickerSetColor(this.value);
+});
+</script>
+
+<style>
+	.riquadri_video{
+		float:left; 
+		width:230px; 
+		border:1px solid black; 
+		height: 41px;
+	}
+	.input_video{width:70px;}
+	.intestazioni_livello{
+		height:40px; 
+		width:100px; 
+		float:left;
+	}
+	.popup_frame{
+		background:#0f0;
+		border: 1px solid #000;
+		-moz-border-radius: 15px;
+		-webkit-border-radius: 15px;
+		padding:15px; 
+		color:#222;
+		z-index:2147483647;
+	}
+	.nome_font{
+		border: 1px solid #000;
+		-moz-border-radius: 15px;
+		-webkit-border-radius: 15px;
+		padding:1px 10px; 
+		color:#222;
+		cursor:pointer;
+		margin-top:5px;
+		text-align:center;
+	}
+	.iub{
+		font-size:20px;
+		font-weight:bold;
+		cursor:pointer;
+	}
+	.button_generico{
+		background-image:url("immagini/button.png");
+		border: 1px solid #000;
+		-moz-border-radius: 15px;
+		-webkit-border-radius: 15px;
+		padding:1px 10px; 
+		color:#222;
+		cursor:pointer;
+		margin-top:5px;
+		display:block;
+		width:200px;
+		text-align:center;
+	}
+	.indicegrad{
+		border:1px solid #000;
+		cursor:pointer;
+	}
+	#scala{
+		-moz-border-radius: 15px;
+		-webkit-border-radius: 15px;
+		border:2px solid #000;
+		background:#00d819; 
+		cursor:pointer; 
+		float:left; 
+		width:120px; 
+		height:21px; 
+		padding-top:4px; 
+		margin:8px 0 0 8px; 
+		text-align:center; 
+		color:#000; 
+		font-size:12px;
+	}
+	*{color:#000;}
+</style>
+
+<div id="div_canvas" style="width:920px;"><canvas id="myCanvas" class="test" width="920" height="450" style='background:#fff; border-style:solid;'></canvas></div>
+
+<!--barra play-->
+<div>
+		<div class="riquadri_video">
+			<span id="aggiunta_frame_len"></span><br />
+			<input type="text" id="n_frame_agg" class="input_video"> <span id="add_frame" class="button_generico" style="display:inline;"></span>
+		</div>
+		<div class="riquadri_video">
+			<span id="durata_frame_len"></span><br />
+			<input type="text" id="tempo_frame" class="input_video"> <!--<span id="add_tempo_frame">Aggiungi</span>-->
+		</div>
+		<div class="riquadri_video">
+			<span id="frame_finale_len"></span><br />
+			<input type="text" id="frame_fine" class="input_video"> <!--<span id="add_frame_fine">Aggiungi</span>-->
+		</div>
+		<div class="riquadri_video">
+<div title='play' id='play' style='cursor:pointer; width:25px; height:25px; float:left; background:url("immagini/playstop.png") repeat-x scroll 0 0; margin:8px 10px 0 15px;'></div>
+<div title='stop' id='stop' style='cursor:pointer; width:25px; height:25px; float:left; background:url("immagini/playstop.png") repeat-x scroll -29px 0; margin:8px 0 0 0;'></div>
+		</div>
+	</div>
+<!--fine barra play-->
+
+<div id='timeline_dim' style='width:920px; height:255px; overflow:auto;'>
+	<div id='timeline_label_cont' class='intestazioni_livello'>
+		<span id='timeline_label'></span>
+		<br><img src='immagini/sottoliv_but_a.png' style='cursor:pointer; width:29px; margin:-10px 10px 0 0; float:right;' id='visualizza_sottoliv'>		
+	</div>
+	<div id='timeline' style='width:0px;'></div>
+	<div id='livelli' style='width:100%; height:200px;'></div>
+</div>
+<div style="clear:both; width:100%; height:1px;"></div>
+
+
+<div id="dettagli_cont" style="width:421px; position:absolute; top:165px; left:100%; margin-left:-421px; z-index:2;">
+	<div id="dettagli_top" style="width:421px; height:65px; background-image:url('immagini/dettaglitop.png');">
+		<img style="cursor:pointer;" src="immagini/x.png" id="chiudi_dettagli">
+		<span id="dettagli_oggetto_len" style="font-size:18px; color:#000; margin:15px 0 0 15px; position:absolute;"></span>
+	</div>
+	<div id="dettagli" style="top:0; width:381px; min-height:10px; padding-left:40px; background-image:url('immagini/dettagli.png');"></div>
+	<div id="dettagli_bottom" style="width:421px; height:49px; background-image:url('immagini/dettaglibottom.png');"></div>
+</div>
+
+<div id="div_tutorial" style="width:314px; position:absolute; top:165px; left:0; z-index:2;">
+	<div style="width:314px; height:30px; background-image:url('immagini/tut-top.png');">
+		<img style="cursor:pointer;" src="immagini/x.png" id="chiudi_tutorial">
+	</div>
+	<div id="tutorial_cont" style="color:#cdcdcd; width:264px; text-align:justify; padding:0 35px 0 15px; background-image:url('immagini/tut-cen.png');"></div>
+	<div style="width:314px; height:40px; background-image:url('immagini/tut-bot.png');"></div>
+</div>
+	
+<!--<div id="codice" style="width:500px; height:253px; background:#CCCCCC; overflow:auto; border-style:solid;"></div>-->
+<div style="clear:both; width:100%; height:1px;"></div>
+
+<script type="text/javascript">
+var lingue=new lingua();
+
+$("#add_frame").html(lingue.aggiungi);
+$("#timeline_label").html(lingue.timeline_label);
+$("#tutorial_cont").html(lingue.tutorial_inizio);
+$("#opzioni_documento").html(lingue.opzioni_documento);
+$("#creazione_oggetto").html(lingue.creazione_oggetto);
+$("#modifica_area_lavoro").html(lingue.modifica_area_lavoro);
+$("#colore_len").html(lingue.colore);
+$("#trasparenza_len").html(lingue.trasparenza);
+$("#larghezza_len").html(lingue.larghezza);
+$("#altezza_len").html(lingue.altezza);
+$("#spessore_len").html(lingue.spessore);
+$("#scala").html(lingue.modifica_area_lavoro);
+$("#dettagli_oggetto_len").html(lingue.dettagli_oggetto);
+$("#aggiunta_frame_len").html(lingue.aggiunta_frame);
+$("#durata_frame_len").html(lingue.durata_frame);
+$("#frame_finale_len").html(lingue.frame_finale);
+$("#div_error").html(lingue.nessun_errore);
+$("#immagine_fissa_radio").html(lingue.immagine_fissa);
+$("#animazione_radio").html(lingue.animazione);
+$("#esporta_button").attr("value",lingue.esporta);
+$("#apri_progetto").attr("value",lingue.apri);
+$("#annulla").attr("title",lingue.annulla);
+$("#ripeti").attr("title",lingue.ripeti);
+$("#mostra_dettagli").attr("title",lingue.dettagli_oggetto);
+$("#mostra_div_error").attr("title",lingue.mostra_errori);
+$("#puls_tendina_esporta").attr("title",lingue.esporta_title);
+$("#puls_tendina_apri").attr("title",lingue.apri_title);
+$("#salva_progetto").attr("title",lingue.salva_title);
+$("#colorpickerField1").attr("title",lingue.riempimento_title);
+$("#colorpickerField2").attr("title",lingue.contorno_title);
+$("#seleziona").attr("title",lingue.selezione);
+$("#cerchio").attr("title",lingue.cerchio);
+$("#ellisse").attr("title",lingue.ovale);
+$("#quadrato").attr("title",lingue.quadrato);
+$("#poligono").attr("title",lingue.poligono);
+$("#testo").attr("title",lingue.testo);
+$("#immagine").attr("title",lingue.immagine);
+$("#multi_selezione").attr("title",lingue.multi_selezione);
+$("#linea").attr("title",lingue.linea);
+$("#visualizza_sottoliv").attr("title",lingue.mostra_nascondi_sottolivelli);
+
+$("#strumenti").click(function(){
+	$("#tutorial_cont").html(lingue.tutorial_come_disegnare);
+});
+$("#linea").click(function(event){
+	event.stopPropagation();
+	$("#tutorial_cont").html(lingue.tutorial_disegnare_linee);
+});
+$("#seleziona").click(function(event){
+	event.stopPropagation();
+	$("#tutorial_cont").html(lingue.tutorial_selezione);
+});
+$("#multi_selezione").click(function(event){
+	event.stopPropagation();
+	$("#tutorial_cont").html(lingue.tutorial_multi_selezione);
+});
+$("#mostra_div_error").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_errore);
+});
+$("#puls_tendina_esporta").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_esporta);
+});
+$("#salva_progetto").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_salva);
+});
+$("#puls_tendina_apri").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_apri);
+});
+$("#seleziona").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_over_selezioni);
+});
+$("#cerchio").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_cerchio);
+});
+$("#quadrato").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_quadrato);
+});
+$("#ellisse").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_ellisse);
+});
+$("#testo").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_testo);
+});
+$("#poligono").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_poligono);
+});
+$("#linea").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_linea);
+});
+$("#immagine").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_immagine);
+});
+$("#multi_selezione").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_multiselezione);
+});
+$("#colorpickerField1").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_colore_sfondo);
+});
+$("#colorpickerField2").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_colore_bordo);
+});
+$("#colorpickerField3").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_colore_area_lavoro);
+});
+$("#annulla").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_annulla);
+});
+$("#ripeti").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_ripeti);
+});
+$("#base").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_base_area_lavoro);
+});
+$("#spessore").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_spessore_area_lavoro);
+});
+$("#altezza").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_altezza_area_lavoro);
+});
+$("#scala").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_button_area_lavoro);
+});
+$("#opacita").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_alpha_area_lavoro);
+});
+$("#n_frame_agg").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_agg_frame);
+});
+$("#add_frame").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_agg_frame_button);
+});
+$("#tempo_frame").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_ms);
+});
+$("#frame_fine").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_ultimo_frame);
+}); 
+$("#play").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_play);
+}); 
+$("#mostra_dettagli").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_dettagli);
+});
+$("#mostra_tutorial").attr("title",lingue.tutorial_tutorial);
+$("#n_frame_agg").attr("title",lingue.tutorial_agg_frame);
+$("#tempo_frame").attr("title",lingue.tutorial_ms);
+$("#frame_fine").attr("title",lingue.tutorial_ultimo_frame);
+$("#stop").mouseover(function(){
+	$("#tutorial_cont").html(lingue.tutorial_stop);
+}); 
+
+
+var strumento, codice, x, y, codor="", anim_dis, anim_dis2, anim_dis3, anim_dis4, anim_dis5, anim_dis6, anim_dis7, mousex, mousey, oggc=0, controllo=0, lettere, n_punti=0, n_bez=0, n_linea=0, crea_p=1, base_c=920, altezza_c=450, colore_c="FFFFFF", oggetti_length=0, oggetti_inizio=0, centroX, centroY, EditGradient=-1, EditGradientT=-1, frame=0, tot_frame=0, ritorna_indice=-1, play=0, frame_fine=0, tempo_frame=20, n_salvataggi=0, id_successivo, disegna_multiselx="", disegna_multisely="", selezione, selezione_precedente_doppia, selezione_precedente_vuota, ritorna_array_mod, ritorna_px, ritorna_py, ritorna_cx, ritorna_cy, visualizza_sottolivelli=1, frdr_og, iddr_og, spessore_mark=5, prec_key=-1, area_mark=1.5/*impostato solo per le bezier*/;
+
+var position = $("canvas.test").position();
+var canvasx=position.left;
+var canvasy=position.top;
+
+var oggetti=new Array(), contatore=-1;
+var p_x=new Array(), p_y=new Array(), cx=new Array(), cy=new Array();
+var manigliex=new Array(), manigliey=new Array();
+var gradienti=new Array();
+var elencobezx=new Array(), elencobezy=new Array();
+var maniglia_gradx=new Array(), maniglia_grady=new Array();
+var id_selezioni=new Array();
+var storico=new Array(), punta_storico=0;
+var obj_mod=new Array(), ogg_provvisori=new Array();
+var livelli=new Array();
+var seee=new Array();
+
+var codice_base;
+function inizializza_codice()
+{
+	codice_base='';
+
+	codice_base=codice_base+'function IsNumeric(num)'
+	+'{'
+		+'var exp = new RegExp("^[0-9-.]*$","g");'
+		+'return exp.test(num);'
+	+'}'
+
+	+'function arrotonda(numero, n)'
+	+'{'
+		+'numero=numero.toString();'
+		+'var da=numero.indexOf(".");'
+		+'if(da!=-1){return(parseFloat(numero.substr(0,parseInt(da)+parseInt(n)+1)));}'
+		+'return (parseFloat(numero));'
+	+'}'
+
+	+'window.requestAnimFrame = (function(){'
+      		+'return  function(callback, element){'
+                	+'window.setTimeout(callback, tempo_frame);'
+              	+'} 				 ||'
+	      	+'window.requestAnimationFrame       ||' 
+              	+'window.webkitRequestAnimationFrame ||'
+              	+'window.mozRequestAnimationFrame    ||'
+              	+'window.oRequestAnimationFrame      ||' 
+              	+'window.msRequestAnimationFrame;'   
+    	+'})();'
+
+	+'function gradient(id_gradiente,RCE,RadLin){'
+		+'var j1=0, evalGrad="var linear = $(\'canvas.test\').gradient({";'
+		+'for(var j=0;j< E_gradienti.length;j++){'
+			+'if(E_gradienti[j][0]==id_gradiente && E_gradienti[j][5]==RCE){'
+				+'j1++;'
+		  		+'if(RadLin=="Lin"){evalGrad=evalGrad+"x"+j1+": "+E_gradienti[j][2]+", y"+j1+": "+E_gradienti[j][3]+", c"+j1+": \'"+E_gradienti[j][1]+"\', s"+j1+": "+E_gradienti[j][4]+",";}'
+				+'if(RadLin=="Rad"){evalGrad=evalGrad+"x"+j1+": "+E_gradienti[j][2]+", y"+j1+": "+E_gradienti[j][3]+", c"+j1+": \'"+E_gradienti[j][1]+"\', r"+j1+": "+E_gradienti[j][4]+",";}'
+			+'}'
+		+'}'
+		+'evalGrad=evalGrad+"});";'
+		+'eval(evalGrad);'
+		+'return(linear);'
+	+'}'
+
+	+'function cerchio(riempimento, contorno, x, y, bordo, radius, inizio, fine, gradi, componi, coloreOmbra, blurOmbra, xOmbra, yOmbra, chiuso, smusso_fine, smusso_angolo, tipo_gradiente, ID){'
+		+'if(tipo_gradiente.substr(0,1)==1){riempimento=gradient(ID,"R","Lin");}'
+		+'if(tipo_gradiente.substr(1,2)==1){contorno=gradient(ID,"C","Lin");}'
+		+'if(tipo_gradiente.substr(0,1)==2){riempimento=gradient(ID,"R","Rad");}'
+		+'if(tipo_gradiente.substr(1,2)==2){contorno=gradient(ID,"C","Rad");}'
+		+'$("canvas.test").drawArc({'
+			+'fillStyle: riempimento, strokeStyle: contorno,' 
+			+'x:x,y:y,'
+			+'strokeWidth:bordo,'
+			+'radius: radius,'
+			+'closed:chiuso, strokeCap:smusso_fine, strokeJoin:smusso_angolo,'
+			+'shadowColor: coloreOmbra, shadowBlur: blurOmbra, shadowX: xOmbra, shadowY: yOmbra,'
+			+'angle: gradi,'
+			+'compositing:componi,'
+			+'start: inizio, end: fine'
+		+'})'
+	+'}'
+	+'function ellisse(riempimento, contorno, x, y, bordo, base, altezza, gradi, componi, coloreOmbra, blurOmbra, xOmbra, yOmbra, tipo_gradiente, ID){'
+		+'if(tipo_gradiente.substr(0,1)==1){riempimento=gradient(ID,"R","Lin");}'
+		+'if(tipo_gradiente.substr(1,2)==1){contorno=gradient(ID,"C","Lin");}'
+		+'if(tipo_gradiente.substr(0,1)==2){riempimento=gradient(ID,"R","Rad");}'
+		+'if(tipo_gradiente.substr(1,2)==2){contorno=gradient(ID,"C","Rad");}'	
+		+'$("canvas.test").drawEllipse({'
+	  		+'fillStyle: riempimento, strokeStyle: contorno,'
+	  		+'x:x, y:y,'
+			+'strokeWidth:bordo,'
+			+'shadowColor: coloreOmbra, shadowBlur: blurOmbra, shadowX: xOmbra, shadowY: yOmbra,'
+			+'angle: gradi,'
+			+'compositing:componi,'
+	  		+'width: base, height: altezza'
+		+'})'
+	+'}'
+	+'function quadrato(riempimento, contorno, x, y, bordo, base, altezza, gradi, componi, coloreOmbra, blurOmbra, xOmbra, yOmbra, corner, tipo_gradiente, ID){'
+		+'if(tipo_gradiente.substr(0,1)==1){riempimento=gradient(ID,"R","Lin");}'
+		+'if(tipo_gradiente.substr(1,2)==1){contorno=gradient(ID,"C","Lin");}'
+		+'if(tipo_gradiente.substr(0,1)==2){riempimento=gradient(ID,"R","Rad");}'
+		+'if(tipo_gradiente.substr(1,2)==2){contorno=gradient(ID,"C","Rad");}'
+		+'$("canvas.test").drawRect({'
+	  		+'fillStyle: riempimento, strokeStyle: contorno,'
+	  		+'x:x, y:y,'
+			+'strokeWidth:bordo,'
+			+'cornerRadius:corner,'
+			+'shadowColor: coloreOmbra, shadowBlur: blurOmbra, shadowX: xOmbra, shadowY: yOmbra,'
+			+'angle: gradi,'
+			+'compositing:componi,'
+	  		+'width: base, height: altezza'
+		+'})'
+	+'}'
+	+'function testo(riempimento, contorno, x, y, bordo, grandezza, lettere, stile, font, componi, coloreOmbra, blurOmbra, xOmbra, yOmbra, tipo_gradiente, ID){'
+		+'if(tipo_gradiente.substr(0,1)==1){riempimento=gradient(ID,"R","Lin");}'
+		+'if(tipo_gradiente.substr(1,2)==1){contorno=gradient(ID,"C","Lin");}'
+		+'if(tipo_gradiente.substr(0,1)==2){riempimento=gradient(ID,"R","Rad");}'
+		+'if(tipo_gradiente.substr(1,2)==2){contorno=gradient(ID,"C","Rad");}'
+		+'$("canvas.test").drawText({'
+		  	+'fillStyle: riempimento, strokeStyle: contorno,'
+		  	+'text: lettere,'
+		  	+'align: "center",'
+		  	+'baseline: "middle",'
+			+'strokeWidth:bordo,'
+			+'shadowColor: coloreOmbra, shadowBlur: blurOmbra, shadowX: xOmbra, shadowY: yOmbra,'
+			+'compositing:componi,'
+		  	+'font: ""+stile+" "+grandezza+"px "+font+"",'
+		  	+'x:x, y:y'
+		+'})'
+	+'}'
+
+	+'function poligono(riempimento, contorno, x, y, bordo, radius, angoli, gradi, componi, coloreOmbra, blurOmbra, xOmbra, yOmbra, tipo_gradiente, ID){'
+		+'if(tipo_gradiente.substr(0,1)==1){riempimento=gradient(ID,"R","Lin");}'
+		+'if(tipo_gradiente.substr(1,2)==1){contorno=gradient(ID,"C","Lin");}'
+		+'if(tipo_gradiente.substr(0,1)==2){riempimento=gradient(ID,"R","Rad");}'
+		+'if(tipo_gradiente.substr(1,2)==2){contorno=gradient(ID,"C","Rad");}'
+		+'$("canvas.test").drawPolygon({'
+	  		+'fillStyle: riempimento, strokeStyle: contorno,'
+			+'x:x, y:y,'
+			+'strokeWidth:bordo,'
+			+'shadowColor: coloreOmbra, shadowBlur: blurOmbra, shadowX: xOmbra, shadowY: yOmbra,'
+	 		+'sides: angoli,'
+	  		+'radius: radius,'
+			+'compositing:componi,'
+	  		+'angle: gradi'
+		+'})'
+	+'}'
+
+	+'function immagine(x, y, base, altezza, gradi, componi, coloreOmbra, blurOmbra, xOmbra, yOmbra, percorso){'
+		+'$("canvas.test").drawImage({'
+  			+'source: percorso,'
+  			+'x:x, y:y,'
+			+'width: base, height: altezza,'
+			+'angle: gradi,'
+			+'compositing:componi,'
+			+'shadowColor: coloreOmbra, shadowBlur: blurOmbra, shadowX: xOmbra, shadowY: yOmbra'
+		+'})'
+	+'}'
+
+	+'var pxF=new Array(), pyF=new Array(), cxF=new Array(), cyF=new Array();'
+
+	+'function linea(riempimento, contorno, n_linea,bordo, componi, coloreOmbra, blurOmbra, xOmbra, yOmbra, chiuso, smusso_fine, smusso_angolo, tipo_gradiente, ID){'
+		+'if(tipo_gradiente.substr(0,1)==1){riempimento=gradient(ID,"R","Lin");}'
+		+'if(tipo_gradiente.substr(1,2)==1){contorno=gradient(ID,"C","Lin");}'
+		+'if(tipo_gradiente.substr(0,1)==2){riempimento=gradient(ID,"R","Rad");}'
+		+'if(tipo_gradiente.substr(1,2)==2){contorno=gradient(ID,"C","Rad");}'
+
+		+'var punti="", j1, j2, i1;'
+		+'for(var i=0, j=0;i< pxF.length;i++, j=j+2)'
+		+'{'
+			+'j1=parseInt(j)+parseInt(1);'
+			+'j2=parseInt(j)+parseInt(2);'
+			+'i1=parseInt(i)+parseInt(1);'
+			+'punti=punti+"x"+i1+":"+pxF[i]+", ";'
+			+'punti=punti+"y"+i1+":"+pyF[i]+", ";'
+			+'punti=punti+"cx"+j1+":"+cxF[j]+", ";'
+			+'punti=punti+"cy"+j1+":"+cyF[j]+", ";'
+			+'if(i!=pxF.length-1)'
+			+'{'
+				+'punti=punti+"cx"+j2+":"+cxF[j1]+", ";'
+				+'punti=punti+"cy"+j2+":"+cyF[j1]+", ";'
+			+'}'
+		+'}'
+		+'eval(\'$("canvas.test").drawBezier({fillStyle: riempimento, compositing:componi,'
+		+'closed:chiuso, strokeCap:smusso_fine, strokeJoin:smusso_angolo,'
+		+'shadowColor: coloreOmbra, shadowBlur: blurOmbra, shadowX: xOmbra, shadowY: yOmbra,'
+		+'strokeWidth:bordo, strokeStyle: contorno,\'+punti+\'})\');'
+	+'}'
+
+	+'function colora(inizio, fine, intermedio, col_bor)'
+	+'{'
+		+'var fi_colore="rgba(";'
+		+'var colore_i=oggetti[inizio][col_bor].substr(5,oggetti[inizio][col_bor].length-6).split(",");'
+		+'var colore_f=oggetti[fine][col_bor].substr(5,oggetti[fine][col_bor].length-6).split(",");'
+		+'for(var i=0;i< colore_i.length;i++)'
+		+'{'
+			+'if(oggetti[fine][19]-oggetti[inizio][19]!=0){'
+				+'var varframe=(colore_f[i]-colore_i[i])/(oggetti[fine][19]-oggetti[inizio][19]);'
+			+'}else{var varframe=0;}'
+			+'var arrdi=0; if(i==colore_i.length-1){arrdi=2;}'
+			+'fi_colore+=arrotonda(parseFloat(colore_i[i])+parseFloat(varframe*(Frame-oggetti[inizio][19])),arrdi)+",";'
+		+'}'
+		+'fi_colore=fi_colore.substr(0,fi_colore.length-1)+")";'
+		+'return(fi_colore);'		
+	+'}'
+
+	+'function animazione()'
+	+'{'
+			+'$("canvas.test").clearCanvas(); for(var i=oggetti_inizio;i< oggetti_length;i++){'
+
+				+'frOg=-1; frOgd=-1;'
+
+				+'for(var j=i;j< oggetti_lengthR;j++)'
+				+'{'
+					+'if(seee[j]==0){continue;}'
+
+					+'if(oggetti[parseInt(j)+1]!=undefined && Frame>=oggetti[j][19] && Frame< oggetti[parseInt(j)+1][19] && oggetti[parseInt(j)+1][20]==oggetti[j][20])'
+					+'{'
+						+'frOg=j; frOgd=parseInt(j)+1;'
+						+'for(var cc=0;cc<= oggetti_lengthR;cc++)'
+						+'{'
+							+'var dopo=1;'
+							+'if(oggetti[parseInt(j)+parseInt(cc)]==undefined || oggetti[parseInt(j)+parseInt(cc)][20]!=oggetti[j][20])'
+							+'{'
+								+'i=parseInt(cc)+parseInt(j);'
+								+'break;'
+							+'}'
+						+'}'
+						+'if(j!=i){i--; j=i;}'
+						+'break;'
+					+'}'
+					+'else if(oggetti[parseInt(j)+1]==undefined || oggetti[parseInt(j)+1][20]!=oggetti[j][20])'
+					+'{'
+						+'frOg=j; frOgd=j; i=j; break;'
+					+'}'
+				+'}'
+
+				+'ritorna_indice=frOg;'
+				+'if(Frame< oggetti[frOg][19] || Frame>oggetti[frOgd][19]){continue;}'
+				+'if(frOg!=-1){'
+					+'if(frOgd==-1){frOgd=frOg;}'
+					+'var oggF=new Array();'
+					+'pxF=new Array(); pyF=new Array(); cxF=new Array(); cyF=new Array();'
+					+'for(var j=0;j< oggetti[frOg].length;j++){'
+						+'if(IsNumeric(oggetti[frOg][j]) && j!=15){'
+
+							+'if(oggetti[frOg][0]=="linea" && j==5){'
+								+'oggF[j]=oggetti[frOg][j];'
+								+'var evL;'
+								+'if(evp_x[oggetti[frOgd][3]].length>evp_x[oggetti[frOgd][3]].length){evL=evp_x[oggetti[frOgd][3]].length;}'
+								+'else{evL=evp_x[oggetti[frOg][3]].length;}'
+								+'for(h=0;h< evL;h++){'
+									+'if(oggetti[frOgd][19]-oggetti[frOg][19]!=0)'
+									+'{'
+										+'pxF[h]=parseInt(evp_x[oggetti[frOg][3]][h])+parseInt(((evp_x[oggetti[frOgd][3]][h]-evp_x[oggetti[frOg][3]][h])/(oggetti[frOgd][19]-oggetti[frOg][19]))*(Frame-oggetti[frOg][19]));'
+										+'pyF[h]=parseInt(evp_y[oggetti[frOg][3]][h])+parseInt(((evp_y[oggetti[frOgd][3]][h]-evp_y[oggetti[frOg][3]][h])/(oggetti[frOgd][19]-oggetti[frOg][19]))*(Frame-oggetti[frOg][19]));'
+									+'}'
+									+'else{'
+										+'if(evp_x[oggetti[frOgd][3]].length>evp_x[oggetti[frOg][3]].length){pxF[h]=evp_x[oggetti[frOgd][3]][h]; pyF[h]=evp_y[oggetti[frOgd][3]][h];}'
+										+'else{pxF[h]=evp_x[oggetti[frOg][3]][h]; pyF[h]=evp_y[oggetti[frOg][3]][h];}'
+									+'}'
+								+'}'
+								+'if(evcx[oggetti[frOgd][3]].length>evcx[oggetti[frOgd][3]].length){evL=evcx[oggetti[frOgd][3]].length;}'
+								+'else{evL=evcx[oggetti[frOg][3]].length;}'
+								+'for(h=0;h< evL;h++){'
+									+'if(oggetti[frOgd][19]-oggetti[frOg][19]!=0)'
+									+'{'
+										+'cxF[h]=parseInt(evcx[oggetti[frOg][3]][h])+parseInt(((evcx[oggetti[frOgd][3]][h]-evcx[oggetti[frOg][3]][h])/(oggetti[frOgd][19]-oggetti[frOg][19]))*(Frame-oggetti[frOg][19]));'
+										+'cyF[h]=parseInt(evcy[oggetti[frOg][3]][h])+parseInt(((evcy[oggetti[frOgd][3]][h]-evcy[oggetti[frOg][3]][h])/(oggetti[frOgd][19]-oggetti[frOg][19]))*(Frame-oggetti[frOg][19]));'
+									+'}'
+									+'else{'
+										+'if(evcx[oggetti[frOgd][3]].length>evcx[oggetti[frOg][3]].length){cxF[h]=evcx[oggetti[frOgd][3]][h]; cyF[h]=evcy[oggetti[frOgd][3]][h];}'
+										+'else{cxF[h]=evcx[oggetti[frOg][3]][h]; cyF[h]=evcy[oggetti[frOg][3]][h];}'
+									+'}'
+								+'}'
+							+'}'
+							+'else{'
+								+'if(oggetti[frOgd][19]-oggetti[frOg][19]!=0){'
+									+'var varframe=(oggetti[frOgd][j]-oggetti[frOg][j])/(oggetti[frOgd][19]-oggetti[frOg][19]);'
+								+'}else{var varframe=0;}'
+
+								+'oggF[j]=parseInt(oggetti[frOg][j])+parseInt(varframe*(Frame-oggetti[frOg][19]));'
+							+'}'
+
+						+'}else{'
+							+'if(j==1 || j==2){oggF[j]=colora(frOg, frOgd, Frame, j);}'
+							+'else{oggF[j]=oggetti[frOg][j];}'
+						+'}'
+					+'}'
+					+'ritorna_array_mod=oggF;'
+					+'if(oggF[0]=="linea"){ritorna_px=pxF; ritorna_py=pyF; ritorna_cx=cxF; ritorna_cy=cyF;}'
+
+					+'if(oggF[0]=="cerchio"){cerchio(oggF[1], oggF[2], oggF[3], oggF[4], oggF[5], oggF[6], oggF[7], oggF[8], oggF[9], oggF[10], oggF[11], oggF[12], oggF[13], oggF[14], oggF[16], oggF[17], oggF[18], oggF[15],i);}'
+					+'if(oggF[0]=="ellisse"){ellisse(oggF[1], oggF[2], oggF[3], oggF[4], oggF[5], oggF[6], oggF[7], oggF[9], oggF[10], oggF[11], oggF[12], oggF[13], oggF[14], oggF[15],i);}'
+					+'if(oggF[0]=="quadrato"){quadrato(oggF[1], oggF[2], oggF[3], oggF[4], oggF[5], oggF[6], oggF[7], oggF[9], oggF[10], oggF[11], oggF[12], oggF[13], oggF[14], oggF[16], oggF[15],i);}'
+					+'if(oggF[0]=="testo"){testo(oggF[1], oggF[2], oggF[3], oggF[4], oggF[5], oggF[6], oggF[7], oggF[8], oggF[9], oggF[10], oggF[11], oggF[12], oggF[13], oggF[14], oggF[15],i);}'
+					+'if(oggF[0]=="poligono"){poligono(oggF[1], oggF[2], oggF[3], oggF[4], oggF[5], oggF[6], oggF[7], oggF[9], oggF[10], oggF[11], oggF[12], oggF[13], oggF[14], oggF[15],i);}'
+					+'if(oggF[0]=="immagine"){immagine(oggF[3], oggF[4], oggF[6], oggF[7], oggF[9], oggF[10], oggF[11], oggF[12], oggF[13], oggF[14], oggF[15]);}'
+					+'if(oggF[0]=="linea"){linea(oggF[1], oggF[2], oggF[3], oggF[5], oggF[10], oggF[11], oggF[12], oggF[13], oggF[14], oggF[16], oggF[17], oggF[18], oggF[15],i);}'
+
+				+'}'
+			+'}'
+
+		+'Frame++;'
+		+'if(Frame<= frame_fine && play==1){requestAnimFrame(animazione);}'
+		+'else{play=0;}'
+
+		+'}'
+		+'animazione();';
+}
+
+function compatta_array(compat)
+{
+	for(var i=0;i<compat.length;i++)
+	{
+		if(compat[i]==undefined)
+		{
+			for(var j=parseInt(i)+1;j<compat.length;j++)
+			{
+				compat[j-1]=compat[j];
+			}
+			compat.splice(compat.length-1,1);
+		}
+	}
+	return(compat);
+}
+function elimina_doppioni(dopp)
+{
+	for(var i=0;i<dopp.length;i++)
+	{
+		for(var y=0;y<dopp.length;y++)
+		{
+			if(dopp[i]==dopp[y] && i!=y)
+			{
+				dopp.splice(i,1);
+			}
+		}
+	}
+	return(dopp);
+}
+
+function rimuovi_pallini(n_ogg_ver)
+{
+	var n_pallini=0;
+	for(var i=0;i<oggetti.length;i++)
+	{
+		if(oggetti[i][19]==oggetti[n_ogg_ver][19] && i!=n_ogg_ver){n_pallini++; break;}
+		//if(oggetti[i][19]>oggetti[n_ogg_ver][19]){break;}
+	}
+	if(n_pallini==1){$("#pallino_frame"+frame).html("");}
+}
+
+function add_mod_oggetto(indice, id_campo, nuovo_dato)
+{
+	var controllo_ogg=-1;
+	var id_ogg=oggetti[indice][20];
+	for(var i=0;i<oggetti.length && controllo_ogg==-1;i++)
+	{
+		if(oggetti[i][20]==id_ogg && oggetti[i][19]==frame)
+		{
+			controllo_ogg=i;
+		}
+	}
+
+	var plen=nuovo_dato;
+	if(controllo_ogg==-1)//crea nuovo oggetto
+	{
+		oggetti[oggetti.length]=new Array(oggetti[indice][0], oggetti[indice][1], oggetti[indice][2], oggetti[indice][3], oggetti[indice][4], oggetti[indice][5], oggetti[indice][6], oggetti[indice][7], oggetti[indice][8], oggetti[indice][9], oggetti[indice][10],oggetti[indice][11],oggetti[indice][12],oggetti[indice][13],oggetti[indice][14],oggetti[indice][15],oggetti[indice][16],oggetti[indice][17],oggetti[indice][18], frame, id_ogg);
+
+		for(igr=0;igr<gradienti.length;igr++){
+			if(gradienti[igr][0]==indice){
+				gradienti[gradienti.length]=new Array(oggetti.length-1,gradienti[igr][1],gradienti[igr][2],gradienti[igr][3],gradienti[igr][4],gradienti[igr][5]);
+			}
+		}
+
+		//oggetti=oggetti.sort(ordina);
+
+		var controllopiu=0;
+		if(oggetti[i][0]=="linea")//se è una linea oltre a ricreare l'oggetto linea deve creare anche l'array punti e curvature
+		{
+			var ple1n=p_x.length; controllopiu++;
+			p_x[ple1n]=new Array(); p_y[ple1n]=new Array(); cx[ple1n]=new Array(); cy[ple1n]=new Array();
+
+			for(var i=0;i<p_x[oggetti[indice][3]].length;i++)
+			{
+				p_x[ple1n][i]=p_x[oggetti[indice][3]][i];
+				p_y[ple1n][i]=p_y[oggetti[indice][3]][i];
+			}
+			for(var i=0;i<cx[oggetti[indice][3]].length;i++)
+			{
+				cx[ple1n][i]=cx[oggetti[indice][3]][i];
+				cy[ple1n][i]=cy[oggetti[indice][3]][i];
+			}
+		}
+
+		if(id_selezioni.length>0)
+		{
+			var ogg_multi_sel = new Array();
+			for(var el in oggetti){
+    				ogg_multi_sel.push(oggetti[el]);
+			}
+			for(var i=0;i<id_selezioni.length;i++)
+			{
+				if(id_selezioni[i]==indice){var indice_selezioni=i;}
+			}
+		}
+
+		oggetti=oggetti.sort(ordina);
+
+		for(var i=0;i<oggetti.length;i++)
+		{
+			if(oggetti[i][19]==frame && oggetti[i][20]==id_ogg){
+				indice=i; break;
+			}
+		}
+
+		if(id_selezioni.length>0)
+		{
+			for(var i=0;i<id_selezioni.length;i++)
+			{
+				if(id_selezioni[i]!=-1 && i!=indice_selezioni)
+				{
+					if(ogg_multi_sel[id_selezioni[i]][19]!=ogg_multi_sel[id_selezioni[i]][19] || ogg_multi_sel[id_selezioni[i]][20]!=oggetti[id_selezioni[i]][20])
+					{
+						for(var j=0;j<oggetti.length;j++)
+						{
+							if(oggetti[j][19]==ogg_multi_sel[id_selezioni[i]][19] && oggetti[j][20]==ogg_multi_sel[id_selezioni[i]][20]){
+								id_selezioni[i]=j; break;
+							}
+						}
+					}
+				}
+			}
+			id_selezioni[indice_selezioni]=indice;
+		}
+
+		//indice++;
+		oggc++;
+		contatore++;
+
+		$("#pallino_frame"+frame).html("<img class='nel_pallino_frame'id='"+frame+"' src='immagini/frame_mod.png'>");
+	}
+	
+	if(oggetti[indice][0]!="linea"){oggetti[indice][id_campo]=nuovo_dato;}
+	else
+	{
+		if(controllopiu>0){n_linea++;}
+		if(ple1n!=undefined){oggetti[indice][3]=ple1n;}
+		oggetti[indice][id_campo]=nuovo_dato;
+	}
+
+	obj_mod[obj_mod.length]=indice;
+	return(indice);
+}
+
+function IsNumeric(num)
+{
+	var exp = new RegExp("^[0-9-.]*$","g");
+	return exp.test(num);
+}
+
+function ordina(a,b)
+{
+	return (a[20]>b[20])?1:(a[20]<b[20])?-1:(a[19]>b[19])?1:-1;
+}
+
+function differenza(uno,due)
+{
+	if(uno>due){return(uno-due);}
+	if(due>uno){return(due-uno);}
+	if(uno==due){return(0);}
+}
+function pitagora(a,b)
+{
+	return(Math.sqrt(Math.pow(a,2)+Math.pow(b,2)));
+}
+
+function cleanArray(actual)
+{
+  	for(var i = 0; i<actual.length-1; i++)
+	{
+		for(var j = 0; j<actual[i].length; j++)
+		{
+			//var ciaoooo=actual[i][j];
+	      		if(actual[i][j]=="" || actual[i][j]==undefined)
+			{
+				var ritorno=new Array("undefined")
+				return ritorno; 
+	    		}
+		}
+  	}
+  	return actual; 
+}
+
+function ripristina(Apunto)
+{
+	storico=elimina_doppioni(storico);
+	storico=compatta_array(storico);
+	if(punta_storico>storico.length-1)
+	{
+		punta_storico=storico.length-1;
+		Apunto=storico.length-1;
+	}
+	
+	if(Apunto>punta_storico){Apunto=punta_storico;}
+	if(Apunto<0){Apunto=0;}
+
+	if(storico[Apunto]!="" && storico[Apunto]!=undefined)
+	{
+		oggetti=new Array();
+		p_x=new Array();
+		p_y=new Array();
+		cx=new Array();
+		cy=new Array();
+		gradienti=new Array();
+
+		while(storico[Apunto].indexOf("evp_x")!=-1 || storico[Apunto].indexOf("evp_y")!=-1 || storico[Apunto].indexOf("evcx")!=-1 || storico[Apunto].indexOf("evcy")!=-1 || storico[Apunto].indexOf("E_gradienti")!=-1)
+		{
+			storico[Apunto]=storico[Apunto].replace("evp_x","p_x");
+			storico[Apunto]=storico[Apunto].replace("evp_y","p_y");
+			storico[Apunto]=storico[Apunto].replace("evcx","cx");
+			storico[Apunto]=storico[Apunto].replace("evcy","cy");
+			storico[Apunto]=storico[Apunto].replace("E_gradienti","gradienti");
+		}
+
+		eval(storico[Apunto]);
+
+		p_x=cleanArray(p_x);
+		p_y=cleanArray(p_y);
+		cx=cleanArray(cx);
+		cy=cleanArray(cy);
+		gradienti=cleanArray(gradienti);
+
+		gradienti=compatta_array(cleanArray(gradienti[0]));
+
+		n_linea=p_x.length-1;
+
+		oggc = parseInt(oggetti.length-1)+1;
+		contatore=oggetti.length-1;
+
+		controllo++; disegna_eval(0,oggetti.length); controllo--;
+		disegna_livelli();
+
+		/*$("#dettagli").html("");
+		for(var i=0;i<storico.length;i++)
+		{
+			$("#dettagli").append(Apunto+" *** "+i+" *** "+storico[i]+"<br><br>");
+		}*/
+	}
+}
+
+var animaz_error;
+function animazione_errore(z1)
+{
+	var frame_e=0, inc=1;
+	if(z1==1)
+	{
+		$("#segnale_errore").css("visibility","");
+		animaz_error=setInterval(function()
+		{
+			$("#segnale_errore").css("backgroundPosition", "-"+frame_e*25+"px 0px");
+			if(inc==1 && frame_e<5){frame_e++;}
+			else{inc=0;}
+			if(inc==0 && frame_e>0){frame_e--;}
+			else{inc=1;}
+		},100)
+	}
+	else
+	{
+		$("#segnale_errore").css("visibility","hidden");
+		clearInterval(animaz_error);
+	}
+}
+
+function disegna_eval(inizio,lunghezza)
+{
+	oggetti=compatta_array(oggetti);
+	inizializza_codice();
+	oggetti_length=lunghezza;
+	oggetti_inizio=inizio;
+	
+	var see=new Array();
+	if(controllo>0)
+	{
+		codice='';//preparo l'array da mettere nell'eval
+
+		for(c=0;c<oggetti.length;c++)
+		{
+			for(var c1=0;c1<livelli.length;c1++)//mostra / nascondi
+				if(livelli[c1][0]==oggetti[c][20])
+					see[see.length]=livelli[c1][3];
+
+			if(oggetti[c][0]=="testo")
+			{
+				codice=codice+'oggetti['+c+']=new Array("'+oggetti[c][0]+'", "'+oggetti[c][1]+'", "'+oggetti[c][2]+'", '+oggetti[c][3]+', '+oggetti[c][4]+', '+oggetti[c][5]+', "'+oggetti[c][6]+'", "'+oggetti[c][7]+'", "'+oggetti[c][8]+'", "'+oggetti[c][9]+'", "'+oggetti[c][10]+'", "'+oggetti[c][11]+'", '+oggetti[c][12]+', '+oggetti[c][13]+', '+oggetti[c][14]+', "'+oggetti[c][15]+'", "'+oggetti[c][16]+'", "'+oggetti[c][17]+'", "'+oggetti[c][18]+'", '+oggetti[c][19]+', '+oggetti[c][20]+');';
+			}
+			else
+			{
+				codice=codice+'oggetti['+c+']=new Array("'+oggetti[c][0]+'", "'+oggetti[c][1]+'", "'+oggetti[c][2]+'", '+oggetti[c][3]+', '+oggetti[c][4]+', '+oggetti[c][5]+', '+oggetti[c][6]+', '+oggetti[c][7]+', '+oggetti[c][8]+', '+oggetti[c][9]+', "'+oggetti[c][10]+'", "'+oggetti[c][11]+'", '+oggetti[c][12]+', '+oggetti[c][13]+', '+oggetti[c][14]+', "'+oggetti[c][15]+'", '+oggetti[c][16]+', "'+oggetti[c][17]+'", "'+oggetti[c][18]+'", '+oggetti[c][19]+', '+oggetti[c][20]+');';
+			}
+		}
+
+		for(c=0;c<=n_linea;c++)
+		{
+			codice=codice+'evp_x['+c+']=new Array('+p_x[c]+');';
+			codice=codice+'evp_y['+c+']=new Array('+p_y[c]+');';
+			codice=codice+'evcx['+c+']=new Array('+cx[c]+');';
+			codice=codice+'evcy['+c+']=new Array('+cy[c]+');';
+		}
+		for(G=0;G<=gradienti.length;G++)
+		{
+			codice=codice+'E_gradienti['+G+']=new Array('+gradienti[G]+');';
+		}
+
+		for(G=0;G<=see.length;G++)
+		{
+			codice=codice+'seee['+G+']='+see[G]+';';
+		}
+
+		storico[punta_storico]=codice;
+
+		codice=codice+codice_base;
+		//-----------------------------------------------------------------
+
+		$("#codice").html('&lt;canvas class="test" style="background:#'+colore_c+';" width="'+base_c+'" height="'+altezza_c+'"&gt;&lt;/canvas&gt;&lt;script type="text/javascript"&gt;var play=0, oggetti=new Array(), evp_x=new Array(), evp_y=new Array(), evcx=new Array(), evcy=new Array(), oggetti_length='+oggetti_length+', oggetti_lengthR='+oggetti.length+', oggetti_inizio='+oggetti_inizio+', E_gradienti=new Array(), seee=new Array(), frame_fine='+frame_fine+', tempo_frame='+tempo_frame+', Frame='+frame+';'+codice);
+
+		try
+		{
+			animazione_errore(0);
+			$("canvas.test").clearCanvas();
+
+			eval('evp_x=new Array(); evp_y=new Array(), evcx=new Array(), evcy=new Array() , E_gradienti=new Array(), seee=new Array(), tempo_frame='+tempo_frame+', oggetti_lengthR='+oggetti.length+', frame_fine='+frame_fine+', Frame='+frame+';'+codice);
+
+			$("#dati_salvataggio").val(storico[punta_storico]);//per poter fare salva
+
+			$("#dati_salvataggio_exp_anim").val('<canvas class="test" style="background:#'+colore_c+';" width="'+base_c+'" height="'+altezza_c+'"></canvas><script type="text/javascript">var play=1, oggetti=new Array(), evp_x=new Array(), evp_y=new Array(), evcx=new Array(), evcy=new Array(), oggetti_length='+oggetti_length+', oggetti_lengthR='+oggetti.length+', oggetti_inizio='+oggetti_inizio+', E_gradienti=new Array(), seee=new Array(), frame_fine='+frame_fine+', tempo_frame='+tempo_frame+', Frame='+frame+';'+codice); //per fare l'esporta
+
+			$("#dati_salvataggio_exp_fis").val('<canvas class="test" style="background:#'+colore_c+';" width="'+base_c+'" height="'+altezza_c+'"></canvas><script type="text/javascript">var play=0, oggetti=new Array(), evp_x=new Array(), evp_y=new Array(), evcx=new Array(), evcy=new Array(), oggetti_length='+oggetti_length+', oggetti_lengthR='+oggetti.length+', oggetti_inizio='+oggetti_inizio+', E_gradienti=new Array(), seee=new Array(), frame_fine='+frame_fine+', tempo_frame='+tempo_frame+', Frame='+frame+';'+codice); //per fare l'esporta
+
+			$("#div_error").html(lingue.nessun_errore);
+		}
+		catch(e)
+		{
+			animazione_errore(1);
+			$("#div_error").html(eval(lingue.errore_doc));
+			//alert(e.message);
+		}
+	}
+}
+
+function contorna(x,y,base,altezza, selezione)
+{
+	base=parseInt(base)+parseInt(8); altezza=parseInt(altezza)+parseInt(8);
+	manigliex[0]=x-(base/2); manigliey[0]=y-(altezza/2);
+	manigliex[1]=x; manigliey[1]=y-(altezza/2);
+	manigliex[2]=x+(base/2); manigliey[2]=y-(altezza/2);
+	manigliex[3]=x+(base/2); manigliey[3]=y;
+	manigliex[4]=x+(base/2); manigliey[4]=y+(altezza/2);
+	manigliex[5]=x; manigliey[5]=y+(altezza/2);
+	manigliex[6]=x-(base/2); manigliey[6]=y+(altezza/2);
+	manigliex[7]=x-(base/2); manigliey[7]=y;
+	manigliey[8]=selezione;
+
+	centroX=x; centroY=y;
+
+	//0	1	2
+	//7		3
+	//6	5	4
+	
+	for(var i=0;i<8;i++)
+	{
+		$("canvas.test").drawRect({strokeStyle:"rgba(75,255,0,1)", fillStyle:"rgba(75,255,0,1)", strokeWidth:spessore_mark, x:manigliex[i], y:manigliey[i], width:spessore_mark, height:spessore_mark})
+	}
+	$("canvas.test").drawRect({strokeStyle: "rgba(75,255,0,1)", strokeWidth:spessore_mark, x:x, y:y, width: base, height: altezza})
+
+	//aggiungo lo sposta
+	$("canvas.test").drawLine({strokeStyle: "rgba(75,255,0,1)", strokeWidth: spessore_mark, x1:parseInt(x)+parseInt(spessore_mark), y1:parseInt(y)+parseInt(spessore_mark), x2:x-spessore_mark, y2:y-spessore_mark})
+	$("canvas.test").drawLine({strokeStyle: "rgba(75,255,0,1)", strokeWidth: spessore_mark, x1:parseInt(x)+parseInt(spessore_mark), y1:y-spessore_mark, x2:x-spessore_mark, y2:parseInt(y)+parseInt(spessore_mark)})
+	$("canvas").drawPolygon({fillStyle: "rgba(75,255,0,1)", x:parseInt(x)+parseInt(spessore_mark), y:y-spessore_mark, sides: 3, radius: spessore_mark, angle: 45})
+	$("canvas").drawPolygon({fillStyle: "rgba(75,255,0,1)", x:parseInt(x)+parseInt(spessore_mark), y:parseInt(y)+parseInt(spessore_mark), sides: 3, radius: spessore_mark, angle: 135})
+	$("canvas").drawPolygon({fillStyle: "rgba(75,255,0,1)", x:x-spessore_mark, y:parseInt(y)+parseInt(spessore_mark), sides: 3, radius: spessore_mark, angle: 225})
+	$("canvas").drawPolygon({fillStyle: "rgba(75,255,0,1)", x:x-spessore_mark, y:y-spessore_mark, sides: 3, radius: spessore_mark, angle: 315})
+
+}
+function contorna_figure(selezione)
+{
+	if(selezione.length>1)
+	{
+		var estremo_L=999999999, estremo_R=-999999999, estremo_T=999999999, estremo_B=-999999999;
+		for(var con=0;con<selezione.length;con++)
+		{
+			if(selezione[con]!=-1)
+			{
+				if(oggetti[selezione[con]][0]=="cerchio" || oggetti[selezione[con]][0]=="poligono" || oggetti[selezione[con]][0]=="testo")
+				{
+					var base_sel=parseInt(oggetti[selezione[con]][6]); var altezza_sel=parseInt(oggetti[selezione[con]][6]);
+					var centrox=oggetti[selezione[con]][3]; var centroy=oggetti[selezione[con]][4];
+				}
+				if(oggetti[selezione[con]][0]=="ellisse" || oggetti[selezione[con]][0]=="quadrato" || oggetti[selezione[con]][0]=="immagine")
+				{
+					var base_sel=parseInt(oggetti[selezione[con]][6]/2); var altezza_sel=parseInt(oggetti[selezione[con]][7]/2);
+					var centrox=oggetti[selezione[con]][3]; var centroy=oggetti[selezione[con]][4];
+				}
+				if(oggetti[selezione[con]][0]=="linea")
+				{
+					var estPL=999999999, estPR=-999999999, estPT=999999999, estPB=-999999999;
+					for(pnt=0;pnt<p_x[oggetti[selezione[con]][3]].length;pnt++)
+					{
+						if(p_x[oggetti[selezione[con]][3]][pnt]<estPL){estPL=p_x[oggetti[selezione[con]][3]][pnt];}
+						if(p_x[oggetti[selezione[con]][3]][pnt]>estPR){estPR=p_x[oggetti[selezione[con]][3]][pnt];}
+						if(p_y[oggetti[selezione[con]][3]][pnt]<estPT){estPT=p_y[oggetti[selezione[con]][3]][pnt];}
+						if(p_y[oggetti[selezione[con]][3]][pnt]>estPB){estPB=p_y[oggetti[selezione[con]][3]][pnt];}
+					}
+					
+					var base_sel=(estPR-estPL)/2; var altezza_sel=(estPB-estPT)/2;
+					var centrox=parseInt(estPL)+(base_sel);
+					var centroy=parseInt(estPT)+(altezza_sel);
+				}
+
+				if(centrox-base_sel<estremo_L){estremo_L=centrox-base_sel;}
+				if(parseInt(centrox)+base_sel>estremo_R){estremo_R=parseInt(centrox)+base_sel;}
+				if(centroy-altezza_sel<estremo_T){estremo_T=centroy-altezza_sel;}
+				if(parseInt(centroy)+altezza_sel>estremo_B){estremo_B=parseInt(centroy)+altezza_sel;}
+			}			
+		}
+		var base_con=estremo_R-estremo_L;
+		var altezza_con=estremo_B-estremo_T;
+		var x_con=parseInt(base_con/2)+parseInt(estremo_L);
+		var y_con=parseInt(altezza_con/2)+parseInt(estremo_T);
+		contorna(x_con,y_con,base_con,altezza_con, selezione[con]);
+	}
+	else if(oggetti[selezione]!=undefined)
+	{
+		if(oggetti[selezione][0]=="cerchio" || oggetti[selezione][0]=="poligono")
+		{
+			contorna(oggetti[selezione][3],oggetti[selezione][4],oggetti[selezione][6]*2,oggetti[selezione][6]*2, selezione);
+		}
+		if(oggetti[selezione][0]=="testo")
+		{
+			var base_variabile=(oggetti[selezione][7].length/1.8)*oggetti[selezione][6];
+			contorna(oggetti[selezione][3],oggetti[selezione][4],base_variabile,oggetti[selezione][6]*0.9, selezione);
+		}
+		if(oggetti[selezione][0]=="ellisse" || oggetti[selezione][0]=="quadrato" || oggetti[selezione][0]=="immagine")
+		{
+			contorna(oggetti[selezione][3],oggetti[selezione][4],oggetti[selezione][6],oggetti[selezione][7], selezione);
+		}
+		if(oggetti[selezione][0]=="linea")
+		{
+			manigliey[8]=selezione, ContaTore=0;
+			for(var i=0, j=0;i<p_x[oggetti[selezione][3]].length;i++,j=parseInt(j)+parseInt(2))
+			{
+				$("canvas.test").drawArc({strokeStyle: "rgba(75,255,0,1)", fillStyle: "rgba(75,255,0,1)", strokeWidth:spessore_mark, x:p_x[oggetti[selezione][3]][i],y:p_y[oggetti[selezione][3]][i], radius: 5, start: 0, end: 359.999})
+
+				//se ci sono curve
+			
+				if(i>0)
+				{
+					$("canvas.test").drawArc({strokeStyle: "rgba(75,255,0,1)", fillStyle: "rgba(75,255,0,1)", strokeWidth:spessore_mark, x:cx[oggetti[selezione][3]][(i*2)-1],y:cy[oggetti[selezione][3]][(i*2)-1], radius: spessore_mark, start: 0, end: 359.999})
+					$("canvas.test").drawLine({strokeStyle: "rgba(75,255,0,1)", strokeWidth:spessore_mark, x1: p_x[oggetti[selezione][3]][i], y1: p_y[oggetti[selezione][3]][i], x2: cx[oggetti[selezione][3]][(i*2)-1], y2: cy[oggetti[selezione][3]][(i*2)-1]});
+				
+					elencobezx[ContaTore]=cx[oggetti[selezione][3]][(i*2)-1];
+					elencobezy[ContaTore]=cy[oggetti[selezione][3]][(i*2)-1];
+					ContaTore++;
+				}
+
+				if(i<p_x[oggetti[selezione][3]].length-1)
+				{
+					$("canvas.test").drawLine({strokeStyle: "rgba(75,255,0,1)", strokeWidth:spessore_mark, x1: p_x[oggetti[selezione][3]][i], y1: p_y[oggetti[selezione][3]][i], x2: cx[oggetti[selezione][3]][(i*2)], y2: cy[oggetti[selezione][3]][(i*2)]});
+					$("canvas.test").drawArc({strokeStyle: "rgba(75,255,0,1)", fillStyle: "rgba(75,255,0,1)", strokeWidth:spessore_mark, x:cx[oggetti[selezione][3]][(i*2)],y:cy[oggetti[selezione][3]][(i*2)], radius: spessore_mark, start: 0, end: 359.999})
+
+					elencobezx[ContaTore]=cx[oggetti[selezione][3]][(i*2)];
+					elencobezy[ContaTore]=cy[oggetti[selezione][3]][(i*2)];
+					ContaTore++;
+				}
+							
+			}
+		}
+
+		if(EditGradient==selezione)//se è stato selezionato lo strumento per la modicia dei gradienti traccia la relativa linea
+		{
+			var IndGrad=-1, IndGrad1=-1;
+			for(var i=0;i<gradienti.length && IndGrad1==-1;i++)
+			{
+				if(selezione==gradienti[i][0] && gradienti[i][5].indexOf(EditGradientT)!=-1 && IndGrad==-1)
+				{
+					IndGrad=i;
+				}
+				if(selezione==gradienti[i][0] && gradienti[i][5].indexOf(EditGradientT)!=-1 && i!=IndGrad)
+				{
+					IndGrad1=i;
+				}
+			}
+			if(gradienti[parseInt(IndGrad)+parseInt(1)]!=undefined)
+			{
+				$("canvas.test").drawLine({strokeStyle: "rgba(255,0,0,1)", strokeWidth: spessore_mark, x1:gradienti[IndGrad][2], y1:gradienti[IndGrad][3], x2:gradienti[IndGrad1][2], y2:gradienti[IndGrad1][3]})
+
+				$("canvas.test").drawArc({strokeStyle: "rgba(0,0,0,1)", fillStyle: "rgba(255,0,0,1)", strokeWidth:spessore_mark, x:gradienti[IndGrad][2],y:gradienti[IndGrad][3], radius: spessore_mark, start: 0, end: 359.999})
+				$("canvas.test").drawArc({strokeStyle: "rgba(0,0,0,1)", fillStyle: "rgba(255,0,0,1)", strokeWidth:spessore_mark, x:gradienti[IndGrad1][2],y:gradienti[IndGrad1][3], radius: spessore_mark, start: 0, end: 359.999})
+			
+				maniglia_gradx[0]=gradienti[IndGrad][2];
+				maniglia_gradx[1]=gradienti[IndGrad1][2];
+				maniglia_grady[0]=gradienti[IndGrad][3];
+				maniglia_grady[1]=gradienti[IndGrad1][3];
+			}
+		}
+	}
+}
+
+function sposta_livello(sugiu, indice)
+{
+	var vicino;
+	if(sugiu=="su")
+	{
+		for(var i=indice;i<oggetti.length;i++)
+		{
+			if(oggetti[indice][20]-oggetti[i][20]!=0)
+			{
+				vicino=i;
+				break;
+			}
+		}
+	}
+	if(sugiu=="giu")
+	{
+		for(var i=indice;i>=0;i--)
+		{
+			if(oggetti[indice][20]-oggetti[i][20]!=0)
+			{
+				vicino=i;
+				break;
+			}
+		}
+	}
+
+	if(oggetti[vicino]!=undefined)
+	{
+		var cambia=oggetti[indice][20];
+		var cambia_in=oggetti[vicino][20];
+		for(var i=0;i<oggetti.length;i++)
+		{
+			if(oggetti[i][20]==cambia){
+				oggetti[i][20]=cambia_in;
+			}
+			else if(oggetti[i][20]==cambia_in){
+				oggetti[i][20]=cambia;
+			}
+		}
+		for(var j=0;j<livelli.length;j++)//aggiorno l'ordine dei livelli
+		{
+			if(livelli[j][0]==cambia)
+				livelli[j][0]=cambia_in;
+			else if(livelli[j][0]==cambia_in)
+				livelli[j][0]=cambia;
+		}
+
+		oggetti=oggetti.sort(ordina);
+		controllo++; disegna_eval(0,oggetti.length); controllo--;
+		return(vicino);
+	}
+	else{return(indice);}
+}
+
+function dettagli_oggetto(n_ogg)
+{
+
+	$("#dettagli").html('');
+
+	if(oggetti[n_ogg][0]!="immagine")
+	{
+		$("#dettagli").append('<div style="border:2px solid #444; width:325px; padding:10px; -moz-border-radius: 10px; -webkit-border-radius: 10px;"><b>'+lingue.cambia_colore+'</b><br><span id="contornoM" class="button_generico">'+lingue.contorno+': '+oggetti[n_ogg][2]+'</span><span id="riempimentoM" class="button_generico">'+lingue.riempimento+': '+oggetti[n_ogg][1]+'</span></div><br>'
+		+'<div id="colore" style="height:0px; overflow:hidden;"><div id="trasparenza"></div><div id="colore_cont" class="colore"></div></div>'
+		+lingue.spessore_bordo+'<input type="text" id="spessore_b" value="'+oggetti[n_ogg][5]+'"><br>');
+	}
+
+	$("#dettagli").append(lingue.composizione+': <select id="composizione"><option value="">Null</option><option value="source-over">source-over</option><option value="source-in">source-in</option><option value="source-out">source-out</option><option value="source-atop">source-atop</option><option value="lighter">lighter</option><option value="destination-over">destination-over</option><option value="destination-in">destination-in</option><option value="destination-out">destination-out</option><option value="destination-atop">destination-atop</option><option value="copy">copy</option></select><br>');
+	$("#composizione").val(oggetti[n_ogg][10]);
+
+	if(oggetti[n_ogg][0]!="linea")
+	{
+		$("#dettagli").append(lingue.posizione_x+' <input type="text" id="posizione_x" value="'+oggetti[n_ogg][3]+'"><br>'
+		+lingue.posizione_y+' <input type="text" id="posizione_y" value="'+oggetti[n_ogg][4]+'"><br>');
+
+		if(oggetti[n_ogg][0]!="testo"){$("#dettagli").append(lingue.angolo+' <input type="text" id="angolatura_mod" value="'+oggetti[n_ogg][9]+'"><br>');}
+		
+		if(oggetti[n_ogg][0]=="cerchio" || oggetti[n_ogg][0]=="poligono" || oggetti[n_ogg][0]=="testo")
+		{
+			$("#dettagli").append(lingue.raggio+' <input type="text" id="raggio_mod" value="'+oggetti[n_ogg][6]+'"><br>');
+			if(oggetti[n_ogg][0]=="cerchio"){
+				$("#dettagli").append(lingue.angolo_inizio+' <input type="text" id="angolo_in_mod" value="'+oggetti[n_ogg][7]+'"><br>'
+				+lingue.angolo_fine+' <input type="text" id="angolo_fin_mod" value="'+oggetti[n_ogg][8]+'"><br>');
+			}
+			if(oggetti[n_ogg][0]=="poligono"){
+				$("#dettagli").append(lingue.numero_angoli+' <input type="text" id="numero_angoli_mod" value="'+oggetti[n_ogg][7]+'"><br>');
+			}
+			if(oggetti[n_ogg][0]=="testo"){
+				$("#dettagli").append(lingue.testo+' <textarea id="testo_mod">'+oggetti[n_ogg][7]+'</textarea><br>'
+				+lingue.font+' <input type="text" id="font_mod" value="'+oggetti[n_ogg][9]+'"><br>'
+				+'<span class="nome_font">Georgia</span> <span class="nome_font">Palatino Linotype</span> <span class="nome_font">Times New Roman</span><br><span class="nome_font">Arial</span> <span class="nome_font">Trebuchet MS</span> <span class="nome_font">Verdana</span> <span class="nome_font">Comic Sans MS</span><br><span class="nome_font">Courier New</span><br>'
+				+'<span class="iub">i</span> <span class="iub">n</span> <span class="iub">b</span><br>');
+			}
+		}
+		if(oggetti[n_ogg][0]=="ellisse" || oggetti[n_ogg][0]=="quadrato" || oggetti[n_ogg][0]=="immagine")
+		{
+			$("#dettagli").append(lingue.base+' <input type="text" id="base_mod" value="'+oggetti[n_ogg][6]+'"><br>'
+			+lingue.altezza+' <input type="text" id="altezza_mod" value="'+oggetti[n_ogg][7]+'"><br>');
+		}
+		if(oggetti[n_ogg][0]=="quadrato"){$("#dettagli").append(lingue.smussatura_angoli+' <input type="text" id="smussatura_mod" value="'+oggetti[n_ogg][16]+'"><br>');}
+	}
+	if(oggetti[n_ogg][0]=="linea" || oggetti[n_ogg][0]=="cerchio")
+	{
+		if(oggetti[n_ogg][16]==true){$("#dettagli").append(lingue.tipo_tracciato+' <select id="aperto_chiuso"><option value="true">'+lingue.chiuso+'</option><option value="false">'+lingue.aperto+'</option></select><br>');}
+		if(oggetti[n_ogg][16]==false){$("#dettagli").append(lingue.tipo_tracciato+' <select id="aperto_chiuso"><option value="false">'+lingue.aperto+'</option><option value="true">'+lingue.chiuso+'</option></select><br>');}
+
+		$("#dettagli").append(lingue.tipo_chiusura_tracciato+' <select id="smusso_fine_mod"><option value="butt">butt</option><option value="square">square</option><option value="round">round</option></select><br>');
+		$("#smusso_fine_mod").val(oggetti[n_ogg][17]);
+		
+		$("#dettagli").append(lingue.tipo_angoli_tracciato+' <select id="smusso_angoli_mod"><option value="miter">miter</option><option value="bevel">bevel</option><option value="round">round</option></select><br>');
+		$("#smusso_angoli_mod").val(oggetti[n_ogg][18]);
+	}
+
+	if(oggetti[n_ogg][0]!="immagine")
+	{
+		$("#dettagli").append('<span id="gradientdivR" class="button_generico">'+lingue.gradiente_riempimento+'</span><span id="gradientdivC" class="button_generico">'+lingue.gradiente_contorno+'</span><br>');
+	}
+
+	/*if(oggetti[n_ogg][0]=="immagine")
+	{
+		$("#dettagli").append('Url immagine: <input type="text" id="url_immagine_mod" value="'+oggetti[n_ogg][15]+'"> <span id="url_immagine_mod_ckick">Cambia!</span><br>');
+	}*/
+
+	if(oggetti[n_ogg][0]=="linea"){$("#dettagli").append('<div id="dettagli_P"></div>');}
+
+	var animC=0, contornoM=0, riempimentoM=0, prima_anim;
+
+	function vedi_colore(RGBn)
+	{
+		var concatenato=Math.floor(Math.random()*999);
+		$('#dettagli #colore .colore').remove();
+		$('#dettagli #colore').append('<div id="colore_cont'+concatenato+'" class="colore"></div>');
+		$('#dettagli #colore #colore_cont'+concatenato).ColorPicker({//plugin per il colore
+			onSubmit: function(hsb, hex, rgb, el)
+			{
+				var new_alpha=$("#trasparenzaF").val();
+				var valore="rgba("+rgb.r+","+rgb.g+","+rgb.b+","+new_alpha+")";
+
+				if(riempimentoM>0){n_ogg=add_mod_oggetto(n_ogg, 1, valore); $("#riempimentoM").html("riempimento: "+valore);}
+				if(contornoM>0){n_ogg=add_mod_oggetto(n_ogg, 2, valore); $("#contornoM").html("contorno: "+valore);}
+
+				controllo++; disegna_eval(0,oggetti.length); controllo--;
+			},
+			onBeforeShow: function () {
+				$(this).ColorPickerSetColor(this.value);
+			},
+			color: RGBn,
+			flat: true
+		});
+	}
+
+	function estrai_alpha(unodue)//operazioni comunu quando si clicca sul cambio colore
+	{
+		var colorA=oggetti[n_ogg][unodue].split(",");
+		color_A=colorA[3].substr(0,colorA[3].length-1);
+		$('#dettagli #colore #trasparenza').html("Trasparenza: <input type='text' id='trasparenzaF' value='"+color_A+"'>");
+		
+		var colorR=colorA[0].substr(5,colorA[0].length);
+		var colorG=colorA[1].substr(0,colorA[1].length);
+		var colorB=colorA[2].substr(0,colorA[2].length);
+		var r_g_b=new RGB(colorR,colorG,colorB);
+		vedi_colore(r_g_b);
+	}
+
+	$("#dettagli #contornoM").click(function(){//animazione che mostra il colore
+		if(animC==0)
+		{
+			estrai_alpha(2);
+			animC++; contornoM++; riempimentoM=0;
+			$('#dettagli #colore').animate({height: "0px"},400, function(){animC=0;});
+			if(prima_anim!="contorno"){$('#dettagli #colore').animate({height: "199px"},400, function(){animC=0; prima_anim="contorno";});}else{prima_anim="";}
+		}
+	});
+	$("#dettagli #riempimentoM").click(function(){//animazione che mostra il colore
+		if(animC==0)
+		{
+			estrai_alpha(1);
+			animC++; riempimentoM++; contornoM=0;
+			$('#dettagli #colore').animate({height: "0px"},400, function(){animC=0;});
+			if(prima_anim!="riempimento"){$('#dettagli #colore').animate({height: "199px"},400, function(){animC=0; prima_anim="riempimento";});}else{prima_anim="";}
+		}
+	});
+	$("#trasparenza").keyup(function(){
+		if(contornoM>0){unodue=2;}
+		if(riempimentoM>0){unodue=1;}
+		var colorA=oggetti[n_ogg][unodue].split(",");
+		var colorA1=colorA[3].substr(0,colorA[3].length-1);
+		var new_alpha=$("#trasparenzaF").val();
+		//oggetti[n_ogg][unodue]=colorA[0]+","+colorA[1]+","+colorA[2]+","+new_alpha+")";
+		n_ogg=add_mod_oggetto(n_ogg, unodue, colorA[0]+","+colorA[1]+","+colorA[2]+","+new_alpha+")");
+		controllo++; disegna_eval(0,oggetti.length); controllo--;
+	});
+	$("#posizione_x").keyup(function(){
+		//oggetti[n_ogg][3]=$("#posizione_x").val();
+		n_ogg=add_mod_oggetto(n_ogg, 3, $("#posizione_x").val());
+		controllo++; disegna_eval(0,oggetti.length); controllo--;
+	});
+	$("#posizione_y").keyup(function(){
+		//oggetti[n_ogg][4]=$("#posizione_y").val();
+		n_ogg=add_mod_oggetto(n_ogg, 4, $("#posizione_y").val());
+		controllo++; disegna_eval(0,oggetti.length); controllo--;
+	});
+	$("#spessore_b").keyup(function(){
+		//oggetti[n_ogg][5]=$("#spessore_b").val();
+		n_ogg=add_mod_oggetto(n_ogg, 5, $("#spessore_b").val());
+		controllo++; disegna_eval(0,oggetti.length); controllo--;
+	});
+	$("#raggio_mod").keyup(function(){
+		//oggetti[n_ogg][6]=$("#raggio_mod").val();
+		n_ogg=add_mod_oggetto(n_ogg, 6, $("#raggio_mod").val());
+		controllo++; disegna_eval(0,oggetti.length); controllo--;
+	});
+	$("#angolo_in_mod").keyup(function(){
+		//oggetti[n_ogg][7]=$("#angolo_in_mod").val();
+		n_ogg=add_mod_oggetto(n_ogg, 7, $("#angolo_in_mod").val());
+		controllo++; disegna_eval(0,oggetti.length); controllo--;
+	});
+	$("#angolo_fin_mod").keyup(function(){
+		//oggetti[n_ogg][8]=$("#angolo_fin_mod").val();
+		n_ogg=add_mod_oggetto(n_ogg, 8, $("#angolo_fin_mod").val());
+		controllo++; disegna_eval(0,oggetti.length); controllo--;
+	});
+	$("#base_mod").keyup(function(){
+		//oggetti[n_ogg][6]=$("#base_mod").val();
+		n_ogg=add_mod_oggetto(n_ogg, 6, $("#base_mod").val());
+		controllo++; disegna_eval(0,oggetti.length); controllo--;
+	});
+	$("#altezza_mod").keyup(function(){
+		//oggetti[n_ogg][7]=$("#altezza_mod").val();
+		n_ogg=add_mod_oggetto(n_ogg, 7, $("#altezza_mod").val());
+		controllo++; disegna_eval(0,oggetti.length); controllo--;
+	});
+	$("#numero_angoli_mod").keyup(function(){
+		//oggetti[n_ogg][7]=$("#numero_angoli_mod").val();
+		n_ogg=add_mod_oggetto(n_ogg, 7, $("#numero_angoli_mod").val());
+		controllo++; disegna_eval(0,oggetti.length); controllo--;
+	});
+	$("#testo_mod").keyup(function(){
+		//oggetti[n_ogg][7]=$("#testo_mod").val();
+		n_ogg=add_mod_oggetto(n_ogg, 7, $("#testo_mod").val());
+		controllo++; disegna_eval(0,oggetti.length); controllo--;
+	});
+	$("#font_mod").keyup(function(){
+		//oggetti[n_ogg][9]=$("#font_mod").val();
+		n_ogg=add_mod_oggetto(n_ogg, 9, $("#font_mod").val());
+		controllo++; disegna_eval(0,oggetti.length); controllo--;
+	});
+	$(".nome_font").click(function(){
+		$("#font_mod").val($(this).html());
+		//oggetti[n_ogg][9]=$(this).html();
+		n_ogg=add_mod_oggetto(n_ogg, 9, $(this).html());
+		controllo++; disegna_eval(0,oggetti.length); controllo--;
+	});
+	$(".iub").click(function(){
+		var iub=$(this).html();
+		if(iub=="i"){/*oggetti[n_ogg][8]="italic";*/ n_ogg=add_mod_oggetto(n_ogg, 8, "italic");}
+		if(iub=="b"){/*oggetti[n_ogg][8]="bold";*/ n_ogg=add_mod_oggetto(n_ogg, 8, "bold");}
+		if(iub=="n"){/*oggetti[n_ogg][8]="normal";*/ n_ogg=add_mod_oggetto(n_ogg, 8, "normal");}
+		controllo++; disegna_eval(0,oggetti.length); controllo--;
+	});
+	$("#smussatura_mod").keyup(function(){
+		//oggetti[n_ogg][16]=$("#smussatura_mod").val();
+		n_ogg=add_mod_oggetto(n_ogg, 16, $("#smussatura_mod").val());
+		controllo++; disegna_eval(0,oggetti.length); controllo--;
+	});
+	$("#angolatura_mod").keyup(function(){
+		//oggetti[n_ogg][9]=$("#angolatura_mod").val();
+		n_ogg=add_mod_oggetto(n_ogg, 9, $("#angolatura_mod").val());
+		controllo++; disegna_eval(0,oggetti.length); controllo--;
+	});
+	$("#composizione").click(function(){
+		//oggetti[n_ogg][10]=$("#composizione").val();
+		n_ogg=add_mod_oggetto(n_ogg, 10, $("#composizione").val());
+		controllo++; disegna_eval(0,oggetti.length); controllo--;
+	});
+	$("#composizione").keyup(function(){
+		//oggetti[n_ogg][10]=$("#composizione").val();
+		n_ogg=add_mod_oggetto(n_ogg, 10, $("#composizione").val());
+		controllo++; disegna_eval(0,oggetti.length); controllo--;
+	});
+	$("#smusso_fine_mod").keyup(function(){
+		//oggetti[n_ogg][17]=$("#smusso_fine_mod").val();
+		n_ogg=add_mod_oggetto(n_ogg, 17, $("#smusso_fine_mod").val());
+		controllo++; disegna_eval(0,oggetti.length); controllo--;
+	});
+	$("#smusso_fine_mod").click(function(){
+		//oggetti[n_ogg][17]=$("#smusso_fine_mod").val();
+		n_ogg=add_mod_oggetto(n_ogg, 17, $("#smusso_fine_mod").val());
+		controllo++; disegna_eval(0,oggetti.length); controllo--;
+	});
+	$("#aperto_chiuso").keyup(function(){
+		//oggetti[n_ogg][16]=$("#aperto_chiuso").val();
+		n_ogg=add_mod_oggetto(n_ogg, 16, $("#aperto_chiuso").val());
+		controllo++; disegna_eval(0,oggetti.length); controllo--;
+	});
+	$("#aperto_chiuso").click(function(){
+		//oggetti[n_ogg][16]=$("#aperto_chiuso").val();
+		n_ogg=add_mod_oggetto(n_ogg, 16, $("#aperto_chiuso").val());
+		controllo++; disegna_eval(0,oggetti.length); controllo--;
+	});
+	$("#smusso_angoli_mod").keyup(function(){
+		//oggetti[n_ogg][18]=$("#smusso_angoli_mod").val();
+		n_ogg=add_mod_oggetto(n_ogg, 18, $("#smusso_angoli_mod").val());
+		controllo++; disegna_eval(0,oggetti.length); controllo--;
+	});
+	$("#smusso_angoli_mod").click(function(){
+		//oggetti[n_ogg][18]=$("#smusso_angoli_mod").val();
+		n_ogg=add_mod_oggetto(n_ogg, 18, $("#smusso_angoli_mod").val());
+		controllo++; disegna_eval(0,oggetti.length); controllo--;
+	});
+	$("#gradientdivR").click(function(){
+		edit_gradient(n_ogg,"R");
+	});
+	$("#gradientdivC").click(function(){
+		edit_gradient(n_ogg,"C");
+	});
+}
+
+function edit_gradient(id_ogg, RC)
+{
+	//su oggetto:1 riempimento lineare, 2 riempimento radiale, 3 contorno lineare, 4 contorno radiale
+	//su gradiente:R riempimento, C contorno
+
+	var gradiente_scelto="rgba(255,0,0,1)";
+	var puntatore_grad=0; var RCA='"'+RC+'"';
+	var linearadial=1;//lineare
+
+	for(var z=0;z<gradienti.length;z++)//punta il puntatore all'ultimo gradiente
+	{
+		if(gradienti[z][0]==id_ogg && gradienti[z][5]==RCA){puntatore_grad=z;}
+	}
+	
+	function info_G()
+	{
+		$(".indicegrad").click(function(){
+			var myId=$(this).attr('id');
+			puntatore_grad=myId.substr(2,myId.length);
+
+			var Grad_rgb=gradienti[puntatore_grad][1];
+			Grad_rgb=Grad_rgb.substr(1,Grad_rgb.length-2);
+			Grad_rgb=Grad_rgb.split(",");
+			Grad_rgb=new RGB(Grad_rgb[0].substr(5,Grad_rgb[0].length),Grad_rgb[1],Grad_rgb[2]);
+
+			//trasparenza
+			var alphaG=gradienti[puntatore_grad][1];
+			alphaG=alphaG.split(",");
+
+			VediGradiente(Grad_rgb,alphaG[3].substr(0,alphaG[3].length-2));
+		});
+	}
+	function VediGradiente(RGBnG,ALPHAG)
+	{
+		var gradC=Math.floor(Math.random()*999);
+		$('.coloreGrad').remove();
+		$('#trasparenza_G').remove();
+		$('#select_gradient').append('<input type="text" id="trasparenza_G" value="'+ALPHAG+'"><div id="graD_cont'+gradC+'" class="coloreGrad"></div>');
+		$('#select_gradient #graD_cont'+gradC).ColorPicker({//plugin per il colore
+			onSubmit: function(hsb, hex, rgb, el)
+			{
+				var new_alpha=$("#trasparenza_G").val();
+				gradiente_scelto="rgba("+rgb.r+","+rgb.g+","+rgb.b+","+new_alpha+")";
+				if(gradienti[puntatore_grad]!=undefined){gradienti[puntatore_grad][1]="'"+gradiente_scelto+"'";}
+
+				$("#select_gradient #id"+puntatore_grad).css("background",gradiente_scelto);
+
+				controllo++; disegna_eval(0,oggetti.length); controllo--;
+				mostra_sfumature();
+			},
+			onBeforeShow: function () {
+				$(this).ColorPickerSetColor(this.value);
+			},
+			color: RGBnG,
+			flat: true
+		});
+	}
+
+	var moltiplica_per, gradX, gradY, sfuma_grad;
+	function grado_lineare()
+	{
+		moltiplica_per=0, gradX=oggetti[id_ogg][3], gradY=oggetti[id_ogg][4], sfuma_grad=oggetti[id_ogg][6];
+		if(oggetti[id_ogg][0]=="linea")//se è una linea recupero centro larghezza e altezza per il gradiente
+		{
+			var minGx=99999, maxGx=-99999, minGy=99999, maxGy=-99999, somGx=0; somGy=0;
+			for(var i=0;i<p_x[oggetti[id_ogg][3]].length;i++)
+			{
+				if(p_x[oggetti[id_ogg][3]][i]>maxGx){maxGx=p_x[oggetti[id_ogg][3]][i];}
+				if(p_x[oggetti[id_ogg][3]][i]<minGx){minGx=p_x[oggetti[id_ogg][3]][i];}
+				if(p_y[oggetti[id_ogg][3]][i]>maxGy){maxGy=p_y[oggetti[id_ogg][3]][i];}
+				if(p_y[oggetti[id_ogg][3]][i]<minGy){minGy=p_y[oggetti[id_ogg][3]][i];}
+				somGx=parseInt(somGx)+parseInt(p_x[oggetti[id_ogg][3]][i]);
+				somGy=parseInt(somGy)+parseInt(p_y[oggetti[id_ogg][3]][i]);
+			}
+			gradX=somGx/i; gradY=somGy/i;
+			if((maxGy-minGy)<(maxGx-minGx)){sfuma_grad=maxGy-minGy;}else{sfuma_grad=maxGx-minGx;}
+		}
+		if(oggetti[id_ogg][0]=="ellisse" || oggetti[id_ogg][0]=="quadrato")
+		{
+			if(oggetti[id_ogg][6]<oggetti[id_ogg][7]){sfuma_grad=oggetti[id_ogg][6];}else{sfuma_grad=oggetti[id_ogg][7];}
+		}
+		return(sfuma_grad);
+	}
+	
+	function mostra_sfumature()
+	{
+		$("#sfumature").html("");
+		for(var i=0;i<gradienti.length;i++)
+		{
+			if(gradienti[i][0]==id_ogg && gradienti[i][5]==RCA)
+			{
+				var coloreSF=gradienti[i][1].substr(1,gradienti[i][1].length-2);
+				
+				if(oggetti[id_ogg][15].indexOf("1")!=-1){var marginSF=gradienti[i][4]*300;}
+				if(oggetti[id_ogg][15].indexOf("2")!=-1)
+				{
+					var grandSF=grado_lineare();
+					var marginSF=(300/grandSF)*gradienti[i][4];
+				}
+
+				$("#sfumature").append("<div id='sfum"+i+"' class='sfumature' style='cursor:pointer; position:absolute; margin-left:"+marginSF+"px; background:"+coloreSF+"; width:10px; height:10px; float:left; border:3px solid #f00;'></div>");
+			}
+		}
+
+		$(".sfumature").mousedown(function()
+		{
+			var myId=$(this).attr('id');
+			var numId=myId.substr(4,myId.length);
+
+			var sfum_margin=$("#select_gradient").css("marginLeft");
+			sfum_margin=sfum_margin.split("px");
+			sfum_margin=parseInt(sfum_margin[0]);
+
+			var sfum_pos_int=$("#sfumature").position();
+			var sfum_pos_cont=$("#select_gradient").position();
+			var sfum_pos=parseInt(sfum_pos_int.left)+parseInt(sfum_pos_cont.left)+sfum_margin;
+
+			anim_dis7=setInterval(function()
+			{
+				var new_pos=parseInt(mousex-sfum_pos);
+				if(new_pos<0){new_pos=0;}
+				if(new_pos>300){new_pos=300;}
+
+				if(oggetti[id_ogg][15].indexOf("2")!=-1)
+				{
+					var grandSF=grado_lineare();
+					var new_rag=(grandSF/300)*new_pos;
+				}
+
+				$("#"+myId).css("margin-left",new_pos+"px");
+
+				if(oggetti[id_ogg][15].indexOf("1")!=-1){gradienti[numId][4]=(new_pos/300);}
+				if(oggetti[id_ogg][15].indexOf("2")!=-1){gradienti[numId][4]=new_rag;}
+	
+				controllo++; disegna_eval(0,oggetti.length); controllo--;
+			},10);
+		})
+	}
+
+	$("#select_gradient").css("visibility","");
+	$("#select_gradient").html('<img id="chiudi_gradient" src="immagini/x.png" style="cursor:pointer;">');
+
+	var cKG1="checked='checked'", cKG2="", DBL="";
+	var unoGrad=oggetti[id_ogg][15].substr(0,1);
+	var dueGrad=oggetti[id_ogg][15].substr(1,2);
+	if(RC=="R" && unoGrad>0){if(unoGrad==1){cKG1="checked='checked'";}if(unoGrad==2){cKG2="checked='checked'";} DBL="disabled='disabled'";}
+	if(RC=="C" && dueGrad>0){if(dueGrad==1){cKG1="checked='checked'";}if(dueGrad==2){cKG2="checked='checked'";} DBL="disabled='disabled'";}
+
+	$("#select_gradient").append("<br><span class='lab_linearadial'>"+lingue.lineare+"</span><input class='linearadial' type='radio' name='linearadial' value='linear' "+cKG1+" "+DBL+"><br><span class='lab_linearadial'>"+lingue.radiale+"</span><input class='linearadial' type='radio' name='linearadial' value='radial' "+cKG2+" "+DBL+">");
+	$("#select_gradient").append("<div id='elenco_gradienti'>");
+
+	for(var i=0;i<gradienti.length;i++)
+	{
+		if(gradienti[i][0]==id_ogg && gradienti[i][5]==RCA)
+		{
+			var BGGC=gradienti[i][1].substr(1,gradienti[i][1].length-2); var i1=parseInt(i)+parseInt(1);
+			$("#elenco_gradienti").append("<div class='indicegrad' id='id"+i+"' style='width:50px; height:30px; background:"+BGGC+";'></div>");
+		}
+	}
+	$("#select_gradient").append("</div>");
+	$("#select_gradient").append("<span id='add_gradient'><img style='width:30px; margin-top:15px; cursor:pointer;' src='immagini/add.png'></span> <span id='gradient_tool'><img style='height:30px; margin-left:20px; cursor:pointer;' src='immagini/gradient.png'></span>");
+	$("#select_gradient").append("<br><div id='sfumature' style='background:#000; width:300px; height:16px;'></div>");
+	VediGradiente("#ff0000",1);
+	mostra_sfumature();
+
+	/*function cancella_grad(Id)
+	{
+		gradienti.splice(Id,1);
+		$("#elenco_gradienti #id"+Id).remove();
+		$("#elenco_gradienti #canc_grad"+Id).remove();
+		mostra_sfumature();
+		controllo++; disegna_eval(0,oggetti.length); controllo--;
+	}*/
+	//$(".canc_grad").click(function(){var MyId=$(this).attr("id"); MyId=MyId.substr(9,MyId.length);cancella_grad(MyId);});
+
+	info_G();
+	$("#add_gradient").click(function()
+	{
+		$(".linearadial").css("visibility","hidden");
+		$(".lab_linearadial").css("visibility","hidden");
+
+		numero_g=1;
+		for(var i=0;i<gradienti.length;i++){if(gradienti[i][0]==id_ogg){numero_g++;}}//conta quanti gradienti ha questo oggetto
+
+		grado_lineare();
+
+		for(var i=0;i<gradienti.length;i++)//riscrive i vecchi gradienti per stringerli e far posto al nuovo
+		{
+			if(gradienti[i][0]==id_ogg && gradienti[i][5]==RCA)
+			{
+				if(linearadial==1){gradienti[i][3]=parseInt(gradienti[i][3]-(sfuma_grad/2))+parseInt(((gradienti[i][3]/numero_g)*moltiplica_per));
+				}
+				else if(linearadial==2){
+					gradienti[i][2]=gradX;
+					gradienti[i][3]=gradY;
+					if(moltiplica_per==0){moltiplica_per=2;}
+				}
+				gradienti[i][4]=(gradienti[i][4]/numero_g)*moltiplica_per;
+				moltiplica_per++;
+			}
+		}
+
+		var di_controllo=0;
+		for(var i=0;i<gradienti.length;i++)//per mettere due gradienti di default
+		{
+			if(gradienti[i][0]==id_ogg && gradienti[i][5]==RCA){di_controllo++;}
+		}
+		if(di_controllo==0)
+		{
+			if(linearadial==1){gradienti[gradienti.length]=new Array(id_ogg,'"'+gradiente_scelto+'"',gradX,parseInt(gradY/2)+parseInt(sfuma_grad/2),0,'"'+RC+'"');}//aggiunge il gradiente selezionato a metà posizione
+
+			if(linearadial==2){gradienti[gradienti.length]=new Array(id_ogg,'"'+gradiente_scelto+'"',gradX,gradY,sfuma_grad/2,'"'+RC+'"');}//aggiunge il gradiente selezionato a metà posizione
+
+			var Gm1=gradienti.length-1;
+			$("#elenco_gradienti").append("<div class='indicegrad' id='id"+Gm1+"' style='width:50px; height:30px; background:"+gradiente_scelto+";'></div>");
+		}
+
+		if(linearadial==1){gradienti[gradienti.length]=new Array(id_ogg,'"'+gradiente_scelto+'"',gradX,parseInt(gradY)+parseInt(sfuma_grad/2),1,'"'+RC+'"');}//aggiunge il gradiente selezionato
+
+		if(linearadial==2){gradienti[gradienti.length]=new Array(id_ogg,'"'+gradiente_scelto+'"',gradX,gradY,sfuma_grad,'"'+RC+'"');}//aggiunge il gradiente selezionato
+
+		var ogg15=oggetti[id_ogg][15];
+		var ogg15R=ogg15.substr(0,1);
+		var ogg15C=ogg15.substr(1,2);
+		if(RC=="R"){/*oggetti[id_ogg][15]=linearadial+""+ogg15C;*/ add_mod_oggetto(id_ogg, 15, linearadial+""+ogg15C);}
+		if(RC=="C"){/*oggetti[id_ogg][15]=ogg15R+""+linearadial;*/ add_mod_oggetto(id_ogg, 15, ogg15R+""+linearadial);}
+		//11 riempimento e bordo lineare, 22 riempimento e bordo radiale, 
+		//21 riempimento radiale e bordo lineare, 12 riempimento lineare e bordo radiale
+
+		puntatore_grad=gradienti.length-1;
+
+		$("#elenco_gradienti").append("<div class='indicegrad' id='id"+puntatore_grad+"' style='width:50px; height:30px; background:"+gradiente_scelto+";'></div>");
+		info_G();
+		controllo++; disegna_eval(0,oggetti.length); controllo--;
+		mostra_sfumature();
+	});
+	
+	$(".linearadial").click(function(){
+		if($(this).val()=="linear"){linearadial=1;}
+		if($(this).val()=="radial"){linearadial=2}
+	});
+	$("#chiudi_gradient").click(function(){$("#select_gradient").css("visibility","hidden");});
+
+	$("#gradient_tool").click(function(){
+		EditGradient=id_ogg;
+		EditGradientT=RC;
+		$("#select_gradient").css("visibility","hidden");
+		contorna_figure(id_ogg);
+	})
+}
+
+$("#annulla").click(function(){
+	punta_storico=punta_storico-2;
+	if(punta_storico<0){punta_storico=0;}
+	ripristina(punta_storico);	
+});
+$("#ripeti").click(function(){
+	if(punta_storico>storico.length){punta_storico=storico.length;}
+	ripristina(punta_storico);
+});
+
+$('#strumenti').click(function() {
+	EditGradient=-1; EditGradientT=-1;
+	manigliex=new Array(); manigliey=new Array(); centroX=""; centroY="";//per non averle il cambio mouse dove non serve
+	controllo++; disegna_eval(0,oggetti.length); controllo--;
+});
+$('#seleziona').click(function() {
+	strumento="seleziona";
+	$("#div_canvas").css("cursor","auto");
+});
+$('#cerchio').click(function() {
+	strumento="cerchio";
+	$("#div_canvas").css("cursor","crosshair");
+});
+$('#ellisse').click(function() {
+	strumento="ellisse";
+	$("#div_canvas").css("cursor","crosshair");
+});
+$('#quadrato').click(function() {
+	strumento="quadrato";
+	$("#div_canvas").css("cursor","crosshair");
+});
+$('#poligono').click(function() {
+	strumento="poligono";
+	$("#div_canvas").css("cursor","crosshair");
+});
+$('#linea').click(function() {
+	strumento="linea";
+	$("#div_canvas").css("cursor","crosshair");
+});
+$('#testo').click(function() {
+	strumento="testo";
+	lettere=prompt(lingue.inserisci_testo);
+	$("#div_canvas").css("cursor","crosshair");
+});
+$('#multi_selezione').click(function() {
+	strumento="multi_selezione";
+	$("#div_canvas").css("cursor","crosshair");
+});
+
+var urlimg, urlimg_h, urlimg_w;
+$('#immagine').click(function() {
+	$("body").append(""
+		+"<div id='form_img' class='popup_frame' action='upload.php?tipo=immagini_up' method='post' enctype='multipart/form-data' style='position:absolute; margin:-650px 0 0 -190px; width:380px; left:50%;'>"
+			+"<img id='chiudi_file' src='immagini/x.png' style='cursor:pointer;'>"
+			+"<form action='upload.php' method='post' enctype='multipart/form-data'>"
+			+"<input type='file' name='upfile' id='upimg'>"
+			+"<input type='hidden' name='tipo' value='immagini_up'>"
+			+"<input type='submit' value='"+lingue.apri+"' id='but_file'>"
+			+"</form>"
+		+"</div>");
+
+		$(document).ready(function() {
+			$("#form_img").ajaxForm(function(resp) {
+				resp=resp.replace(/\s+$|^\s+/g,""); //eliminare gli spazi
+				ritorno=resp.split(",");
+				if(ritorno[0]=="corretto")
+				{
+					var imm = new Image();
+					imm.src = "immagini_up/"+ritorno[1];
+					urlimg="immagini_up/"+ritorno[1];
+
+					var controlla_caricamento=setInterval(function()
+					{
+						if(imm.complete)
+						{
+							urlimg_h=imm.height; 
+					      		urlimg_w=imm.width;
+							$("#form_img").remove();
+							clearInterval(controlla_caricamento);
+					
+							strumento="immagine";
+							$("#div_canvas").css("cursor","crosshair");
+						}
+					},500);
+				}
+				else
+				{
+					$("#loadamento").remove();
+					alert(resp);
+				}
+			});
+		});
+
+	$("#but_file").click(function(){
+		urlimg=$("#upimg").val();
+
+		if(urlimg!="")
+		{
+			$("#form_img").append("<img id='loadamento' src='immagini/loading.gif'>");
+		}
+	})
+	$("#chiudi_file").click(function(){
+		$("#form_img").remove();
+	})
+});
+
+$("#chiudi_dettagli").click(function(){
+	$("#dettagli_cont").css("visibility","hidden");
+});
+$("#chiudi_tutorial").click(function(){
+	$("#div_tutorial").css("visibility","hidden");
+});
+$("#chiudi_div_error").click(function(){
+	$("#div_error_cont").css("visibility","hidden");
+});
+
+$("#mostra_dettagli").click(function(){$("#dettagli_cont").css("visibility","");});
+$("#mostra_tutorial").click(function(){$("#div_tutorial").css("visibility","");});
+$("#mostra_div_error").click(function(){
+	$("#div_error_cont").css("visibility","");}
+);
+
+$("#scala").click(function(){
+	spessore_mark=$("#spessore").val();
+	base_c=$("#base").val();
+	altezza_c=$("#altezza").val();
+	colore_c=$("#colorpickerField3").val();
+	var opacit=$("#opacita").val();
+	if(opacit>=0 && opacit<=1 && IsNumeric(opacit))
+	{
+		colore_c=colore_c.substr(0,colore_c.length-2)+opacit+")";
+	}
+	else{alert(lingue.errore_trasparenza);}
+
+	if(!IsNumeric(base_c) || !IsNumeric(altezza_c)){alert(lingue.errore_base_altezza);}
+	else{
+		$("canvas.test").remove();
+		$("#div_canvas").html("<canvas id='myCanvas' class='test' width="+base_c+" height="+altezza_c+" style='border-style:solid; background:"+colore_c+"'></canvas>");
+	}
+	controllo++; disegna_eval(0,oggetti.length); controllo--;
+});
+
+$("#visualizza_sottoliv").click(function(){
+	var src=$(this).attr("src").indexOf("sottoliv_but_a.png");
+	if(src!=-1){
+		$(this).attr("src","immagini/sottoliv_but_s.png");
+	}else{
+		$(this).attr("src","immagini/sottoliv_but_a.png");
+	}
+
+	if(visualizza_sottolivelli==0){visualizza_sottolivelli=1;}
+	else{visualizza_sottolivelli=0;}
+	disegna_livelli();
+});
+
+function disegna_livelli()
+{
+	var scrolltop=$("#timeline_dim").scrollTop();
+	$("#livelli").html("");
+	for(var i=oggetti.length-1;i>=0;i--)
+	{
+		liv_attuale=-1; 
+		for(var j=0; j<livelli.length;j++)//cerca sequesto id è presente nei livelli
+		{
+			if(livelli[j][0]==oggetti[i][20])
+			{
+				liv_attuale=j;
+				break;
+			}
+		}
+		if(liv_attuale==-1)//se l'oggetto non è inserito lo inserisco
+		{
+			liv_attuale=livelli.length;
+			livelli[liv_attuale]=new Array();
+			livelli[liv_attuale][0]=oggetti[i][20];
+			livelli[liv_attuale][1]="sufx_level_"+oggetti[i][20];
+			livelli[liv_attuale][2]=1; //bloccato/sbloccato
+			livelli[liv_attuale][3]=1; //visibile/invisibile
+			livelli[liv_attuale][4]=-1;//sottolivello di...
+		}
+
+		var w_timeline=$("#timeline").css("width");
+		$("#livelli").css("width",w_timeline);
+
+		if(livelli[liv_attuale][2]==1)
+			var block_un="<img width='11' src='immagini/luc_aperto.png'>";
+		else
+			var block_un="<img width='11' src='immagini/luc_chiuso.png'>";
+
+		if(livelli[liv_attuale][3]==1)
+			var vedi_un="<img width='11' src='immagini/lam_accesa.png'>";
+		else
+			var vedi_un="<img width='11' src='immagini/lam_spenta.png'>";
+
+		var sotto_liv="", larghezza_input=90;
+		if(livelli[liv_attuale][4]!=-1){
+			sotto_liv="<div style='width:30px; height:100%; float:left;'><img style='margin:0 0 0 5px;' src='immagini/sottoliv.png'></div>";
+			larghezza_input=60;
+		}
+
+		if(livelli[liv_attuale][4]==-1 || visualizza_sottolivelli==1)
+		{
+
+			$("#livelli").append("<div style='border-bottom:1px solid #555; height:40px; width:100%; clear:left;' class='contenitore_livelli' id='sufx_"+livelli[liv_attuale][1]+"'><div class='intestazioni_livello'>"+sotto_liv
+		+"<input type='text' style='width:"+larghezza_input+"px;' class='nome_livello' id='idliv_"+livelli[liv_attuale][0]+"' value='"+livelli[liv_attuale][1].substr(5,livelli[liv_attuale][1].length)+"'><br>"
++"<span title='"+lingue.blocca_sblocca+"' style='cursor:pointer;' class='blocca_nascondi' id='bs_"+liv_attuale+"'>"+block_un+"</span> "
++"<span title='"+lingue.mostra_nascondi+"' style='cursor:pointer;' class='blocca_nascondi' id='mn_"+liv_attuale+"'>"+vedi_un+"</span> "
++"<span title='"+lingue.sposta_su+"' style='cursor:pointer;' class='sposta_liv' id='su_"+liv_attuale+"'><img src='immagini/sposta_su.png'></span> "
++"<span title='"+lingue.sposta_giu+"' style='cursor:pointer;' class='sposta_liv' id='giu_"+liv_attuale+"'><img src='immagini/sposta_giu.png'></span> "
++"<span title='"+lingue.sottolivello+"' style='cursor:pointer;' class='sotto_livello' id='sl_"+liv_attuale+"'><img width='11' src='immagini/sottoliv.png'></span></div></div>");
+
+			var primo_giro=0;
+			for(var j=0;j<oggetti.length;j++)//scorre gli oggetti con lo stesso id e inserisce il pallino
+			{
+				if(oggetti[j][20]==oggetti[i][20])
+				{
+					var a_destra=$(".frame").width()*oggetti[j][19];
+					//a_destra=parseInt(a_destra)-parseInt($(".intestazioni_livello").width()); 
+					if(primo_giro!=0){a_destra=0;} primo_giro++;
+
+					$("#sufx_"+livelli[liv_attuale][1]).append("<div title='"+lingue.interpolazione+"' class='drag_frame' id='ofra_"+oggetti[j][19]+"_"+j+"' style='cursor:pointer; float:left; width:21px; height:40px; background-image:url(\"immagini/livframe.png\"); margin-left:"+a_destra+"px;'></div>");
+
+					if(oggetti[parseInt(j)+1]!=undefined && oggetti[parseInt(j)+1][20]==oggetti[i][20])
+					{
+						var a_dd=($(".frame").width()*oggetti[parseInt(j)+1][19])-($(".frame").width()*oggetti[j][19]);
+						//a_dd=parseInt(a_dd)-parseInt($(".intestazioni_livello").width());
+
+						$("#sufx_"+livelli[liv_attuale][1]).append("<div style='float:left; width:"+(a_dd-$(".frame").width())+"px; background-image:url(\"immagini/livframe1.png\"); height:40px;'></div>");
+					}
+				}
+			}
+		}
+		//riposizione l'indice i
+		var trovato_indice=0;
+		for(var j=oggetti.length-1;j>=0;j--)
+		{
+			if(oggetti[i][20]==oggetti[j][20])
+			{
+				trovato_indice=1;
+				i=j;
+			}
+			else if(trovato_indice==1)
+				break;
+		}
+	}
+
+	$(document).ready(function()
+	{
+		$(".contenitore_livelli").mouseover(function(){$("#tutorial_cont").html(lingue.livello);});
+		$(".contenitore_livelli").bind("contextmenu",function(e){
+
+			id_selezionato=$(this).attr("id");
+			id_selezionato=id_selezionato.split("_");
+			id_selezionato=id_selezionato[id_selezionato.length-1];
+
+			
+			for(var i=0;i<oggetti.length;i++)
+				if(oggetti[i][20]==id_selezionato){
+					indice_da_agg=i;
+					//break;
+					if(oggetti[i][19]==frame){break;}
+				}
+
+			$("body").append("<div class='popup_frame1' style='background:#0f0; position:absolute; border: 1px solid #000; -moz-border-radius: 15px; -webkit-border-radius: 15px; padding:15px; color:#222; z-index:2147483647; top:"+(mousey-25)+"px; left:"+(mousex-100)+"px; width:320px; height:40px;'>"
++"<span style='cursor:pointer;' class='crea_n_chiave_frame' id='seliv_"+indice_da_agg+"'>"+lingue.crea_n_frame+"("+frame+")</span><br><span style='cursor:pointer;' class='distruggi_n_chiave_frame' id='seliv_"+indice_da_agg+"'>"+lingue.distruggi_n_frame+"("+frame+")</span></div>");
+
+			$(".popup_frame1").mouseleave(function(){
+				$(this).remove();
+			});
+
+			$(".crea_n_chiave_frame").click(function(event){
+				event.stopPropagation();
+
+				var id_da_agg=$(this).attr("id");
+				id_da_agg=id_da_agg.split("_");
+				id_da_agg=id_da_agg[1];
+
+				/*for(i=id_da_agg;i<oggetti.length-1;i++){
+					if(oggetti[parseInt(i)+1]!=undefined && oggetti[parseInt(i)+1][20]==oggetti[id_da_agg][20]){continue;}else{break;}
+				}*/
+				var liv_sel;
+				for(y=id_da_agg;y>=0;y--){
+					if(oggetti[y][19]==frame || oggetti[y+1]==undefined || oggetti[y-1]==undefined || (oggetti[y+1][20]!=oggetti[y][20] && oggetti[y-1][20]!=oggetti[y][20])){
+						for(j=0;j<livelli.length;j++){
+							if(livelli[j][0]==oggetti[y][20]){
+								if(liv_sel==undefined){liv_sel=j;}
+								if((livelli[j][4]!=-1 || y==id_da_agg) && (livelli[liv_sel][4]==-1 || liv_sel==j)){
+									add_mod_oggetto(y, 1, oggetti[y][1]); break;
+								}else{
+									controllo++; disegna_eval(0,oggetti.length); controllo--;
+									disegna_livelli();
+									$(".popup_frame1").remove();
+									return(0);
+								}
+							}
+						}
+					}
+				}
+
+				controllo++; disegna_eval(0,oggetti.length); controllo--;
+				disegna_livelli();
+				$(".popup_frame1").remove();
+			});
+
+			$(".distruggi_n_chiave_frame").click(function(event){
+				event.stopPropagation();
+
+				var id_da_agg=$(this).attr("id");
+				id_da_agg=id_da_agg.split("_");
+				id_da_agg=id_da_agg[1];
+
+				var liv_sel;
+				for(i=0;i<oggetti.length;i++)//scorre tutti i sottolivelli
+				{
+					if(oggetti[i][20]==oggetti[id_da_agg][20]){
+						if(oggetti[i][19]!=frame){continue;}
+						for(y=i;y>=0;y--){
+							if(oggetti[y][19]!=frame){continue;}
+							for(j=0;j<livelli.length;j++){
+								if(livelli[j][0]==oggetti[y][20]){
+									if(liv_sel==undefined){liv_sel=j;}
+									if((livelli[j][4]!=-1 || y==i) && (livelli[liv_sel][4]==-1 || liv_sel==j)){
+										rimuovi_pallini(y);
+										oggetti.splice(y,1);
+										contatore--; oggc--;
+										break;
+									}
+								}
+							}
+						}
+					}
+				}
+				controllo++; disegna_eval(0,oggetti.length); controllo--;
+				disegna_livelli();
+				$(".popup_frame1").remove();
+			});
+
+		      	return false;
+	       	});
+
+		/*$(".drag_frame").mousedown(function(){
+			var id_drag=$(this).attr("id");
+			id_drag=id_drag.split("_");
+			frdr_og=id_drag[1];
+			iddr_og=id_drag[2];
+		});*/
+		$(document).ready(function() {
+			$(".drag_frame").draggable({ axis: 'x' });
+			var axis = $(".drag_frame").draggable( "option", "axis" );
+			$(".drag_frame").draggable( "option", "axis", 'x' );
+
+			$(".drag_frame").bind( "dragstart", function(event, ui) {
+				var id_drag=$(this).attr("id");
+				id_drag=id_drag.split("_");
+				frdr_og=id_drag[1];
+				iddr_og=id_drag[2];
+			});
+
+			$(".drag_frame").bind( "dragstop", function(event, ui) {
+
+				if(frdr_og!=undefined && iddr_og!=undefined){
+					var newfr=((parseInt(mousex)+parseInt($("#timeline_dim").scrollLeft()))-$(".intestazioni_livello").width())/$(".frame").width();
+					newfr=Math.floor(newfr);
+				
+					oggetti[iddr_og][19]=newfr;
+					oggetti=oggetti.sort(ordina);
+					disegna_livelli();
+					frdr_og=undefined; iddr_og=undefined;
+					/*for(var i=0;i<oggetti.length;i++){
+						if(oggetti[i][19]==parseInt(frdr_og) && oggetti[i][20]==parseInt(iddr_og)){
+							for(;i>=0;i--){
+
+								if(oggetti[i][19]!=parseInt(frdr_og)){continue;}
+								var ok=1;
+								if(oggetti[i][20]!=parseInt(iddr_og))
+								{
+									for(j=0;j<livelli.length;j++){
+										if(livelli[j][0]==oggetti[i][20]){
+											if(livelli[j][4]==-1)
+											{ok=0;}
+										}
+									}
+								}
+
+								if(ok==0){disegna_livelli(); break;}
+
+								oggetti[i][19]=newfr;
+								oggetti=oggetti.sort(ordina);
+
+								//senza questo anche spostando un sottolivello lo spostamento si ripercuoterebbe sui livelli sottostanti (ingiustamente)
+								if(oggetti[i][20]==iddr_og){
+									for(es=0;es<livelli.length;es++){
+										if(livelli[es][0]==iddr_og){
+											if(livelli[es][4]!=-1){
+												disegna_livelli();
+												return(0);
+											}
+											break;
+										}
+									}
+								}
+							}
+							disegna_livelli();
+							frdr_og=undefined; iddr_og=undefined;
+							break;
+						}
+					}*/
+				}
+			});
+		});
+
+		/*$(".contenitore_livelli").mouseup(function(){
+			if(frdr_og!=undefined && iddr_og!=undefined){
+				var newfr=((parseInt(mousex)+parseInt($("#timeline_dim").scrollLeft()))-$(".intestazioni_livello").width())/$(".frame").width();
+				newfr=Math.floor(newfr);
+				
+				for(var i=0;i<oggetti.length;i++){
+					if(oggetti[i][19]==parseInt(frdr_og) && oggetti[i][20]==parseInt(iddr_og)){
+						oggetti[i][19]=newfr;
+						frdr_og=undefined; iddr_og=undefined;
+						oggetti=oggetti.sort(ordina);
+						disegna_livelli();
+						break;
+					}
+				}
+			}
+		});*/
+	});
+
+	$(".blocca_nascondi").click(function(){
+		var id_bs=$(this).attr("id");
+		id_bs=id_bs.split("_");
+
+		if(id_bs[0]=="bs")
+			var indice_selezionato=2;
+		if(id_bs[0]=="mn")
+			var indice_selezionato=3;
+
+		id_bs=id_bs[1];
+
+		for(var i=0;i<oggetti.length;i++)
+			if(oggetti[i][20]==livelli[id_bs][0]){var indice_ogg=i; break;}
+		for(var i=indice_ogg;i>=0;i--)
+		{
+			if(oggetti[i-1]!=undefined && oggetti[i-1][20]==oggetti[i][20]){continue;}
+			for(var j=0;j<livelli.length;j++)
+			{
+				if(livelli[j][0]==oggetti[i][20])
+				{
+					if(livelli[j][4]==-1 && i!=indice_ogg)
+					{
+						controllo++; disegna_eval(0,oggetti.length); controllo--;
+						return(0);
+					}
+					else{
+						if(livelli[j][indice_selezionato]==1)
+						{
+							livelli[j][indice_selezionato]=0;
+							if(indice_selezionato==2){var block_un="<img width='11' src='immagini/luc_chiuso.png'>";}
+							if(indice_selezionato==3){var block_un="<img width='11' src='immagini/lam_spenta.png'>";}
+						}
+						else
+						{
+							livelli[j][indice_selezionato]=1;
+							if(indice_selezionato==2){var block_un="<img width='11' src='immagini/luc_aperto.png'>";}
+							if(indice_selezionato==3){var block_un="<img width='11' src='immagini/lam_accesa.png'>";}
+						}
+						if(i==indice_ogg){$(this).html(block_un);}
+						if(livelli[indice_ogg][4]!=-1){
+							controllo++; disegna_eval(0,oggetti.length); controllo--;
+							return(0);
+						}
+					}
+				}
+			}
+		}controllo++; disegna_eval(0,oggetti.length); controllo--;
+	});
+
+	//<span class='sposta_liv' id='su_"+liv_attuale+"'>su</span>
+	$(".sposta_liv").click(function(){
+		var attrib=$(this).attr("id");
+		var attrib=attrib.split("_");
+		var id_dogg=attrib[1];
+		var sugiu=attrib[0];
+
+		var sposta_di=1, n_sottoliv=0, exit_tt=0;			
+
+		for(var i=0;i<oggetti.length;i++)
+		{
+			if(oggetti[i][20]==livelli[id_dogg][0]){
+				var id_dogg1=i;
+				for(var j=id_dogg1;j>=0;j--)
+				{
+					for(var y=0;y<livelli.length;y++)
+					{
+						if(oggetti[j][20]==livelli[y][0] && oggetti[id_dogg1][20]==livelli[y][0] && livelli[y][4]!=-1){exit_tt=1; break;}//se il livello cliccato è gia un sottolivello non serve incrementare n_sottoliv
+						if(oggetti[j][20]==livelli[y][0] && oggetti[id_dogg1][20]!=livelli[y][0])
+						{
+							if(livelli[y][4]!=-1)
+							{
+								n_sottoliv++;
+							}
+							else{exit_tt=1; break;}
+						}
+					}
+					if(exit_tt==1){break;}
+				}
+			}
+			if(exit_tt==1){break;}
+		}
+
+		exit_tt=0;
+		var conta_giri=0;
+		while(exit_tt==0)
+		{
+			for(var i=0;i<livelli.length;i++)
+			{
+				if(oggetti[parseInt(id_dogg1)+parseInt(conta_giri)][20]==livelli[i][0] && conta_giri!=0)
+				{
+					if(livelli[i][4]!=-1){sposta_di++;}
+					else{exit_tt=1; break;}
+				}
+			}
+			if(sugiu=="su"){conta_giri++;}
+			else{conta_giri--;}
+		}
+		
+		if(sugiu=="giu"){sposta_di=parseInt(sposta_di)+parseInt(n_sottoliv);}
+		for(z=0;z<=n_sottoliv;z++)
+		{
+			var provid=id_dogg1;
+			if(sugiu=="su"){provid=provid-z;}
+			for(var y=0;y<sposta_di;y++)
+			{
+				sposta_livello(sugiu, provid);
+				if(sugiu=="su"){provid++;}
+				if(sugiu=="giu"){provid--;}
+			}
+		}
+
+		//nel caso in cui si sposta in basso un livello senza sottolivelli verso un livello con sottolivelli
+		if(n_sottoliv==0 && sposta_di==1 && sugiu=="giu"){
+			var casoPp=-1, casoPd=0, casoP=-1;
+			for(i=0;i<oggetti.length;i++){
+				if(oggetti[i][20]==provid-1 || oggetti[i][20]==parseInt(provid)+1 || oggetti[i][20]==provid)
+				{
+					for(j=0;j<livelli.length;j++){
+						if(oggetti[i][20]==livelli[j][0]){
+							if(oggetti[i][20]==provid-1 && livelli[j][4]!=-1){
+								casoPp=j;
+							}
+							if(oggetti[i][20]==parseInt(provid)+1 && livelli[j][4]==-1){
+								casoPd=1;
+							}
+							if(oggetti[i][20]==provid){
+								casoP=i;
+							}
+							break;
+						}
+					}
+				}
+			}
+			if(casoP!=-1 && casoPp!=-1 && casoPd!=0){
+				livelli[id_dogg][4]=casoPp;
+			}
+		}
+		disegna_livelli();
+	});
+
+	$(".nome_livello").keyup(function(){
+		var id_nome=$(this).attr("id");
+		id_nome=id_nome.split("_");
+		id_nome=id_nome[1];
+
+		for(var i=0;i<livelli.length;i++)
+		{
+			if(livelli[i][0]==id_nome)
+			{
+				livelli[i][1]="sufx_"+$(this).val();
+				break;
+			}
+		}
+	});
+
+	$(".sotto_livello").click(function(){
+		var id_liv=$(this).attr("id");
+		id_liv=id_liv.split("_");
+		id_liv=id_liv[1];
+
+		if(livelli[id_liv][4]==-1)
+		{
+			if(livelli[id_liv][0]!=oggetti[oggetti.length-1][20])
+				livelli[id_liv][4]=1;
+		}
+		else
+		{
+			var precedente=-1, sposta_giu_di=0, sposta_i="";
+			for(var i=0;i<oggetti.length;i++)//cerco l'oggetto corrispondente al livello selezionato
+			{	
+				if(oggetti[i][20]==livelli[id_liv][0])
+				{
+					sposta_i=i;
+					for(var j=i;j>=0;j--)//appena lo trovo scorro l'array all'indietro per vedere fino a dove deve essere spostato (se deve essere spostato)
+					{
+						if(oggetti[j][20]!=livelli[id_liv][0] && precedente!=oggetti[j][20])
+						{
+							precedente=oggetti[j][20];
+							for(var y=0;y<livelli.length;y++)
+							{
+								if(livelli[y][0]==oggetti[j][20] && livelli[y][4]!=-1)
+								{
+									sposta_giu_di++;
+								}
+							}
+						}
+					}
+					break;
+				}
+			}
+			for(var i=0;i<sposta_giu_di;i++)
+			{
+				if(sposta_i!=""){
+					sposta_livello("giu", sposta_i);
+					sposta_i--;
+				}
+			}
+			livelli[id_liv][4]=-1;
+		}
+		disegna_livelli();
+	});
+
+$("#timeline_dim").scrollTop(scrolltop);
+}
+
+function aggiungi_frame(n_frame)
+{
+	inizio_frame=tot_frame;
+	tot_frame=parseInt(tot_frame)+parseInt(n_frame);
+	for(var i=inizio_frame;i<tot_frame;i++)
+	{
+		var vis_n_fr="";
+		if(i%5==0){vis_n_fr=i;}
+		$("#timeline").append("<div id='frame"+i+"' class='frame' style='word-wrap: break-word; background-image:url(\"immagini/frame.png\"); cursor:pointer; text-align:center; height:40px; width:21px; float:left;'>"+vis_n_fr+"<div id='pallino_frame"+i+"'></div></div>");
+		var timeL=$("#timeline").css("width");
+		timeL=timeL.substr(0,timeL.length-2);
+		timeL=parseInt(timeL)+parseInt(22); //larghezza timeline frame + 2px di bordo
+		$("#timeline").css("width",timeL+"px");
+	}
+	$(".frame").click(function()
+	{
+		var frame_prec=frame;
+		$("#frame"+frame).css('background-image','url(immagini/frame.png)');
+		MyId=$(this).attr("id");
+		MyId=MyId.substr(5, MyId.length);
+		frame=MyId;
+		$(this).css('background-image','url(immagini/frame_sel.png)');
+
+		//duplica gli oggetti sul frame attuale e elimina quelli precedentemente creati ma non utilizzati
+
+		//scorre oggetti e lo paragona con l'array precedentemente copiato durante la selezione di un frame (che duplica tutti gli oggetti univoci) e se non sono stati utilizzati li elimina
+
+		//elimina_doppioni_oggetti(oggetti);
+
+		obj_mod=elimina_doppioni(obj_mod);
+		for(var rf=0;rf<oggetti.length;rf++)
+		{
+			if(oggetti[rf][19]==frame_prec)
+			{
+
+				var obpyn=0;
+				for(var rfp=0;rfp<ogg_provvisori.length;rfp++)//scorro l'array con gli indici degli oggetti provvisori precedentemente creati. se poi son stati modificati non sono piu provvisori e quindi si passa al giro di for successivo 
+				{
+					if(ogg_provvisori[rfp]==rf)
+					{
+						obpyn=1; break;
+					}
+				}
+				if(obpyn==0){continue;}
+
+				//controlla se prima o dopo ci sono oggetti
+				var PrimA=0, DopO=0;
+				if(oggetti[rf-1]!=undefined && oggetti[rf-1][20]==oggetti[rf][20])
+				{
+					PrimA=1;
+				}
+				if(oggetti[parseInt(rf)+1]!=undefined && oggetti[parseInt(rf)+1][20]==oggetti[rf][20])
+				{
+					DopO=1;
+				}
+				if(PrimA==0 && DopO==0){continue;}
+				//fine controlla se prima o dopo ci sono oggetti
+
+				for(var rfj=0;rfj<obj_mod.length;rfj++)
+				{
+					if(rf==obj_mod[rfj])
+						break;
+				}
+				if(rfj==obj_mod.length)
+				{
+					oggetti[rf]="";
+				}
+			}
+		}
+		for(var rf=0;rf<oggetti.length;rf++)
+		{
+			if(oggetti[rf]=="")
+			{	
+				oggetti.splice(rf,1);
+				rf--;
+			}
+		}
+
+		$('.nel_pallino_frame').each(function(){//scorre tutti i rombi (che indicano un interpolazione in un dato frame) e se non esistono perchè son stati creati e eliminati perchè non usati, qua si rimuovono i rombi
+			var frame_esistenti=$(this).attr("id");
+			for(var i=0;i<oggetti.length;i++)
+			{
+				var controllo_frame=0;
+				if(oggetti[i][19]==frame_esistenti)
+				{
+					controllo_frame=1;
+					break;
+				}
+			}
+			if(controllo_frame==0)
+			{
+				$(this).remove();
+			}
+		});
+
+		ogg_provvisori=new Array();
+		for(var rf=0;rf<oggetti.length;rf++)//questo for ricrea tutti gli oggetti nella giusta posizione ogni volta che si clicca su un nuovo frame
+		{
+			//if(oggetti[rf][19]==frame){continue;}
+			var mostra_da_piu=0, mostra_a_piu=1;
+			if(oggetti[parseInt(rf)+1]!=undefined && oggetti[parseInt(rf)+1][20]==oggetti[rf][20])//questo if serve per trovare il frame successivo e precedente rispetto al frame cliccato per capire in che posizione sarebbe l'oggetto attuale
+			{
+				if(oggetti[parseInt(rf)+1][19]<=frame){continue;}
+				if(oggetti[rf][19]>frame){continue;}
+
+				mostra_da_piu=0; mostra_a_piu=2;
+			}
+			else{continue;}
+
+			controllo++; disegna_eval(parseInt(rf)+mostra_da_piu,parseInt(rf)+mostra_a_piu); controllo--;
+			var ogg_to_mod=rf;
+			var ogg_to_mod_init=ogg_to_mod;
+			var frame_inizio=oggetti[ogg_to_mod][19];
+			
+			for(rfj=0;rfj<ritorna_array_mod.length-2;rfj++)//creo l'oggetto con le caratteristiche corrette (decretate dalle interpolazioni create),(-2 perchè l'id e frame non devon essere presi in considerazione o si duplicherà ulteriormente l'oggetto)
+			{
+				if(oggetti[ogg_to_mod_init][0]!="linea" || rfj!=3)
+				ogg_to_mod=add_mod_oggetto(ogg_to_mod, rfj, ritorna_array_mod[rfj]);
+			}
+			if(oggetti[ogg_to_mod][0]=="linea")
+			{
+				p_x[oggetti[ogg_to_mod][3]]=ritorna_px;
+				p_y[oggetti[ogg_to_mod][3]]=ritorna_py;
+				cx[oggetti[ogg_to_mod][3]]=ritorna_cx;
+				cy[oggetti[ogg_to_mod][3]]=ritorna_cy;
+			}
+			
+			if(oggetti[ogg_to_mod][19]!=frame_inizio)
+				ogg_provvisori[ogg_provvisori.length]=ogg_to_mod;
+
+			for(var rfi=rf;rfi<oggetti.length;rfi++)//questo for serve a spostare il puntatore così da passare all'oggetto successivo, visto che quello attuale è appena stato creato 
+			{
+				if(oggetti[parseInt(rfi)+1]!=undefined && oggetti[parseInt(rfi)+1][20]==oggetti[rfi][20]){rf++;}else{break;}
+			}
+		}
+		//fine duplica gli oggetti sul frame attuale
+
+		obj_mod=new Array();
+		oggc=oggetti.length;
+		contatore=oggetti.length-1;
+		n_linea=p_x.length;
+		/*n_linea=0;
+		for(var i=0;i<oggetti.length;i++)
+			if(oggetti[i][0]=="linea")
+				n_linea++;*/
+
+		controllo++; disegna_eval(0,oggetti.length); controllo--;
+
+		disegna_livelli();
+	});
+
+	$(".frame").mouseover(function(){$("#tutorial_cont").html(lingue.tutorial_frame);});
+}
+
+$("#add_frame").click(function()
+{
+	var p_n_frame=$("#n_frame_agg").val();
+	aggiungi_frame(p_n_frame);
+});
+aggiungi_frame(150);
+
+$("#play").click(function()
+{
+	var controllo_animaione=1;
+	if(frame_fine<=$("#frame_fine").val() && $("#frame_fine").val()!="" && IsNumeric($("#frame_fine").val())){frame_fine=$("#frame_fine").val();}
+	else{alert(lingue.errore_ins_frame); controllo_animaione=0;}
+	if(IsNumeric($("#tempo_frame").val()) && $("#tempo_frame").val()!=""){tempo_frame=$("#tempo_frame").val();}
+	else{alert(lingue.errore_ins_ms); controllo_animaione=0;}
+	if(controllo_animaione==1){play=1; controllo++; disegna_eval(0,oggetti.length); controllo--;}
+});
+$("#stop").click(function()
+{
+	play=0; 
+	controllo++; disegna_eval(0,oggetti.length); controllo--;
+});
+
+var coutator=0;
+$(document).ready(function(){
+	$(document).mousemove(function(e){
+      		mousex=e.pageX;
+		mousey=e.pageY;
+		var MouseX=mousex-canvasx, MouseY=mousey-canvasy;
+
+		setTimeout(function(){
+			
+			if(controllo>0 && strumento=="linea")
+			{
+				if(oggc<=oggetti.length){
+					p_x[n_linea][n_punti]=MouseX; p_y[n_linea][n_punti]=MouseY; cx[n_linea][n_bez]=MouseX; cy[n_linea][n_bez]=MouseY; 
+					if(n_punti>0){cx[n_linea][n_bez-1]=MouseX; cy[n_linea][n_bez-1]=MouseY;}
+
+					oggetti[oggc]=new Array("linea", oggetti[oggc][1], oggetti[oggc][2], n_linea, undefined, 5, undefined, undefined, undefined, undefined, "source-over",NaN,5,5,5,"00",false,"butt","miter",frame, id_successivo);
+					controllo++;
+					disegna_eval(0,oggetti.length);
+				}
+			}
+			if(strumento=="multi_selezione" && disegna_multiselx!="" && disegna_multisely!="")
+			{
+				controllo++; disegna_eval(0,oggetti.length); controllo--;
+				var ndmsx, ndmsy;
+				if(disegna_multiselx>=MouseX && disegna_multisely>=MouseY)
+				{
+					ndmsx=parseInt(disegna_multiselx)-(parseInt(differenza(MouseX,disegna_multiselx))/2);
+					ndmsy=parseInt(disegna_multisely)-(parseInt(differenza(MouseY,disegna_multisely))/2);
+				}
+				if(disegna_multiselx<MouseX && disegna_multisely>MouseY)
+				{
+					ndmsx=parseInt(disegna_multiselx)+(parseInt(differenza(MouseX,disegna_multiselx))/2);
+					ndmsy=parseInt(disegna_multisely)-(parseInt(differenza(MouseY,disegna_multisely))/2);
+				}
+				if(disegna_multiselx>MouseX && disegna_multisely<MouseY)
+				{
+					ndmsx=parseInt(disegna_multiselx)-(parseInt(differenza(MouseX,disegna_multiselx))/2);
+					ndmsy=parseInt(disegna_multisely)+(parseInt(differenza(MouseY,disegna_multisely))/2);
+				}
+				if(disegna_multiselx<=MouseX && disegna_multisely<=MouseY)
+				{
+					ndmsx=parseInt(disegna_multiselx)+(parseInt(differenza(MouseX,disegna_multiselx))/2);
+					ndmsy=parseInt(disegna_multisely)+(parseInt(differenza(MouseY,disegna_multisely))/2);
+				}
+				$("canvas.test").drawRect({strokeStyle: "#000", strokeWidth:spessore_mark, x: ndmsx, y: ndmsy, width: differenza(MouseX,disegna_multiselx), height: differenza(MouseY,disegna_multisely)});
+			}
+		},10);
+
+		//cambia mouse se si trova sopra a una maniglia
+		var maniglia1=-1, selezione1=-1;
+		for(var i=0; i<manigliex.length && maniglia1==-1;i++)//controlla se è stata cliccata una maniglia
+		{
+			if(MouseX>(manigliex[i]-spessore_mark) && MouseX<(parseInt(manigliex[i])+parseInt(spessore_mark)) && MouseY>(manigliey[i]-spessore_mark) && MouseY<(parseInt(manigliey[i])+parseInt(spessore_mark)))
+			{
+				maniglia1=i;
+				if(i==0){$("#div_canvas").css("cursor","nw-resize");}
+				if(i==1){$("#div_canvas").css("cursor","n-resize");}
+				if(i==2){$("#div_canvas").css("cursor","ne-resize");}
+				if(i==3){$("#div_canvas").css("cursor","e-resize");}
+				if(i==4){$("#div_canvas").css("cursor","se-resize");}
+				if(i==5){$("#div_canvas").css("cursor","s-resize");}
+				if(i==6){$("#div_canvas").css("cursor","sw-resize");}
+				if(i==7){$("#div_canvas").css("cursor","w-resize");}
+			}
+			else if(strumento=="seleziona" || strumento=="multi_selezione"){$("#div_canvas").css("cursor","auto");}
+		}
+		if(MouseX>(centroX-11) && MouseX<(parseInt(centroX)+parseInt(11)) && MouseY>(centroY-11) && MouseY<(parseInt(centroY)+parseInt(11)))
+		{
+			$("#div_canvas").css("cursor","pointer");
+		}
+		else if(strumento=="seleziona" && maniglia1==-1){$("#div_canvas").css("cursor","auto");}
+   	}); 
+	$("#div_canvas").mousedown(function(e){
+		x=e.pageX-canvasx;
+		y=e.pageY-canvasy;
+
+		if(oggetti[oggetti.length-1]==undefined){id_successivo=0;}
+		else{id_successivo=parseInt(oggetti[oggetti.length-1][20])+1;}
+
+		if(strumento!="seleziona" && strumento!="multi_selezione")
+		{
+			$("#pallino_frame"+frame).html("<img class='nel_pallino_frame'id='"+frame+"' src='immagini/frame_mod.png'>");
+			anim_dis=setInterval(function(){
+
+				var riempimento=$("#colorpickerField1").val(), contorno=$("#colorpickerField2").val();
+				if(riempimento==""){riempimento="rgba(0, 0, 0, 1)";} if(contorno==""){contorno="rgba(0, 0, 0, 1)";}
+				if(strumento=="linea"){riempimento="rgba(0, 0, 0, 0)";}
+				var a=differenza((mousex-canvasx),x);
+				var b=differenza((mousey-canvasy),y);
+				var radius=pitagora(a,b);
+
+				if(strumento=="cerchio")
+				{
+					if(radius!=0)
+					{
+						if(oggc<=oggetti.length){
+							oggetti[oggc]=new Array("cerchio", riempimento, contorno, x, y, 5, radius, 0, 359, 0, "source-over",NaN,5,5,5,"00",true,"butt","miter", frame, id_successivo);
+
+// 0 tipo, 1 riempimento, 2 contorno, 3 posizione x, 4 posizione y, 5 spessore bordo, 6 raggio, 7 angolo di inizio, 8 angolo di fine, 9 angolo,
+//10 compositing, 11 colore ombra, 12 grado di sfumatura ombra, 13 posizione x dell'ombra, 14 posizione y dell'ombra, 15 tipo di gradiente, 16 chiusura tracciato, 17 tipo di smusso a fine linea, 18 tipo di summo negli angoli, 19 frame su cui risiede l'oggetto, 20 id oggetto
+							controllo++;
+						}
+					}
+				}
+				//____________________________________________________________________________________________________
+				if(strumento=="poligono")
+				{
+					if(radius!=0)
+					{
+						oggetti[oggc]=new Array("poligono", riempimento, contorno, x, y, 5, radius, 3, undefined, 0, "source-over",NaN,5,5,5,"00",null,NaN,NaN, frame, id_successivo);
+						controllo++;
+					}
+				}
+				//____________________________________________________________________________________________________
+				if(strumento=="ellisse")
+				{
+					if(a!=0 && b!=0)
+					{
+						if(oggc<=oggetti.length){
+							oggetti[oggc]=new Array("ellisse", riempimento, contorno, x, y, 5, a*2, b*2, undefined, 0, "source-over",NaN,5,5,5,"00",null,NaN,NaN, frame, id_successivo);
+							controllo++;
+						}
+					}
+				}
+				//____________________________________________________________________________________________________
+				if(strumento=="quadrato")
+				{
+					if(a!=0 && b!=0)
+					{
+						if(oggc<=oggetti.length){
+							oggetti[oggc]=new Array("quadrato", riempimento, contorno, x, y, 5, a*2, b*2, undefined, 0, "source-over",NaN,5,5,5,0,"00",NaN,NaN, frame, id_successivo);
+							controllo++;
+						}
+					}
+				}
+				//____________________________________________________________________________________________________
+				if(strumento=="testo")
+				{
+					if(radius!=0)
+					{
+						if(oggc<=oggetti.length){
+							oggetti[oggc]=new Array("testo", riempimento, contorno, x, y, 5, radius, lettere, "normal", "Arial", "source-over",NaN,5,5,5,"00", NaN,NaN,NaN,frame, id_successivo);
+							controllo++;
+						}
+					}
+				}
+				//____________________________________________________________________________________________________
+				if(strumento=="immagine")
+				{
+					if(oggc<=oggetti.length){
+						oggetti[oggc]=new Array("immagine", NaN, NaN, x, y, undefined, urlimg_w, urlimg_h, undefined, 0, "source-over",NaN,5,5,5,urlimg,null,NaN,NaN, frame, id_successivo);
+						//0 tipo, 1 VUOTO, 2 VUOTO, 3 posizione x, 4 posizione y, 5 VUOTO, 6 larghezza immagine, 7 altezza immagine, 8 VUOTO, 9 angolo, 10 compositing, 11 colore ombra, 12 grado di sfumatura ombra, 13 posizione x dell'ombra, 14 posizione y dell'ombra, 15 url immagine, 16 VUOTO, 17 VUOTO, 18 VUOTO, 19 frame su cui risiede l'oggetto, 20 id oggetto
+						controllo++;
+					}
+				}
+				//____________________________________________________________________________________________________
+				if(strumento=="linea")
+				{
+					//if(oggc<=oggetti.length){
+						if(crea_p==1)
+						{
+							p_x[n_linea]=new Array(); p_y[n_linea]=new Array(); cx[n_linea]=new Array(); cy[n_linea]=new Array();
+							crea_p=0; 
+						}
+						p_x[n_linea][n_punti]=x; p_y[n_linea][n_punti]=y; cx[n_linea][n_bez]=x; cy[n_linea][n_bez]=y; 
+						if(n_punti>0){cx[n_linea][n_bez-1]=x; cy[n_linea][n_bez-1]=y;}
+
+						oggetti[oggc]=new Array("linea", riempimento, contorno, n_linea, undefined, 5, undefined, undefined, undefined, undefined, "source-over",NaN,5,5,5,"00",false,"butt","miter", frame, id_successivo);
+						controllo++; n_punti++; n_bez=n_bez+2;
+						clearInterval(anim_dis);
+					//}
+				}
+				//____________________________________________________________________________________________________
+
+				disegna_eval(0,oggetti.length);
+			},10);
+		}
+		
+		if(strumento=="seleziona")
+		{
+			var maniglia=-1, bezier=-1, spostaP=-1, sposta_grad=-1;
+			var selezione_precedente=selezione;
+
+			for(var i=oggetti.length-1; i>=0;i--)//cerca se qualche oggetto è stato selezionato
+			{
+				var bloccato=0;
+				for(var j=0;j<livelli.length;j++)
+				{
+					if(livelli[j][0]==oggetti[i][20])
+					{
+						if(livelli[j][2]==0)
+							var bloccato=1;
+						break;
+					}
+				}
+				if(bloccato==1){continue;}
+
+				if(oggetti[i-1]!=undefined)
+				{
+					if(oggetti[i-1][19]<=(frame*1))
+					{
+						if(oggetti[i-1][20]==oggetti[i][20])//se lo stesso oggetto, più avanti nel tempo ma che vien prima del frame selezionato, esco da questo giro di for perchè il prossimo è migliore (si usa [i-1] e non +1 perchè il ciclo scorre al contrario)
+						{
+							continue;
+						}
+					}
+				}
+
+				controllo++; disegna_eval(i,parseInt(i)+parseInt(1)); controllo--;
+
+				//if(oggetti[i][0]!="immagine")
+				//{
+					var ctx = $("canvas.test").loadCanvas();
+
+					//preleva mappa px
+					/*try
+					{
+						try{*/var imageData = ctx.getImageData(x-8, y-8, 8, 8)/*} 
+						catch(e)
+						{
+//"Questo_messaggio_appare_perchè_stai_usando_un_immagine_che_risiede_sul_tuo_computer_e_non_sui_nostri_server_e,_questo_viene_interpretato_come_un_tentativo_di_accesso_non_autorizzato_per_prelevare_informazioni_private,_noi_possiamo_garantirti_la_nostra_trasparenza_con_le_varie_testimonianze_che_trovate_sul_nostro_sito,_se_vuoi_proseguire_con_la_selezione_delle_immagini_premi_su_'ricorda_questa_scelta'_e_infine_clicca_su_'permetti'_qua_in_fondo,_altrimenti,_se_non_ti_senti_sicuro_puoi_premere_su_nega_ma_non_potrai_modificare_nessuna_immagine!"
+
+							netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead");
+							var imageData = ctx.getImageData(x-8, y-8, 8, 8) 
+   						}
+ 					}
+					catch(e){throw new Error("unable to access image data: " + e)}
+					//fine preleva mappa px
+*/
+					for(var a=0, bExists=false; a<imageData.data.length; a++) 
+					{
+						if(imageData.data[a]>0){bExists=true; break; }
+					}
+				//}
+
+				/*else if(x>oggetti[i][3]-(oggetti[i][6]/2) && x<parseInt(oggetti[i][3])+parseInt((oggetti[i][6]/2)) && y>oggetti[i][4]-(oggetti[i][7]/2) && y<parseInt(oggetti[i][4])+parseInt((oggetti[i][7]/2)))
+				{
+					bExists=true;
+				}*/
+
+				if (bExists==true)
+				{
+					selezione_precedente_vuota=0;
+					selezione=ritorna_indice;
+					break;
+				}
+			}
+
+			//***********************************************************
+			for(var i=0; i<manigliex.length && maniglia==-1;i++)//controlla se è stata cliccata una maniglia
+			{
+				if(x>(manigliex[i]-spessore_mark) && x<(parseInt(manigliex[i])+parseInt(spessore_mark)) && y>(manigliey[i]-spessore_mark) && y<(parseInt(manigliey[i])+parseInt(spessore_mark)))
+				{
+					maniglia=i;
+					selezione=manigliey[8];
+					bExists=true; break;
+				}
+			}
+			
+			for(var i=0;i<elencobezx.length;i++)//controlla se è stata cliccata una bezier curves
+			{
+				if(x>(elencobezx[i]-(spessore_mark*area_mark)) && x<(parseInt(elencobezx[i])+parseInt((spessore_mark*area_mark))) && y>(elencobezy[i]-(spessore_mark*area_mark)) && y<(parseInt(elencobezy[i])+parseInt((spessore_mark*area_mark))))
+				{
+					bezier=i;
+					selezione=manigliey[8];
+					bExists=true; break;
+				}
+			}
+			//***********************************************************
+
+			if(bExists==false)
+			{
+				if(oggetti[parseInt(selezione)+1]==undefined || oggetti[selezione][20]!=oggetti[parseInt(selezione)+1][20])//altrimenti se volessi creare un frame intermedio ai due esistenti, bExists sarebbe falso e le selezioni andrebbero perse 
+				{
+					if(selezione_precedente_vuota==undefined)
+					{
+						selezione=undefined;
+						controllo++; disegna_eval(0,oggetti.length); controllo--;
+						return(0);
+					}
+					selezione_precedente_vuota=undefined;
+					selezione_precedente=undefined;
+				}
+			}
+			if(selezione_precedente!=undefined && oggetti[selezione_precedente]!=undefined && oggetti[selezione_precedente][19]==oggetti[selezione][19] && oggetti[selezione_precedente][20]!=oggetti[selezione][20])//se il frame è diverso dal precedente può andare
+			{
+				if(selezione!=selezione_precedente_doppia)//se si clicca due volte ignora il controllo dei livelli (per passare l selezione da un oggetto all'altro bisogna cliccare il vuoto)
+				{
+					selezione=selezione_precedente;
+				}
+			}
+			if(selezione==undefined)
+			{
+				controllo++; disegna_eval(0,oggetti.length); controllo--;
+				return(0);
+			}
+			selezione_precedente_doppia=ritorna_indice;
+
+			if(x>(maniglia_gradx[0]-spessore_mark) && x<(parseInt(maniglia_gradx[0])+parseInt(spessore_mark)) && y>(maniglia_grady[0]-spessore_mark) && y<(parseInt(maniglia_grady[0])+parseInt(spessore_mark))){sposta_grad=1;}
+			if(x>(maniglia_gradx[1]-spessore_mark) && x<(parseInt(maniglia_gradx[1])+parseInt(spessore_mark)) && y>(maniglia_grady[1]-spessore_mark) && y<(parseInt(maniglia_grady[1])+parseInt(spessore_mark))){sposta_grad=2;}		
+
+			controllo++; disegna_eval(0,oggetti.length); controllo--;//importante
+
+			var centroC=-1;
+			if(sposta_grad==-1 && (x>(centroX-spessore_mark) && x<(parseInt(centroX)+parseInt(spessore_mark)) && y>(centroY-spessore_mark) && y<(parseInt(centroY)+parseInt(spessore_mark))))//sposta oggetto
+			{
+				centroC++;
+				anim_dis3=setInterval(function(){
+					//oggetti[manigliey[8]][3]=mousex-canvasx; oggetti[manigliey[8]][4]=mousey-canvasy;
+					selezione=add_mod_oggetto(selezione, 3, mousex-canvasx);
+					selezione=add_mod_oggetto(selezione, 4, mousey-canvasy);
+
+					dettagli_oggetto(selezione);
+					controllo++; disegna_eval(0,oggetti.length); controllo--;
+					contorna_figure(selezione);
+				},10);
+			}
+
+			if(bezier!=-1 && spostaP==-1)//modifica curvatura
+			{
+				anim_dis5=setInterval(function()
+				{
+					if(mousex-canvasx!=x && mousey-canvasy!=y)
+					{
+						selezione=add_mod_oggetto(selezione,"",oggetti[selezione][3]);
+
+						cx[oggetti[selezione][3]][bezier]=mousex-canvasx;
+						cy[oggetti[selezione][3]][bezier]=mousey-canvasy;
+
+						if(bezier%2==0)
+						{
+							var xF=p_x[oggetti[selezione][3]][bezier/2], yF=p_y[oggetti[selezione][3]][bezier/2];
+							cx[oggetti[selezione][3]][bezier-1]=(2*xF)-(mousex-canvasx);
+							cy[oggetti[selezione][3]][bezier-1]=(2*yF)-(mousey-canvasy);
+						}
+						else
+						{
+							var xF=p_x[oggetti[selezione][3]][(parseInt(bezier)+parseInt(1))/2], yF=p_y[oggetti[selezione][3]][(parseInt(bezier)+parseInt(1))/2];
+							cx[oggetti[selezione][3]][parseInt(bezier)+parseInt(1)]=(2*xF)-(mousex-canvasx);
+							cy[oggetti[selezione][3]][parseInt(bezier)+parseInt(1)]=(2*yF)-(mousey-canvasy);
+						}
+
+						controllo++; disegna_eval(0,oggetti.length); controllo--;
+						contorna_figure(selezione);
+					}
+				},10)
+			}			
+
+			if(selezione!=-1 && centroC==-1)//controlla se si deve spostare un punto
+			{
+				spostaP=-1;
+				contorna_figure(selezione);
+				dettagli_oggetto(selezione);
+
+				if(p_x[oggetti[selezione][3]]!=undefined)//controlla se si deve spostare un punto
+				{
+					for(var i=0;i<p_x[oggetti[selezione][3]].length;i++)
+					{
+
+						if((mousex-canvasx)>(p_x[oggetti[selezione][3]][i]-spessore_mark) && (mousex-canvasx)<(parseInt(p_x[oggetti[selezione][3]][i])+parseInt(spessore_mark)) && (mousey-canvasy)>(p_y[oggetti[selezione][3]][i]-spessore_mark) && (mousey-canvasy)<(parseInt(p_y[oggetti[selezione][3]][i])+parseInt(spessore_mark)))
+						{
+							spostaP=i;
+						}				
+					}
+				}
+			}
+			else{
+				if(centroC==-1)
+				{
+					manigliex=new Array(); manigliey=new Array(); centroX=""; centroY="";//per non averle il cambio mouse dove non serve
+				}
+			}
+
+			if(spostaP!=-1 && spostaP!=undefined)//sposta i punti
+			{
+				anim_dis4=setInterval(function()
+				{
+					if(mousex-canvasx!=x && mousey-canvasy!=y)
+					{
+						selezione=add_mod_oggetto(selezione,"",oggetti[selezione][3]);
+						
+						var DifCx1=p_x[oggetti[selezione][3]][spostaP]-cx[oggetti[selezione][3]][(spostaP*2)-1];
+						var DifCx2=p_x[oggetti[selezione][3]][spostaP]-cx[oggetti[selezione][3]][(spostaP*2)];
+						var DifCy1=p_y[oggetti[selezione][3]][spostaP]-cy[oggetti[selezione][3]][(spostaP*2)-1];
+						var DifCy2=p_y[oggetti[selezione][3]][spostaP]-cy[oggetti[selezione][3]][(spostaP*2)];
+
+						cx[oggetti[selezione][3]][(spostaP*2)-1]=mousex-canvasx-DifCx1;
+						cx[oggetti[selezione][3]][(spostaP*2)]=mousex-canvasx-DifCx2;
+						cy[oggetti[selezione][3]][(spostaP*2)-1]=mousey-canvasy-DifCy1;
+						cy[oggetti[selezione][3]][(spostaP*2)]=mousey-canvasy-DifCy2;
+
+						p_x[oggetti[selezione][3]][spostaP]=mousex-canvasx;
+						p_y[oggetti[selezione][3]][spostaP]=mousey-canvasy;
+						controllo++; disegna_eval(0,oggetti.length); controllo--;
+						contorna_figure(selezione);
+					}
+				},10);
+
+		$("#dettagli_P").html("<div id='line' style='cursor:pointer; width:35px; height:35px; float:left; background:url(\"immagini/line_tool.png\") repeat-x scroll 0px 0;'></div> <div id='bez' style='cursor:pointer; width:35px; height:35px; float:left; background:url(\"immagini/line_tool.png\") repeat-x scroll -35px 0;'></div> <div id='add_p' style='cursor:pointer; width:35px; height:35px; float:left; background:url(\"immagini/line_tool.png\") repeat-x scroll -70px 0;'></div> <div id='canc_p' style='cursor:pointer; width:35px; height:35px; float:left; background:url(\"immagini/line_tool.png\") repeat-x scroll -105px 0;'></div><div style='widht:100%; clear:left;'></div>");
+
+		$("#line").mouseover(function(){$("#tutorial_cont").html(lingue.line_tool);});
+		$("#bez").mouseover(function(){$("#tutorial_cont").html(lingue.bez_tool);});
+		$("#add_p").mouseover(function(){$("#tutorial_cont").html(lingue.aggiungi_punto);});
+		$("#canc_p").mouseover(function(){$("#tutorial_cont").html(lingue.rimuovi_punto);});
+
+		$("#line").attr("title",lingue.line_tool);
+		$("#bez").attr("title",lingue.bez_tool);
+		$("#add_p").attr("title",lingue.aggiungi_punto);
+		$("#canc_p").attr("title",lingue.rimuovi_punto);
+
+				$("#line").click(function()
+				{
+					selezione=add_mod_oggetto(selezione,"",oggetti[selezione][3]);
+
+					cx[oggetti[selezione][3]][(spostaP*2)-1]=p_x[oggetti[selezione][3]][spostaP];
+					cx[oggetti[selezione][3]][spostaP*2]=p_x[oggetti[selezione][3]][spostaP];
+					cy[oggetti[selezione][3]][(spostaP*2)-1]=p_y[oggetti[selezione][3]][spostaP];
+					cy[oggetti[selezione][3]][spostaP*2]=p_y[oggetti[selezione][3]][spostaP];
+	
+					controllo++; disegna_eval(0,oggetti.length); controllo--;
+					contorna_figure(selezione);
+				});
+				$("#bez").click(function()
+				{
+					selezione=add_mod_oggetto(selezione,"",oggetti[selezione][3]);
+
+					if((p_y[oggetti[selezione][3]][spostaP-1]>=p_y[oggetti[selezione][3]][spostaP] && p_y[oggetti[selezione][3]][parseInt(spostaP)+parseInt(1)]>=p_y[oggetti[selezione][3]][spostaP]) || (p_y[oggetti[selezione][3]][spostaP-1]<=p_y[oggetti[selezione][3]][spostaP] && p_y[oggetti[selezione][3]][parseInt(spostaP)+parseInt(1)]<=p_y[oggetti[selezione][3]][spostaP]))//se la linea zigzaga come una M
+					{
+						cx[oggetti[selezione][3]][(spostaP*2)-1]=parseInt(cx[oggetti[selezione][3]][(spostaP*2)-1])-30;
+						cx[oggetti[selezione][3]][spostaP*2]=parseInt(cx[oggetti[selezione][3]][spostaP*2])+parseInt(30);
+					}
+					else if((p_x[oggetti[selezione][3]][spostaP-1]>p_x[oggetti[selezione][3]][spostaP] && p_x[oggetti[selezione][3]][parseInt(spostaP)+parseInt(1)]>p_x[oggetti[selezione][3]][spostaP]) || (p_x[oggetti[selezione][3]][spostaP-1]<p_x[oggetti[selezione][3]][spostaP] && p_x[oggetti[selezione][3]][parseInt(spostaP)+parseInt(1)]<p_x[oggetti[selezione][3]][spostaP]))//se la linea zigzaga come una Z
+					{
+						cy[oggetti[selezione][3]][(spostaP*2)-1]=parseInt(cy[oggetti[selezione][3]][(spostaP*2)-1])-30;
+						cy[oggetti[selezione][3]][spostaP*2]=parseInt(cy[oggetti[selezione][3]][spostaP*2])+parseInt(30);
+					}
+					else{
+						cx[oggetti[selezione][3]][(spostaP*2)-1]=parseInt(cx[oggetti[selezione][3]][(spostaP*2)-1])-30;
+						cx[oggetti[selezione][3]][spostaP*2]=parseInt(cx[oggetti[selezione][3]][spostaP*2])+parseInt(30);
+					}
+					
+					controllo++; disegna_eval(0,oggetti.length); controllo--;
+					contorna_figure(selezione);
+				});
+				$("#canc_p").click(function()
+				{
+					cx[oggetti[selezione][3]].splice((spostaP*2)-1,1);
+					cx[oggetti[selezione][3]].splice((spostaP*2)-1,1);
+					cy[oggetti[selezione][3]].splice((spostaP*2)-1,1);
+					cy[oggetti[selezione][3]].splice((spostaP*2)-1,1);
+					p_x[oggetti[selezione][3]].splice(spostaP,1);
+					p_y[oggetti[selezione][3]].splice(spostaP,1);
+
+					controllo++; disegna_eval(0,oggetti.length); controllo--;
+					contorna_figure(selezione);
+				});
+				$("#add_p").click(function()
+				{
+					var medX=(parseInt(p_x[oggetti[selezione][3]][spostaP])+parseInt(p_x[oggetti[selezione][3]][spostaP-1]))/2;
+					var medY=(parseInt(p_y[oggetti[selezione][3]][spostaP])+parseInt(p_y[oggetti[selezione][3]][spostaP-1]))/2;;
+					cx[oggetti[selezione][3]].splice((spostaP*2)-1, 0, medX);
+					cx[oggetti[selezione][3]].splice((spostaP*2), 0, medX);
+					cy[oggetti[selezione][3]].splice((spostaP*2)-1, 0, medY);
+					cy[oggetti[selezione][3]].splice((spostaP*2), 0, medY);
+					p_x[oggetti[selezione][3]].splice(spostaP, 0, medX);
+					p_y[oggetti[selezione][3]].splice(spostaP, 0, medY);
+
+					controllo++; disegna_eval(0,oggetti.length); controllo--;
+					contorna_figure(selezione);
+				});
+			}
+
+			if(maniglia!=-1)//se una maniglia è stata selezionata
+			{
+				anim_dis2=setInterval(function(){
+					var a=differenza((mousex-canvasx),oggetti[selezione][3]);
+					var b=differenza((mousey-canvasy),oggetti[selezione][4]);
+
+					var radius=pitagora(a,b);
+
+					if(oggetti[selezione][0]=="cerchio" || oggetti[selezione][0]=="poligono")
+					{
+						//oggetti[selezione][6]=radius;
+						selezione=add_mod_oggetto(selezione, 6, radius);
+					}
+					if(oggetti[selezione][0]=="ellisse" || oggetti[selezione][0]=="quadrato" || oggetti[selezione][0]=="immagine")
+					{
+						var bordi_mod=0, angoli_mod=0;
+						if(maniglia==0 || maniglia==2 || maniglia==4 || maniglia==6)
+						{
+							//oggetti[selezione][6]=a*2; oggetti[selezione][7]=b*2; 
+							selezione=add_mod_oggetto(selezione, 6, a*2);
+							selezione=add_mod_oggetto(selezione, 7, b*2);
+							angoli_mod=1;
+						}
+						if(maniglia==3 || maniglia==7){selezione=add_mod_oggetto(selezione, 6, a*2); bordi_mod=1;}
+						if(maniglia==1 || maniglia==5){selezione=add_mod_oggetto(selezione, 7, b*2); bordi_mod=2;}
+				
+					}
+					if(oggetti[selezione][0]=="testo")
+					{
+						//oggetti[selezione][6]=radius/2;
+						selezione=add_mod_oggetto(selezione, 6, radius/2);
+					}
+					dettagli_oggetto(selezione);
+					controllo++; disegna_eval(0,oggetti.length); controllo--;
+					contorna_figure(selezione);
+				},10);
+			}
+			if(sposta_grad!=-1)//si deve spostare un gradiente
+			{
+				var Ngrad=-1, cont=1;
+				for(var i=0;i<gradienti.length && Ngrad==-1;i++)
+				{ 
+					if(gradienti[i][0]==EditGradient && sposta_grad==cont && gradienti[i][5].indexOf(EditGradientT)!=-1)
+					{
+						Ngrad=i;
+					}
+					else if(gradienti[i][0]==EditGradient && gradienti[i][5].indexOf(EditGradientT)!=-1)//se è il punto due
+					{
+						cont++;
+					}
+				}
+				anim_dis6=setInterval(function()
+				{
+					//gradienti[gradienti.length]=new Array(id_ogg,'"'+gradiente_scelto+'"',gradX,parseInt(gradY)+parseInt(sfuma_grad/2),1,'"'+RC+'"');
+					gradienti[Ngrad][2]=mousex-canvasx;
+					gradienti[Ngrad][3]=mousey-canvasy;
+					controllo++; disegna_eval(0,oggetti.length); controllo--;
+					contorna_figure(EditGradient);
+				},10);
+			}
+		}
+		if(strumento=="multi_selezione")
+		{
+			disegna_multiselx=x;//per disegnare il riquadro di multi selezione
+			disegna_multisely=y;
+		}
+   	});
+
+	$("#div_canvas").mouseup(function(e)
+	{
+		disegna_livelli();
+		if(strumento=="multi_selezione")
+		{
+			var xf=e.pageX-canvasx; yf=e.pageY-canvasy;
+			disegna_multiselx=""; disegna_multisely="";
+			id_selezioni=new Array("-1");
+
+			for(var i=0;i<oggetti.length;i++)
+			{
+				var bloccato=0;
+				for(var j=0;j<livelli.length;j++)
+				{
+					if(livelli[j][0]==oggetti[i][20])
+					{
+						if(livelli[j][2]==0)
+							var bloccato=1;
+						break;
+					}
+				}
+				if(bloccato==1){continue;}
+
+				if((oggetti[parseInt(i)+1]!=undefined && oggetti[i][20]==oggetti[parseInt(i)+1][20] && oggetti[parseInt(i)+1][19]<=frame) || (oggetti[id_selezioni[id_selezioni.length-1]]!=undefined && oggetti[id_selezioni[id_selezioni.length-1]][20]==oggetti[i][20]))
+				{//se l'oggetto dopo ha lo stesso id dell'oggetto che stiamo controllano nel for e il suo frame è maggiore uguale del frame selezionato o se tale id oggetto è già stato inserito in id_selezioni, salta il ciclo for attuale perchè il successivo è migliore
+					continue;
+				}
+
+				if(x>=xf && y>=yf) //basso destra a alto sinistra
+				{
+					if(oggetti[i][3]>xf && oggetti[i][3]<x && oggetti[i][4]>yf && oggetti[i][4]<y)
+					{
+						id_selezioni[id_selezioni.length]=i;
+					}
+					if(oggetti[i][0]=="linea")
+					{
+						for(var j=0;j<p_x[oggetti[i][3]].length;j++)
+						{
+							if(p_x[oggetti[i][3]][j]>xf && p_x[oggetti[i][3]][j]<x && p_y[oggetti[i][3]][j]>yf && p_y[oggetti[i][3]][j]<y)
+							{
+								id_selezioni[id_selezioni.length]=i;
+								break;
+							}
+						}
+					}
+				}
+				if(x<xf && y>yf) //basso sinistra a alto destra
+				{
+					if(oggetti[i][3]<xf && oggetti[i][3]>x && oggetti[i][4]>yf && oggetti[i][4]<y)
+					{
+						id_selezioni[id_selezioni.length]=i;
+					}
+					if(oggetti[i][0]=="linea")
+					{
+						for(var j=0;j<p_x[oggetti[i][3]].length;j++)
+						{
+							if(p_x[oggetti[i][3]][j]<xf && p_x[oggetti[i][3]][j]>x && p_y[oggetti[i][3]][j]>yf && p_y[oggetti[i][3]][j]<y)
+							{
+								id_selezioni[id_selezioni.length]=i;
+								break;
+							}
+						}
+					}
+				}
+				if(x>xf && y<yf) //alto destra a basso sinistra
+				{
+					if(oggetti[i][3]>xf && oggetti[i][3]<x && oggetti[i][4]<yf && oggetti[i][4]>y)
+					{
+						id_selezioni[id_selezioni.length]=i;
+					}
+					if(oggetti[i][0]=="linea")
+					{
+						for(var j=0;j<p_x[oggetti[i][3]].length;j++)
+						{
+							if(p_x[oggetti[i][3]][j]>xf && p_x[oggetti[i][3]][j]<x && p_y[oggetti[i][3]][j]<yf && p_y[oggetti[i][3]][j]>y)
+							{
+								id_selezioni[id_selezioni.length]=i;
+								break;
+							}
+						}
+					}
+				}
+				if(x<=xf && y<=yf) //alto sinistra a basso destra
+				{
+					if(oggetti[i][3]<xf && oggetti[i][3]>x && oggetti[i][4]<yf && oggetti[i][4]>y)
+					{
+						id_selezioni[id_selezioni.length]=i;
+					}
+					if(oggetti[i][0]=="linea")
+					{
+						for(var j=0;j<p_x[oggetti[i][3]].length;j++)
+						{
+							if(p_x[oggetti[i][3]][j]<xf && p_x[oggetti[i][3]][j]>x && p_y[oggetti[i][3]][j]<yf && p_y[oggetti[i][3]][j]>y)
+							{
+								id_selezioni[id_selezioni.length]=i;
+								break;
+							}
+						}
+					}
+				}
+			}
+			controllo++; disegna_eval(0,oggetti.length); controllo--;
+			contorna_figure(id_selezioni);
+
+			if($("#dettagli").html().indexOf("multi_x")==-1)
+			{
+				$("#dettagli").html(lingue.sposta_di+"<br>x: <input type='text' id='multi_x'><br>y: <input type='text' id='multi_y'>"
+				+"<br>"+lingue.scala_del+": <input type='text' id='multi_scala'> %"
+				+"<br>"+lingue.ruota_di+": <input type='text' id='multi_ruota'> "+lingue.gradi+""
+				+"<br><span id='multi_esegui' class='button_generico'>"+lingue.esegui+"</span>");
+
+				$("#multi_esegui").click(function(){
+					var multi_x=$("#multi_x").val();
+					var multi_y=$("#multi_y").val();
+					var multi_scala=$("#multi_scala").val();
+					var multi_ruota=$("#multi_ruota").val();
+
+					//add_mod_oggetto(indice, id_campo, nuovo_dato)
+					if(multi_x!="" || multi_y!="")
+					{
+						if(multi_x==""){multi_x=0;}
+						if(multi_y==""){multi_y=0;}
+
+						for(var i=0;i<id_selezioni.length;i++)
+						{
+							if(id_selezioni[i]!="-1")
+							{
+								if(oggetti[id_selezioni[i]][0]!="linea")
+								{
+									add_mod_oggetto(id_selezioni[i],3,parseInt(oggetti[id_selezioni[i]][3])+parseInt(multi_x));
+									add_mod_oggetto(id_selezioni[i],4,parseInt(oggetti[id_selezioni[i]][4])+parseInt(multi_y));
+									//oggetti[id_selezioni[i]][3]=parseInt(oggetti[id_selezioni[i]][3])+parseInt(multi_x);
+									//oggetti[id_selezioni[i]][4]=parseInt(oggetti[id_selezioni[i]][4])+parseInt(multi_y);
+								}
+								else
+								{
+									add_mod_oggetto(id_selezioni[i],"",oggetti[id_selezioni[i]][3]);
+									for(var j=0;j<p_x[oggetti[id_selezioni[i]][3]].length;j++)
+									{
+										p_x[oggetti[id_selezioni[i]][3]][j]=parseInt(p_x[oggetti[id_selezioni[i]][3]][j])+parseInt(multi_x);
+										p_y[oggetti[id_selezioni[i]][3]][j]=parseInt(p_y[oggetti[id_selezioni[i]][3]][j])+parseInt(multi_y);
+									}
+									for(var j=0;j<cx[oggetti[id_selezioni[i]][3]].length;j++)
+									{
+										cx[oggetti[id_selezioni[i]][3]][j]=parseInt(cx[oggetti[id_selezioni[i]][3]][j])+parseInt(multi_x);
+										cy[oggetti[id_selezioni[i]][3]][j]=parseInt(cy[oggetti[id_selezioni[i]][3]][j])+parseInt(multi_y);
+									}
+								}
+							}
+						}
+					}
+					if(multi_scala!="")
+					{
+						for(var i=0;i<id_selezioni.length;i++)
+						{
+							if(id_selezioni[i]!="-1")
+							{
+								var scala_perc=1+parseFloat(multi_scala/100);
+								if(oggetti[id_selezioni[i]][0]=="cerchio" || oggetti[id_selezioni[i]][0]=="poligono" || oggetti[id_selezioni[i]][0]=="testo")
+								{
+									add_mod_oggetto(id_selezioni[i],6,oggetti[id_selezioni[i]][6]*scala_perc);
+									add_mod_oggetto(id_selezioni[i],3,parseInt(centroX)+parseInt((oggetti[id_selezioni[i]][3]-centroX)*scala_perc));
+									add_mod_oggetto(id_selezioni[i],4,parseInt(centroY)+parseInt((oggetti[id_selezioni[i]][4]-centroY)*scala_perc));
+									//oggetti[id_selezioni[i]][6]=oggetti[id_selezioni[i]][6]*scala_perc;
+
+									//oggetti[id_selezioni[i]][3]=parseInt(centroX)+parseInt((oggetti[id_selezioni[i]][3]-centroX)*scala_perc);
+									//oggetti[id_selezioni[i]][4]=parseInt(centroY)+parseInt((oggetti[id_selezioni[i]][4]-centroY)*scala_perc);
+								}
+								if(oggetti[id_selezioni[i]][0]=="quadrato" || oggetti[id_selezioni[i]][0]=="ellisse" || oggetti[id_selezioni[i]][0]=="immagine")
+								{
+									add_mod_oggetto(id_selezioni[i],6,oggetti[id_selezioni[i]][6]*scala_perc);
+									add_mod_oggetto(id_selezioni[i],7,oggetti[id_selezioni[i]][7]*scala_perc);
+									add_mod_oggetto(id_selezioni[i],3,parseInt(centroX)+parseInt((oggetti[id_selezioni[i]][3]-centroX)*scala_perc));
+									add_mod_oggetto(id_selezioni[i],4,parseInt(centroY)+parseInt((oggetti[id_selezioni[i]][4]-centroY)*scala_perc));
+
+									//oggetti[id_selezioni[i]][6]=oggetti[id_selezioni[i]][6]*scala_perc;
+									//oggetti[id_selezioni[i]][7]=oggetti[id_selezioni[i]][7]*scala_perc;
+
+									//oggetti[id_selezioni[i]][3]=parseInt(centroX)+parseInt((oggetti[id_selezioni[i]][3]-centroX)*scala_perc);
+									//oggetti[id_selezioni[i]][4]=parseInt(centroY)+parseInt((oggetti[id_selezioni[i]][4]-centroY)*scala_perc);
+								}
+								if(oggetti[id_selezioni[i]][0]=="linea")
+								{
+									add_mod_oggetto(id_selezioni[i],"",oggetti[id_selezioni[i]][3]);
+									for(var j=0;j<p_x[oggetti[id_selezioni[i]][3]].length;j++)
+									{
+										p_x[oggetti[id_selezioni[i]][3]][j]=parseInt(centroX)+parseInt((p_x[oggetti[id_selezioni[i]][3]][j]-centroX)*scala_perc);
+										p_y[oggetti[id_selezioni[i]][3]][j]=parseInt(centroY)+parseInt((p_y[oggetti[id_selezioni[i]][3]][j]-centroY)*scala_perc);
+									}
+									for(var j=0;j<cx[oggetti[id_selezioni[i]][3]].length;j++)
+									{
+										cx[oggetti[id_selezioni[i]][3]][j]=parseInt(centroX)+parseInt((cx[oggetti[id_selezioni[i]][3]][j]-centroX)*scala_perc);
+										cy[oggetti[id_selezioni[i]][3]][j]=parseInt(centroY)+parseInt((cy[oggetti[id_selezioni[i]][3]][j]-centroY)*scala_perc);
+									}
+								}
+							}
+						}
+					}
+					if(multi_ruota!="")
+					{
+						for(var i=0;i<id_selezioni.length;i++)
+						{
+							if(id_selezioni[i]!="-1")
+							{
+								if(oggetti[id_selezioni[i]][0]!="linea")
+								{
+									var delta_x=oggetti[id_selezioni[i]][3]-centroX;
+									var delta_y=oggetti[id_selezioni[i]][4]-centroY;
+
+									var prova_x=(delta_x*Math.cos(multi_ruota*(Math.PI/180)))-(delta_y*Math.sin(multi_ruota*(Math.PI/180)));
+									var prova_y=parseFloat(delta_x*Math.sin(multi_ruota*(Math.PI/180)))+parseFloat(delta_y*Math.cos(multi_ruota*(Math.PI/180)));
+
+									add_mod_oggetto(id_selezioni[i],3,parseFloat(prova_x)+parseFloat(centroX));
+									add_mod_oggetto(id_selezioni[i],4,parseFloat(prova_y)+parseFloat(centroY));
+									add_mod_oggetto(id_selezioni[i],9,parseFloat(oggetti[id_selezioni[i]][9])+parseFloat(multi_ruota));
+
+									//oggetti[id_selezioni[i]][3]=parseFloat(prova_x)+parseFloat(centroX);
+									//oggetti[id_selezioni[i]][4]=parseFloat(prova_y)+parseFloat(centroY);
+									//oggetti[id_selezioni[i]][9]=parseFloat(oggetti[id_selezioni[i]][9])+parseFloat(multi_ruota);
+								}
+								else
+								{
+									add_mod_oggetto(id_selezioni[i],"",oggetti[id_selezioni[i]][3]);
+									for(var j=0;j<p_x[oggetti[id_selezioni[i]][3]].length;j++)
+									{
+										var delta_x=p_x[oggetti[id_selezioni[i]][3]][j]-centroX;
+										var delta_y=p_y[oggetti[id_selezioni[i]][3]][j]-centroY;
+
+										var prova_x=(delta_x*Math.cos(multi_ruota*(Math.PI/180)))-(delta_y*Math.sin(multi_ruota*(Math.PI/180)));
+										var prova_y=parseFloat(delta_x*Math.sin(multi_ruota*(Math.PI/180)))+parseFloat(delta_y*Math.cos(multi_ruota*(Math.PI/180)));
+
+										p_x[oggetti[id_selezioni[i]][3]][j]=parseFloat(prova_x)+parseFloat(centroX);
+										p_y[oggetti[id_selezioni[i]][3]][j]=parseFloat(prova_y)+parseFloat(centroY);
+
+										if(cx[oggetti[id_selezioni[i]][3]][j*2]!=undefined)
+										{cx[oggetti[id_selezioni[i]][3]][j*2]=parseFloat(prova_x)+parseFloat(centroX);}
+										if(cx[oggetti[id_selezioni[i]][3]][(j*2)-1]!=undefined)
+										{cx[oggetti[id_selezioni[i]][3]][(j*2)-1]=parseFloat(prova_x)+parseFloat(centroX);}
+										if(cy[oggetti[id_selezioni[i]][3]][j*2]!=undefined)
+										{cy[oggetti[id_selezioni[i]][3]][j*2]=parseFloat(prova_y)+parseFloat(centroY);}
+										if(cy[oggetti[id_selezioni[i]][3]][(j*2)-1]!=undefined)
+										{cy[oggetti[id_selezioni[i]][3]][(j*2)-1]=parseFloat(prova_y)+parseFloat(centroY);}
+									}
+								}
+							}
+						}
+					}
+
+					controllo++; disegna_eval(0,oggetti.length); controllo--;
+					contorna_figure(id_selezioni);
+				});
+			}
+		}
+	});
+
+	$(document).mouseup(function(e)
+	{
+		oggetti=oggetti.sort(ordina);
+		punta_storico++;
+
+		clearInterval(anim_dis); clearInterval(anim_dis2); clearInterval(anim_dis3); clearInterval(anim_dis4); clearInterval(anim_dis5); clearInterval(anim_dis6); clearInterval(anim_dis7);
+		if(controllo>0){
+			if(strumento!="linea")
+			{
+				contatore++; oggc=parseInt(contatore)+parseInt(1); 
+				controllo=0;
+			}
+		}
+	});
+	$(document).keydown(function(event)
+	{
+		if(event.keyCode==13 || event.keyCode==27)//invio o esc
+		{
+			clearInterval(anim_dis); clearInterval(anim_dis2); clearInterval(anim_dis3); clearInterval(anim_dis4); clearInterval(anim_dis5); clearInterval(anim_dis6); clearInterval(anim_dis7);
+
+			if(strumento=="linea")
+			{
+				contatore++; oggc=parseInt(contatore)+parseInt(1);
+				controllo=0;
+				n_punti=0; n_bez=0, crea_p=1, n_linea++;
+			}
+		}
+
+		if (prec_key==17 && event.keyCode==90){//annulla
+			punta_storico-=1;
+			if(punta_storico<0){punta_storico=0;}
+			ripristina(punta_storico);
+		}
+		else if (prec_key==17 && event.keyCode==89){//ripeti
+			punta_storico+=1;
+			if(punta_storico>storico.length){punta_storico=storico.length;}
+			ripristina(punta_storico);
+		}
+		else{prec_key=event.keyCode;}
+	})
+})
+</script>
+
+</div>

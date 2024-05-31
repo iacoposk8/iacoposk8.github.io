@@ -1,0 +1,29 @@
+guardare inkscape
+importare da inkscape
+posizionare più elementi su tracciato con animazioni
+zoom
+apri, salva, importa e esporta
+opacità delle immagini
+ombre sugli oggetti
+copia, incolla
+multi selezione con riquadro visivo
+sposta area di lavoro con frecce
+mettere il tasto stop a fianco del play
+dare un errore se il play non va xk non sono stati inseriti correttamente i valori
+si devono animare i colori
+fare tutte le cose del poligono (controllare sul sito gli attributi)
+fare i livelli oggetti e timeline
+
+da errori su annulla e ripeti quando si fanno i testi
+quando si è su un frame maggiore di zero e si modificano i dettagli a volte modifica l'oggetto sul frame zero e non su quello attuale
+
+se si clicca fuori dalla schermata di editing gradient la finestra si chiude
+i gradienti vanno eliminati
+se si cambia il gradiente da lineare a radiale elimina tutti i gradienti ma se riesco a convertire è meglio
+quando si sposta o scala un oggetto il gradiente deve seguirlo
+scrivere informazioni a fianco ai gradienti, anche lineare e radiale
+
+
+pensare a come fare ripetere un animazione più volte (movimento coda pesce per vari minuti ad esempio)
+
+

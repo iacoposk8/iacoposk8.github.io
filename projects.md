@@ -24,6 +24,13 @@ By ordering on my computer, I found my very first site ever, developed in 2008 a
 
 ---
 
+## Rainiest Days
+What are the rainiest days? And consequently: when should you not wash your car?
+
+<a href="/projects/rainier-days" class="btn btn-primary btn-xl">Wash it!</a>
+
+---
+
 ## Metodo Croce
 On the internet you can hear about the "metodo croce" (I don't know the English translation, maybe cross method) that promises to earn money with roulette.
 Example:

@@ -97,4 +97,4 @@ There are several services in addition to the blog, there is a forum, chat for f
 
 In the-html-tool.com my old site, as well as various projects, I introduced the extensions of joomla.
 Working as a web developer, every now we needed extensions that do not exist, in that case the development and share them.
-Now these extensions you can find them on this site, in the [download](/download) section.
+Now these extensions you can find them on this site, in the [download](/projects/joomla-extensions/) section.

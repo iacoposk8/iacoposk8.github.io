@@ -33,6 +33,11 @@
 <body>
     <div class="container">
         <div id="score">Score: <span></span></div>
+        <form>
+            <input name="videoId" placeholder="Youtube VideoId" />
+            <input type="submit" />
+            <br /><br />
+        </form>
         <div id="video-player"></div>
         <div id="correction"></div>
         <div id="selectedWords" class="word-container"></div>
@@ -41,10 +46,13 @@
         </div>
     </div>
     <script>
+        const queryString = window.location.search;
+        const urlParams = new URLSearchParams(queryString);
+        const videoId = urlParams.get('videoId');
+
         var player;
         var transcription = [];
         var currentLine = 0;
-        var videoId = 'wi3zdXA-nXE';
         var player_ready = false;
         var selectedWords = [];
         var idt = 0;

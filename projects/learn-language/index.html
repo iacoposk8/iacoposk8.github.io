@@ -3,173 +3,166 @@ layout: default
 title: Learn Language
 ---
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://www.youtube.com/iframe_api"></script>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
-        }
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://www.youtube.com/iframe_api"></script>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        background-color: #f0f0f0;
+    }
 
-        .container {
-            text-align: center;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .word-container {
-            margin-top: 20px;
-        }
-    </style>
-</head>
-<body>
-    <h1>Learn Language</h1>
-    
-    <div class="container">
-        <div id="score">Score: <span></span></div>
-        <form>
-            <input name="videoId" placeholder="Youtube VideoId" />
-            <input type="submit" />
-            <br /><br />
-        </form>
-        <div id="video-player"></div>
-        <div id="correction"></div>
-        <div id="selectedWords" class="word-container"></div>
-        <div id="availableWords" class="word-container"></div>
-        <button type="button" class="btn btn-primary" id="check">Check</button>
-        </div>
+    .container {
+        text-align: center;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .word-container {
+        margin-top: 20px;
+    }
+</style>
+
+<h1>Learn Language</h1>
+
+<div class="container">
+    <div id="score">Score: <span></span></div>
+    <form>
+        <input name="videoId" placeholder="Youtube VideoId" />
+        <input type="submit" />
+        <br /><br />
+    </form>
+    <div id="video-player"></div>
+    <div id="correction"></div>
+    <div id="selectedWords" class="word-container"></div>
+    <div id="availableWords" class="word-container"></div>
+    <button type="button" class="btn btn-primary" id="check">Check</button>
     </div>
-    <script>
-        const queryString = window.location.search;
-        const urlParams = new URLSearchParams(queryString);
-        const videoId = urlParams.get('videoId');
+</div>
+<script>
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const videoId = urlParams.get('videoId');
 
-        var player;
-        var transcription = [];
-        var currentLine = 0;
-        var player_ready = false;
-        var selectedWords = [];
-        var idt = 0;
-        var transcription;
+    var player;
+    var transcription = [];
+    var currentLine = 0;
+    var player_ready = false;
+    var selectedWords = [];
+    var idt = 0;
+    var transcription;
 
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('video-player', {
-                height: '360',
-                width: '100%',
-                videoId: videoId,
-                events: {
-                    'onReady': getTranscription()
-                }
-            });
-        }
-
-        function getTranscription() {
-            $.get(`https://server-git-main-iacoposk8s-projects.vercel.app/transcript/${videoId}`, function(data) {
-                if (data.error) {
-                    alert('Errore nel recupero della trascrizione: ' + data.error);
-                } else {
-                    transcription = data;
-
-                    showWords();
-                    setInterval(function(){
-                        if(player.getCurrentTime() >= (transcription[idt].start + transcription[idt].duration)){
-                            player.pauseVideo();
-                        }
-                    },150);
-                }
-            });
-        }
-
-        function shuffle(array) {
-          let currentIndex = array.length;
-
-          // While there remain elements to shuffle...
-          while (currentIndex != 0) {
-
-            // Pick a remaining element...
-            let randomIndex = Math.floor(Math.random() * currentIndex);
-            currentIndex--;
-
-            // And swap it with the current element.
-            [array[currentIndex], array[randomIndex]] = [
-              array[randomIndex], array[currentIndex]];
-          }
-        }
-
-        function showWords(){
-            var words = transcription[idt].text.split(" ");
-            shuffle(words);
-            selectedWords = [];
-
-            // Popola i bottoni con le parole disponibili
-            $.each(words, function(index, word){
-              var button = $('<button type="button" class="btn btn-primary btn-word">' + word + '</button>');
-              button.data('word', word);
-              $('#availableWords').append(button);
-            });
-
-            // Gestisce il click su un bottone parola
-            $('.btn-word').click(function(){
-              var word = $(this).data('word');
-              var containerId = $(this).parent().attr('id');
-
-              // Sposta il bottone nella sezione corretta
-              if(containerId === 'availableWords') {
-                $(this).detach().appendTo('#selectedWords');
-                selectedWords.push(word);
-              } else {
-                $(this).detach().appendTo('#availableWords');
-                selectedWords = selectedWords.filter(function(item) {
-                  return item !== word;
-                });
-              }
-            });
-        }
-
-        function checkSimiliarity(array1, array2) {
-            // Assicurati che gli array abbiano la stessa lunghezza
-            if (array1.length !== array2.length) {
-                console.log("Gli array hanno lunghezze diverse. " + array1.length + " " + array2.length);
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player('video-player', {
+            height: '360',
+            width: '100%',
+            videoId: videoId,
+            events: {
+                'onReady': getTranscription()
             }
-
-            var corrispondenze = 0;
-
-            // Confronta gli elementi degli array
-            for (var i = 0; i < array1.length; i++) {
-                if (array1[i] === array2[i]) {
-                    corrispondenze++;
-                }
-            }
-
-            return corrispondenze;
-        }
-
-        var points = [0,0];
-        $(document).ready(function(){
-            $("#check").click(function(){
-                points[0] += checkSimiliarity(transcription[idt].text.split(" "), selectedWords);
-                points[1] += selectedWords.length;
-                $("#score span").html(points[0]+"/"+points[1]);
-                $("#correction").html(transcription[idt].text+"<br />"+selectedWords.join(' '));
-
-                $("#selectedWords").html("");
-                $("#availableWords").html("");
-                idt++;
-                showWords();
-            });
         });
-    </script>
-</body>
-</html>
+    }
+
+    function getTranscription() {
+        $.get(`https://server-git-main-iacoposk8s-projects.vercel.app/transcript/${videoId}`, function(data) {
+            if (data.error) {
+                alert('Errore nel recupero della trascrizione: ' + data.error);
+            } else {
+                transcription = data;
+
+                showWords();
+                setInterval(function(){
+                    if(player.getCurrentTime() >= (transcription[idt].start + transcription[idt].duration)){
+                        player.pauseVideo();
+                    }
+                },150);
+            }
+        });
+    }
+
+    function shuffle(array) {
+      let currentIndex = array.length;
+
+      // While there remain elements to shuffle...
+      while (currentIndex != 0) {
+
+        // Pick a remaining element...
+        let randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+
+        // And swap it with the current element.
+        [array[currentIndex], array[randomIndex]] = [
+          array[randomIndex], array[currentIndex]];
+      }
+    }
+
+    function showWords(){
+        var words = transcription[idt].text.split(" ");
+        shuffle(words);
+        selectedWords = [];
+
+        // Popola i bottoni con le parole disponibili
+        $.each(words, function(index, word){
+          var button = $('<button type="button" class="btn btn-primary btn-word">' + word + '</button>');
+          button.data('word', word);
+          $('#availableWords').append(button);
+        });
+
+        // Gestisce il click su un bottone parola
+        $('.btn-word').click(function(){
+          var word = $(this).data('word');
+          var containerId = $(this).parent().attr('id');
+
+          // Sposta il bottone nella sezione corretta
+          if(containerId === 'availableWords') {
+            $(this).detach().appendTo('#selectedWords');
+            selectedWords.push(word);
+          } else {
+            $(this).detach().appendTo('#availableWords');
+            selectedWords = selectedWords.filter(function(item) {
+              return item !== word;
+            });
+          }
+        });
+    }
+
+    function checkSimiliarity(array1, array2) {
+        // Assicurati che gli array abbiano la stessa lunghezza
+        if (array1.length !== array2.length) {
+            console.log("Gli array hanno lunghezze diverse. " + array1.length + " " + array2.length);
+        }
+
+        var corrispondenze = 0;
+
+        // Confronta gli elementi degli array
+        for (var i = 0; i < array1.length; i++) {
+            if (array1[i] === array2[i]) {
+                corrispondenze++;
+            }
+        }
+
+        return corrispondenze;
+    }
+
+    var points = [0,0];
+    $(document).ready(function(){
+        $("#check").click(function(){
+            points[0] += checkSimiliarity(transcription[idt].text.split(" "), selectedWords);
+            points[1] += selectedWords.length;
+            $("#score span").html(points[0]+"/"+points[1]);
+            $("#correction").html(transcription[idt].text+"<br />"+selectedWords.join(' '));
+
+            $("#selectedWords").html("");
+            $("#availableWords").html("");
+            idt++;
+            showWords();
+        });
+    });
+</script>

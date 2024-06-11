@@ -2,6 +2,14 @@
 layout: default
 title: Projects
 ---
+
+## Learn Language
+This web page offers a playful tool for learning English through YouTube videos. It utilizes video transcripts as a basis for a sorting game, where the video pauses and prompts you to organize selected words into the correct order.
+
+<a href="/projects/learn-language" class="btn btn-primary btn-xl">Learn</a>
+
+---
+
 ## Best country to live in
 I took different indices such as peace, temperature, purchasing power, welfare, health system, education etc. and making an average I created a map and a table with the ranking of the best countries to live.
 

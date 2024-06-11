@@ -13,6 +13,7 @@ Article Tool is a Joomla plugin that enhances articles and K2 articles with addi
 
 ## Other Extensions
 
+
 <a href="extensions/articlepager10/articlepagerinstall.zip" target="_blank" class="btn btn-primary btn-xl">article pager</a>
 <a href="extensions/backupdatabase10/com_backupdatabase.zip" target="_blank" class="btn btn-primary btn-xl">backup database</a>
 <a href="extensions/empty-template10/empty-template.zip" target="_blank" class="btn btn-primary btn-xl">empty template</a>

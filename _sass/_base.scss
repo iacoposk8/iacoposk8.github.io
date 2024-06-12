@@ -210,7 +210,9 @@ header {
         }
     }
     @media (min-width: 768px) {
-        min-height: 100%;
+        background-size: 100%;
+        background-position: 50% 15%;
+        min-height: 400px;
         .header-content {
             position: absolute;
             top: 50%;

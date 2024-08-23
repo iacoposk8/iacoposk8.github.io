@@ -2,6 +2,7 @@
 layout: default
 title: Optimize the functions in javascript
 ---
+## Optimize the functions in javascript
 
 If we have the function:
 

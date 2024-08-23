@@ -5,5 +5,11 @@ title: Virtual Reality Treadmill
 
 # Virtual Reality Treadmill
 
-Work in progress.
-Actually, the project is finished but I’m waiting for the summer when I have a bit more time to make the video. This device, developed with Arduino, will be attached behind the shirt collar and will function as a sort of joystick to control characters in a videogame. It will be possible to run in place, on a treadmill, perhaps even on a stationary bike and an elliptical.
+This project features a cutting-edge Arduino-powered controller that mimics the left analog stick of a gamepad, allowing you to control in-game actions through your physical movements. Designed to be worn on your back, this controller seamlessly integrates with workout equipment such as treadmills, stationary bikes, and ellipticals.
+
+## Watch the demo video on YouTube
+<iframe width="560" height="315" src="https://www.youtube.com/embed/4EYHZWyAiZI?si=zdNg6-wBqWG7iPLx" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+[![Demo video of the project](https://github.com/iacoposk8/Arduino-Fitness-Game-Controller/blob/main/images/yt_play.jpg?raw=true)](https://www.youtube.com/watch?v=4EYHZWyAiZI)
+
+![Demo gif of the project](https://github.com/iacoposk8/Arduino-Fitness-Game-Controller/blob/main/images/controller.gif?raw=true)

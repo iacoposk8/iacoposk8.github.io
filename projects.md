@@ -3,6 +3,13 @@ layout: default
 title: Projects
 ---
 
+## Optimize the functions in javascript
+If we run the same function multiple times with the same parameters, we will get the same results and waste computational power. This code can help to optimize resources.
+
+<a href="/projects/optimizeFunction" class="btn btn-primary btn-xl">Optimize it!</a>
+
+---
+
 ## Learn Language
 This web page offers a playful tool for learning English through YouTube videos. It utilizes video transcripts as a basis for a sorting game, where the video pauses and prompts you to organize selected words into the correct order.
 

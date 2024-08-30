@@ -12,7 +12,7 @@ Chart illustrating the <a href="https://www.worldbank.org/en/publication/worldwi
 <iframe src="graph.html" width="100%" height="700" frameBorder="0"></iframe>
 
 Below is the Python code to generate this chart.<br />
-```
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
 import csv, io, html
 import plotly.graph_objs as go
 
@@ -51,7 +51,6 @@ party_colors = {
 wgi = io.StringIO(wgi)
 reader = csv.reader(wgi, delimiter=';')
 table = [row for row in reader]
-print(table)
 table_traspose = [list(row) for row in zip(*table)]
 
 # Estrai le etichette per l'asse x e i dati per il grafico
@@ -117,4 +116,4 @@ layout = go.Layout(
 # Crea la figura e mostra il grafico interattivo
 fig = go.Figure(data=data, layout=layout)
 fig.show()
-```
+</code></pre></div></div>

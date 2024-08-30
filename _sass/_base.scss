@@ -60,9 +60,9 @@ p {
 }
 
 main#content{
-    max-width: 768px;
+    max-width: 940px;
     margin: 150px auto 0px auto;
-    @media (max-width: 768px) {
+    @media (max-width: 940px) {
         max-width: auto;
         margin: 150px 15px 0px 15px;
     }
@@ -134,7 +134,7 @@ aside {
             }
         }
     }
-    @media (min-width: 768px) {
+    @media (min-width: 940px) {
         background-color: #0077bb;
         border-color: rgba(white, .3);
         .navbar-header .navbar-brand {
@@ -210,7 +210,7 @@ header {
             }
         }
     }
-    @media (min-width: 768px) {
+    @media (min-width: 940px) {
          min-height: 100%;
         .header-content {
             position: absolute;
@@ -293,7 +293,7 @@ header {
             opacity: 1;
         }
     }
-    @media (min-width: 768px) {
+    @media (min-width: 940px) {
         .portfolio-box-caption {
             .portfolio-box-caption-content {
                 .project-category {

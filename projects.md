@@ -3,6 +3,13 @@ layout: default
 title: Projects
 ---
 
+## Worldwide Governance Indicators in Italy
+Chart showing the Worldwide Governance Indicators in Italy, to see the performance of the various parties.
+
+<a href="/projects/WGI" class="btn btn-primary btn-xl">Watch it!</a>
+
+---
+
 ## Optimize the functions in javascript
 If we run the same function multiple times with the same parameters, we will get the same results and waste computational power. This code can help to optimize resources.
 

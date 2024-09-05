@@ -3,6 +3,13 @@ layout: default
 title: Projects
 ---
 
+## Random Map Tile Generator
+A Node.js application that randomly generates maps for 2D tile-based games using an XY grid system.
+
+<a href="/projects/random-map-tile-generator" class="btn btn-primary btn-xl">Map it!</a>
+
+---
+
 ## Worldwide Governance Indicators in Italy
 Chart showing the Worldwide Governance Indicators in Italy, to see the performance of the various parties.
 

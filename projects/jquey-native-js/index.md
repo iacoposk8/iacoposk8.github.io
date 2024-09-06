@@ -1,0 +1,282 @@
+---
+layout: default
+title: JQuey in native JS
+---
+
+# JQuey in native JS
+
+This project involves creating a custom JavaScript class that replicates some of the key methods of jQuery, focusing on DOM manipulation and event handling. By doing this, I aim to reduce the dependency on external libraries like jQuery, which, while powerful, includes a lot of unnecessary code for modern browsers and projects. This custom class allows for a more lightweight and modular approach, including only the specific methods required for the project, thereby improving both performance and flexibility. Moreover, it offers the advantage of complete control over the functionality, enabling tailored adjustments to fit project-specific needs.
+
+One of the primary goals of this project is to deepen my understanding of the DOM and modern JavaScript APIs, such as querySelector, addEventListener, and classList. These built-in features allow for efficient and straightforward DOM manipulation, without the overhead of a larger library. By creating my own version of commonly used jQuery methods, I can streamline the code, making it more maintainable and optimized for modern browsers, while also removing unnecessary features designed for older, obsolete environments.
+
+```
+clss ownJQ {
+	list_or_single(ret){
+		if(ret.length == 1)
+			return ret[0];
+		return ret;
+	}
+	
+	isNode(obj){
+		/*return (
+			typeof Node === "object" ? o instanceof Node : 
+				o && typeof o === "object" && typeof o.nodeType === "number" && typeof o.nodeName==="string"
+		);*/
+		if (obj instanceof HTMLDocument || Object.prototype.toString.call(obj) == "[object HTMLDocument]")
+			return false;
+		return true;
+	}
+	
+	getNode(q, is_constructor){
+		var nodes = [];
+		if(typeof q === "object"){ //se è un elemento node dom
+			if(q.length){
+				for(var i = 0; i < q.length; i++){
+					nodes[i] = q[i];
+				}
+			} else
+				nodes[0] = q;
+
+
+			//q.forEach((node, index) => this[index] = node)
+			//this.length = q.length;
+		} else {
+			try{ //se è una stringa selettore css
+				if(q.indexOf(":first-child") == -1 && q.indexOf(":last-child") == -1)
+					nodes = document.querySelectorAll(q);
+				else
+					nodes.push(document.querySelector(q));
+			} catch(e){ //se è una stringa html
+				var renderer = document.createElement('div');
+				renderer.innerHTML = q;
+				nodes = renderer.childNodes;
+			}
+		}
+
+
+		if(typeof is_constructor !== "undefined" && is_constructor){
+			nodes.forEach((node, index) => this[index] = node)
+			this.length = nodes.length;
+		}
+
+
+		//return this.list_or_single(nodes);
+		return nodes;
+	}
+	
+	constructor(q) {
+		this.getNode(q, true);
+	}
+  
+	command(cb) {
+		var ret = [];
+
+
+		for (var i = 0; i < this.length; i ++) {
+			ret.push(cb(this[i]));
+		}
+
+
+		return this.list_or_single(ret);
+	};
+	
+	events(e, cb){
+		if(e.indexOf(" ") == -1)
+			cb(e);
+		else{
+			e = e.split(" ");
+			for(var i in e){
+				cb(e[i]);
+			}
+		}
+	}
+	
+	appendTo(arg){
+		let self = this;
+		return this.command(function(el){
+			let elems = self.getNode(el);
+
+
+			self.getNode(arg)[0].appendChild(elems[0]);
+
+
+			return self.getNode(el)[0];
+		});
+	}
+	
+	html(arg){
+		return this.command(function(el){
+			if(typeof arg === "undefined")
+				return el.innerHTML;
+			else
+				el.innerHTML = arg;
+		});
+	}
+	
+	append(arg){
+		return this.command(function(el){ 
+			el.innerHTML += arg;
+		});
+		
+	}
+	
+	getJSON(url, success, error){
+		var request = new XMLHttpRequest();
+		request.open('GET', url, true);
+
+
+		request.onload = function() {
+		  if (this.status >= 200 && this.status < 400) {
+			// Success!
+			success(JSON.parse(this.response));
+		  } else {
+			if(typeof error === "function")
+				error(this);
+		  }
+		};
+
+
+		request.onerror = function() {
+			if(typeof error === "function")
+				error(this);
+		};
+
+
+		request.send();	
+	}
+	
+	remove(){
+		return this.command(function(el){
+			el.parentNode.removeChild(el);
+		});	
+	}
+	
+	addClass(arg){
+		return this.command(function(el){
+			el.classList.add(arg);
+		});
+		
+	}
+	
+	removeClass(arg){
+		return this.command(function(el){
+			el.classList.remove(arg);
+		});
+		
+	}
+	
+	after(arg){
+		return this.command(function(el){
+			el.insertAdjacentHTML('afterend', arg);
+		});
+	}
+	
+	before(arg){
+		return this.command(function(el){
+			el.insertAdjacentHTML('beforebegin', arg);
+		});
+	}
+	
+	each(arg){
+		return Array.prototype.forEach.call(selectors, function(el, i){
+			fnc(el, i);
+		});
+	}
+	
+	find(arg){
+		return this.command(function(el){
+			el.querySelectorAll(arg);
+		});
+	}
+	
+	attr(arg, val){
+		return this.command(function(el){
+			if(typeof val === "undefined")
+				return el.getAttribute(arg);
+			else{
+				if(val === false || val === "false")
+					el.removeAttribute(arg);
+				else
+					el.setAttribute(arg, val);
+			}
+		});
+	}
+	
+	val(arg){
+		return this.command(function(el){
+			if(typeof arg === "undefined")
+				return el.value;
+			else{
+				el.value = arg;
+			}
+		});
+	}
+	
+	delegate(selector, eventName, callback){
+		return this.command(function(el){
+			el.addEventListener(eventName, function(e) {
+				// loop parent nodes from the target to the delegation node
+				for (var target = e.target; target && target != this; target = target.parentNode) {
+					if (target.matches(selector)) {
+						callback(target);
+						break;
+					}
+				}
+			}, false);
+		});
+	}
+	
+	on(eventName, callback){
+		var self = this;
+		return self.command(function(el){
+			return self.events(eventName, function(eN){
+				el.addEventListener(eN, callback);
+			});
+		});
+	}
+	
+	off(eventName, callback){
+		var self = this;
+		return self.command(function(el){
+			return self.events(eventName, function(eN){
+				el.removeEventListener(eN, callback);
+			});
+		});
+	}
+	
+	css(arg, val){
+		return this.command(function(el){
+			if(typeof val === "undefined")
+				return getComputedStyle(el)[arg];
+			else{
+				el.style[arg] = val;
+			}
+		});
+	}
+	
+	parent(){
+		parent = this[0].parentNode;
+		if(this.isNode(parent))
+			return this.getNode(parent);
+		else
+			return [];
+	}
+	
+	trigger(arg){
+		return this.command(function(el){
+			if (window.CustomEvent && typeof window.CustomEvent === 'function') {
+			  var event = new CustomEvent(arg);
+			} else {
+			  var event = document.createEvent('CustomEvent');
+			  event.initCustomEvent(arg, true, true);
+			}
+
+
+			el.dispatchEvent(event);
+		});
+	}
+}
+
+
+const $$ = (q) => new ownJQ(q);
+```

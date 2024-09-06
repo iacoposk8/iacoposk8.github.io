@@ -9,6 +9,8 @@ This project involves creating a custom JavaScript class that replicates some of
 
 One of the primary goals of this project is to deepen my understanding of the DOM and modern JavaScript APIs, such as querySelector, addEventListener, and classList. These built-in features allow for efficient and straightforward DOM manipulation, without the overhead of a larger library. By creating my own version of commonly used jQuery methods, I can streamline the code, making it more maintainable and optimized for modern browsers, while also removing unnecessary features designed for older, obsolete environments.
 
+To avoid conflict problems the base variable will be $$.
+
 ```
 clss ownJQ {
 	list_or_single(ret){

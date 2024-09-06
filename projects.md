@@ -10,6 +10,13 @@ A Node.js application that randomly generates maps for 2D tile-based games using
 
 ---
 
+## Tileable Normal Map Generator
+This tool creates seamless normal maps from black and white images, converting them into high-quality, scalable SVG format. It's perfect for applications requiring detailed, high-resolution textures.
+
+<a href="/projects/normal-map-generator" class="btn btn-primary btn-xl">Map it!</a>
+
+---
+
 ## Worldwide Governance Indicators in Italy
 Chart showing the Worldwide Governance Indicators in Italy, to see the performance of the various parties.
 

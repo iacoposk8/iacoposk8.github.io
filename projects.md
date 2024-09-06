@@ -34,7 +34,7 @@ This project involves building a custom JavaScript class to replicate key jQuery
 ## Ebook to covers in library
 I developed a Python script that converts a folder of EPUB and PDF files into an image where the books are displayed as physical volumes on a bookshelf. The script extracts the cover images and titles, offering a tangible way to visualize your eBook collection.
 
-<a href="/projects/ebook-to-covers-library" class="btn btn-primary btn-xl">Optimize it!</a>
+<a href="/projects/ebook-to-covers-library" class="btn btn-primary btn-xl">Cover it!</a>
 
 ---
 

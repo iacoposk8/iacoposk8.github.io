@@ -7,7 +7,7 @@ title: Ebook to covers in library
 
 ![sample to result image](covers.jpg)
 
-'''
+```
 import ebooklib
 from ebooklib import epub
 from PIL import Image # $ pip install pillow
@@ -269,4 +269,4 @@ for file in tqdm(all_files):
 files = glob.glob('pdf/*.pdf')
 for f in files:
 	os.remove(f)
-'''
+```

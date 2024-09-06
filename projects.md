@@ -24,6 +24,20 @@ If we run the same function multiple times with the same parameters, we will get
 
 ---
 
+## JQuey in native JS
+This project involves building a custom JavaScript class to replicate key jQuery methods for DOM manipulation and event handling, reducing the need for external libraries. The aim is to improve performance and flexibility by using only essential features and modern JavaScript APIs.
+
+<a href="/projects/jquey-native-js" class="btn btn-primary btn-xl">Optimize it!</a>
+
+---
+
+## Ebook to covers in library
+I developed a Python script that converts a folder of EPUB and PDF files into an image where the books are displayed as physical volumes on a bookshelf. The script extracts the cover images and titles, offering a tangible way to visualize your eBook collection.
+
+<a href="/projects/ebook-to-covers-library" class="btn btn-primary btn-xl">Optimize it!</a>
+
+---
+
 ## Learn Language
 This web page offers a playful tool for learning English through YouTube videos. It utilizes video transcripts as a basis for a sorting game, where the video pauses and prompts you to organize selected words into the correct order.
 

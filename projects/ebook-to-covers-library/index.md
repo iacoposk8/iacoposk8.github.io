@@ -7,6 +7,10 @@ title: Ebook to covers in library
 
 ![sample to result image](covers.jpg)
 
+I have developed a Python script that converts a folder containing EPUB and PDF files into an image where the books are displayed as if they were physical volumes neatly arranged on a bookshelf. The script automatically extracts the cover images and titles from the digital files, creating a visually representation of the books, just as if they were sitting on a real shelf. This allows you to easily visualize your eBook collection in a more tangible and organized way.
+
+To make the script work, you need to modify two lines of code. First, update `base_path = "~/Desktop/Book"` with the actual path to the folder containing your eBooks. Second, you can optionally use the `blacklist = []` variable to specify a list of words; any titles containing these words will be excluded from the final image. This provides flexibility in managing how your book collection is displayed.
+
 ```
 import ebooklib
 from ebooklib import epub
@@ -20,11 +24,11 @@ from PyPDF2 import PdfReader
 import random
 import json
 from tqdm import tqdm
-
-
 import tempfile
 from pdf2image import convert_from_path
 
+blacklist = []
+base_path = "~/Desktop/Book"
 
 def get_cover(filename):
 	with tempfile.TemporaryDirectory() as path:
@@ -154,12 +158,8 @@ def add_border_if_white(image_path):
         # Restituisci l'immagine originale se non è prevalentemente bianca
         return image
 
-
-blacklist = [' seo ', 'google', 'marketing', 'biohacking', 'trading', 'roberto re', 'marx', 'comunista', 'ipnosi', 'bitcoin', 'business', 'crowdfunding', 'farmaceutiche', '4 ore alla settimana', '12 regole per la vita', 'allucinazioni.epub', 'armi di persuasione di massa.pdf', 'bus 323 - emis killa.epub', 'drabkin', 'dsm', 'i ching.pdf', 'la cultura hip hop e la musica rap in italia - massimiliano vecchi.pdf', 'la mangiatoia - aa.vv_.epub', 'legge dell\'attrazione.pdf', 'menti sospettose (italian editi - rob brotherton', 'nienteansia', 'psiq', 'pubblicare libro', 'raising the bar the definitive guide to pull-up bar calisthenics', 'danilo bussa', 'mollo-tutto-e-cambio-vita', 'succede sempre qualcosa di meraviglioso', 'tecniche hacker - volume']
-
-
-pdf_files = glob.glob("/media/mezzo/4345727E5C539F3E/Dropbox/Home/Scrivania/Mezzo/altro/Libri/*.pdf")
-epub_files = glob.glob("/media/mezzo/4345727E5C539F3E/Dropbox/Home/Scrivania/Mezzo/altro/Libri/*.epub")
+pdf_files = glob.glob(base_path + "/*.pdf")
+epub_files = glob.glob(base_path + "/*.epub")
 all_files = sorted(pdf_files + epub_files)
 
 

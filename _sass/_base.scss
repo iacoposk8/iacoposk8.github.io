@@ -414,11 +414,32 @@ body {
 
 .flip-card-front {
   background-color: #f8f9fa;
-  color: black;
+  position: relative;
+  color: white;
 }
 
 .flip-card-back {
   background-color: #343a40;
   color: white;
   transform: rotateY(180deg);
+}
+
+.img-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.75);
+  z-index: 0;
 }

@@ -387,7 +387,6 @@ body {
 }
 
 /***********************************************/
-
 .flip-card {
   perspective: 1000px;
 }
@@ -414,8 +413,8 @@ body {
 
 .flip-card-front {
   background-color: #f8f9fa;
-  position: relative;
   color: white;
+  position: relative;
 }
 
 .flip-card-back {

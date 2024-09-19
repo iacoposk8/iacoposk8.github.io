@@ -24,17 +24,21 @@ title: Best Sports Moments
               var ctx = document.getElementById('radarChart').getContext('2d');
               var radarChart = new Chart(ctx, {
                   type: 'radar',
-                  data: {
-                      labels: ['Skate', 'Run', 'Calisthenics', 'Swim', 'Kayak', 'Hike'],
+                  data: {snow windsurf tennis pallavolo
+                      labels: ['Skate', 'Run', 'Calisthenics', 'Swim', 'Kayak', 'Hike', "Snowboard", "Windsurf", "Tennis", "Pallavolo"],
                       datasets: [{
-                          label: 'Valutazioni Sportive',
-                          data: [80, 85, 90, 70, 75, 70],
+                          data: [80, 85, 90, 70, 75, 70, 65, 50, 40, 60],
                           backgroundColor: 'rgba(54, 162, 235, 0.2)',
                           borderColor: 'rgba(54, 162, 235, 1)',
                           borderWidth: 1
                       }]
                   },
                   options: {
+                      plugins: {
+                          legend: {
+                              display: false // Rimuove la legenda
+                          }
+                      },
                       scales: {
                           r: {
                               angleLines: {

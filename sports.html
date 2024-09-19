@@ -3,16 +3,50 @@ layout: default
 title: Best Sports Moments
 ---
 
-<h1>Best Sports Moments (Work in Progress)</h1>
-<br />
-<p>Welcome to my collection of the most memorable sports moments! In this section, I share the milestones I've achieved in various sports disciplines. While they may be small, these moments represent significant personal achievements and my ongoing pursuit of improvement and well-being. All with the goal of getting by in everything but never being truly good at anything! :)</p>
-<br />
-
 <style>
   .instagram-media{
     min-width:226px !important;
   }
 </style>
+
+<h1>Best Sports Moments (Work in Progress)</h1>
+<br />
+<div class="row">
+      <!-- Colonna 1 -->
+      <div class="col-md-6 col-xs-12 colonna">
+          <p>Welcome to my collection of the most memorable sports moments! In this section, I share the milestones I've achieved in various sports disciplines. While they may be small, these moments represent significant personal achievements and my ongoing pursuit of improvement and well-being. All with the goal of getting by in everything but never being truly good at anything! :)</p>
+      </div>
+      <!-- Colonna 2 -->
+      <div class="col-md-6 col-xs-12 colonna">
+          <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+          <canvas id="radarChart"></canvas>
+          <script>
+              // Configurazione dei dati per il grafico radar
+              var ctx = document.getElementById('radarChart').getContext('2d');
+              var radarChart = new Chart(ctx, {
+                  type: 'radar',
+                  data: {
+                      labels: ['Velocità', 'Resistenza', 'Agilità', 'Forza', 'Flessibilità'], // Etichette delle aree
+                      datasets: [{
+                          label: 'Valutazioni Sportive',
+                          data: [80, 70, 90, 60, 85], // Dati da visualizzare
+                          backgroundColor: 'rgba(54, 162, 235, 0.2)', // Colore di riempimento
+                          borderColor: 'rgba(54, 162, 235, 1)', // Colore del bordo
+                          borderWidth: 1
+                      }]
+                  },
+                  options: {
+                      scale: {
+                          ticks: {
+                              beginAtZero: true,
+                              max: 100
+                          }
+                      }
+                  }
+              });
+          </script>
+      </div>
+  </div>
 
 <div class="row">
   <div class="col-md-4">

@@ -21,7 +21,6 @@ title: Best Sports Moments
           <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
           <canvas id="radarChart"></canvas>
           <script>
-              // Configurazione dei dati per il grafico radar
               var ctx = document.getElementById('radarChart').getContext('2d');
               var radarChart = new Chart(ctx, {
                   type: 'radar',
@@ -30,16 +29,23 @@ title: Best Sports Moments
                       datasets: [{
                           label: 'Valutazioni Sportive',
                           data: [80, 85, 90, 70, 75, 70],
-                          backgroundColor: 'rgba(54, 162, 235, 0.2)', // Colore di riempimento
-                          borderColor: 'rgba(54, 162, 235, 1)', // Colore del bordo
+                          backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                          borderColor: 'rgba(54, 162, 235, 1)',
                           borderWidth: 1
                       }]
                   },
                   options: {
-                      scale: {
-                          ticks: {
-                              beginAtZero: true,
-                              max: 100
+                      scales: {
+                          r: {
+                              angleLines: {
+                                  display: true
+                              },
+                              suggestedMin: 0,
+                              suggestedMax: 100,
+                              ticks: {
+                                  beginAtZero: true,
+                                  stepSize: 20
+                              }
                           }
                       }
                   }

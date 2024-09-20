@@ -96,7 +96,12 @@ aside {
 // Navigation
 
 .navbar-default {
+    background-color: #0077bb;
     border-color: rgba($theme-dark, .5);
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
     @include sans-serif-font;
     @include transition-all;
     .navbar-header .navbar-brand {

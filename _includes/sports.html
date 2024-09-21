@@ -1,34 +1,75 @@
-<!--<section id="sports">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-8 col-lg-offset-2 text-center mx-auto">
-                <h2 class="section-heading">Sports</h2>
-                <hr class="primary mx-auto">
-            </div>  
-        </div>
-        <div class="row">
-            <div class="medal-container">
-                <div class="medal" id="medal2">
-                    <a href="sports">
-                        <img src="" alt="Medal Image 1">
-                    </a>
-                </div>
-                <div class="medal" id="medal1">
-                    <a href="sports">
-                        <img src="" alt="Medal Image 2">
-                    </a>
-                </div>
-                <div class="medal" id="medal3">
-                    <a href="sports">
-                        <img src="" alt="Medal Image 3">
-                    </a>
-                </div>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <style>
+        .hex-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            margin-top: 50px;
+        }
+
+        .hex {
+            width: 100px;
+            height: 57.74px;
+            background-color: #FFD700;
+            margin: 28.87px 5px;
+            position: relative;
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            transition: transform 0.5s ease;
+            overflow: hidden;
+        }
+
+        .hex img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .hex:hover {
+            transform: scale(1.1); /* Effetto zoom al passaggio del mouse */
+        }
+
+        /* Disposizione in forma a nido d'ape */
+        .row-hex {
+            display: flex;
+            justify-content: center;
+        }
+
+        .offset-hex {
+            margin-left: 52px; /* Sposta a destra la riga per centrarla */
+        }
+    </style>
+
+<section id="sports">
+    <div class="container text-center">
+        <h2 class="section-heading">Sports</h2>
+        <hr class="primary mx-auto">
+        <!-- Griglia a nido d'ape -->
+        <div class="hex-grid">
+            <!-- Prima riga: 3 immagini -->
+            <div class="row-hex">
+                <div class="hex"><img src="" alt="Medal Image 1"></div>
+                <div class="hex"><img src="" alt="Medal Image 2"></div>
+                <div class="hex"><img src="" alt="Medal Image 3"></div>
             </div>
-            
-            <div class="container text-center sports-action-container">
-              <div class="call-to-action">
-                  <a href="/sports" class="btn btn-primary btn-xl wow tada">View details of my sports highlights</a>
-              </div>
+            <!-- Seconda riga: 4 immagini -->
+            <div class="row-hex offset-hex">
+                <div class="hex"><img src="" alt="Medal Image 4"></div>
+                <div class="hex"><img src="" alt="Medal Image 5"></div>
+                <div class="hex"><img src="" alt="Medal Image 6"></div>
+                <div class="hex"><img src="" alt="Medal Image 7"></div>
+            </div>
+            <!-- Terza riga: 3 immagini -->
+            <div class="row-hex">
+                <div class="hex"><img src="" alt="Medal Image 8"></div>
+                <div class="hex"><img src="" alt="Medal Image 9"></div>
+                <div class="hex"><img src="" alt="Medal Image 10"></div>
+            </div>
+        </div>
+
+        <div class="container text-center sports-action-container">
+            <div class="call-to-action">
+                <a href="/sports" class="btn btn-primary btn-xl wow tada">View details of my sports highlights</a>
             </div>
         </div>
     </div>
@@ -60,150 +101,9 @@
         }
 
         // Assegna immagini uniche a ciascuna medaglia
-        let uniqueImages = getUniqueImages(images, document.querySelectorAll('.medal img').length);
+        let uniqueImages = getUniqueImages(images, document.querySelectorAll('.hex img').length);
 
-        document.querySelectorAll('.medal img').forEach((img, index) => {
-            img.src = uniqueImages[index];
-        });
-
-        // Aggiungi animazione allo scroll
-        window.addEventListener('scroll', function() {
-            var medals = document.querySelectorAll('.medal');
-            var windowHeight = window.innerHeight;
-            medals.forEach(function(medal) {
-                var medalTop = medal.getBoundingClientRect().top;
-                if (medalTop < windowHeight - 50) {
-                    medal.classList.add('animate-medal');
-                } else {
-                    medal.classList.remove('animate-medal');
-                }
-            });
-        });
-    </script>
-</section>-->
-
-    <style>
-        .medal-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-top: 50px;
-        }
-        .medal-row {
-            display: flex;
-            justify-content: center;
-        }
-        .medal {
-            margin: -20px 40px;
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            border: 5px solid #FFD700;
-            overflow: hidden;
-            transition: transform 0.5s ease;
-        }
-        .medal img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .medal:hover {
-            transform: scale(1.1); /* Zoom quando si passa sopra */
-        }
-    </style>
-
-<section id="sports">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-8 col-lg-offset-2 text-center mx-auto">
-                <h2 class="section-heading">Sports</h2>
-                <hr class="primary mx-auto">
-            </div>
-        </div>
-
-        <!-- Struttura piramidale delle medaglie -->
-        <div class="medal-container">
-            <!-- Prima riga: 1 immagine -->
-            <div class="medal-row">
-                <div class="medal" id="medal1">
-                    <a href="sports"><img src="" alt="Medal Image 1"></a>
-                </div>
-            </div>
-            <!-- Seconda riga: 2 immagini -->
-            <div class="medal-row">
-                <div class="medal" id="medal2">
-                    <a href="sports"><img src="" alt="Medal Image 2"></a>
-                </div>
-                <div class="medal" id="medal3">
-                    <a href="sports"><img src="" alt="Medal Image 3"></a>
-                </div>
-            </div>
-            <!-- Terza riga: 3 immagini -->
-            <div class="medal-row">
-                <div class="medal" id="medal4">
-                    <a href="sports"><img src="" alt="Medal Image 4"></a>
-                </div>
-                <div class="medal" id="medal5">
-                    <a href="sports"><img src="" alt="Medal Image 5"></a>
-                </div>
-                <div class="medal" id="medal6">
-                    <a href="sports"><img src="" alt="Medal Image 6"></a>
-                </div>
-            </div>
-            <!-- Quarta riga: 2 immagini -->
-            <div class="medal-row">
-                <div class="medal" id="medal7">
-                    <a href="sports"><img src="" alt="Medal Image 7"></a>
-                </div>
-                <div class="medal" id="medal8">
-                    <a href="sports"><img src="" alt="Medal Image 8"></a>
-                </div>
-            </div>
-            <!-- Quinta riga: 1 immagine -->
-            <div class="medal-row">
-                <div class="medal" id="medal9">
-                    <a href="sports"><img src="" alt="Medal Image 9"></a>
-                </div>
-            </div>
-        </div>
-
-        <div class="container text-center sports-action-container">
-            <div class="call-to-action">
-                <a href="/sports" class="btn btn-primary btn-xl wow tada">View details of my sports highlights</a>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Percorso delle immagini nella cartella
-        const images = [
-            'img/sports/Kayak.jpg',
-            'img/sports/Margherita_thumb.JPG',
-            'img/sports/run5k_thumb.jpg',
-            'img/sports/Skate.jpeg',
-            'img/sports/Windsurf.jpg',
-            'img/sports/Snowboard.png',
-            'img/sports/Volley.png',
-            'img/sports/Skate.jpg',
-            'img/sports/Calisthenics.jpg',
-        ];
-
-        // Funzione per ottenere immagini casuali senza ripetizioni
-        function getUniqueImages(imageArray, num) {
-            let imagesCopy = [...imageArray];
-            let selectedImages = [];
-            for (let i = 0; i < num; i++) {
-                let randomIndex = Math.floor(Math.random() * imagesCopy.length);
-                selectedImages.push(imagesCopy[randomIndex]);
-                imagesCopy.splice(randomIndex, 1); // Rimuovi l'immagine scelta
-            }
-            return selectedImages;
-        }
-
-        // Assegna immagini uniche a ciascuna medaglia
-        let uniqueImages = getUniqueImages(images, document.querySelectorAll('.medal img').length);
-
-        document.querySelectorAll('.medal img').forEach((img, index) => {
+        document.querySelectorAll('.hex img').forEach((img, index) => {
             img.src = uniqueImages[index];
         });
 

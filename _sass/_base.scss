@@ -150,7 +150,7 @@ aside {
         background-color: #0077bb;
         border-color: rgba(white, .3);
         
-        .navbar-header .navbar-brand {
+        .navbar-header .navbar-brand, .navbar-header .nav-link {
             color: rgba(white, .7);
             &:hover,
             &:focus {
@@ -160,7 +160,6 @@ aside {
 
         .nav > li > a,
         .nav > li > a:focus {
-            color: white; // Cambia il colore dei link a bianco
             &:hover {
                 color: white;
             }

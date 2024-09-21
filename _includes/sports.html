@@ -20,27 +20,30 @@
             margin-top: 50px;
         }
         .medal {
-            width: 100px;
-            height: 100px;
-            background-color: #FFD700;
+            width: 120px;
+            height: 120px;
+            background-image: url('images/medal-background.png'); /* Aggiungi l'immagine di una medaglia */
+            background-size: cover;
+            background-position: center;
             border-radius: 50%;
             position: relative;
             transition: transform 0.5s ease, background-color 0.5s ease;
             overflow: hidden; /* Per mantenere la forma circolare anche con l'immagine */
         }
         .medal img {
-            width: 100%;
-            height: 100%;
+            width: 80%;
+            height: 80%;
             object-fit: cover; /* Adatta l'immagine alla medaglia senza distorsioni */
             border-radius: 50%; /* Garantisce che l'immagine sia circolare */
+            position: absolute;
+            top: 10%;
+            left: 10%;
         }
         .medal:hover {
             transform: scale(1.2);
-            background-color: #FFA500;
         }
         .animate-medal {
             transform: scale(1.5);
-            background-color: #FF4500;
         }
     </style>
 
@@ -63,19 +66,30 @@
     <script>
         // Percorso delle immagini nella cartella
         const images = [
-            'img/sports/run5k_thumb.jpg',
-            'img/sports/Kayak.jpg',
-            'img/sports/Margherita_thumb.jpg',
+            'images/photo1.jpg',
+            'images/photo2.jpg',
+            'images/photo3.jpg',
+            'images/photo4.jpg',
+            'images/photo5.jpg'
         ];
 
-        // Funzione per scegliere un'immagine a caso
-        function getRandomImage() {
-            return images[Math.floor(Math.random() * images.length)];
+        // Funzione per ottenere immagini casuali senza ripetizioni
+        function getUniqueImages(imageArray, num) {
+            let imagesCopy = [...imageArray];
+            let selectedImages = [];
+            for (let i = 0; i < num; i++) {
+                let randomIndex = Math.floor(Math.random() * imagesCopy.length);
+                selectedImages.push(imagesCopy[randomIndex]);
+                imagesCopy.splice(randomIndex, 1); // Rimuovi l'immagine scelta
+            }
+            return selectedImages;
         }
 
-        // Assegna un'immagine random a ciascuna medaglia
-        document.querySelectorAll('.medal img').forEach(img => {
-            img.src = getRandomImage();
+        // Assegna immagini uniche a ciascuna medaglia
+        let uniqueImages = getUniqueImages(images, document.querySelectorAll('.medal img').length);
+
+        document.querySelectorAll('.medal img').forEach((img, index) => {
+            img.src = uniqueImages[index];
         });
 
         // Aggiungi animazione allo scroll

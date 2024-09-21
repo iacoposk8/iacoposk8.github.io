@@ -87,12 +87,16 @@
             }
             return selectedImages;
         }
-
-        // Assegna immagini uniche a ciascuna medaglia
+        
+        // Assegna immagini uniche a ciascuna medaglia e aggiungi il link alla sezione sports
         let uniqueImages = getUniqueImages(images, document.querySelectorAll('.hex img').length);
-
+        
         document.querySelectorAll('.hex img').forEach((img, index) => {
             img.src = uniqueImages[index];
+            // Aggiungi un event listener per reindirizzare alla sezione "sports" quando l'immagine viene cliccata
+            img.parentElement.addEventListener('click', function() {
+                window.location.href = "/sports";
+            });
         });
 
     </script>

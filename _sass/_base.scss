@@ -95,6 +95,10 @@ aside {
 
 // Navigation
 
+.nav-link{
+    font-weight:bold;
+}
+
 .navbar-default {
     background: #fff;
     border-color: rgba($theme-dark, .5);
@@ -105,6 +109,7 @@ aside {
     z-index:9;
     @include sans-serif-font;
     @include transition-all;
+
     .navbar-header .navbar-brand {
         color: $theme-primary;
         @include sans-serif-font;
@@ -115,12 +120,13 @@ aside {
             color: darken($theme-primary, 10%);
         }
     }
+
     .nav {
         > li {
             > a,
             > a:focus {
                 text-transform: uppercase;
-                font-weight: 700;
+                font-weight: 700; // Link in grassetto
                 font-size: 13px;
                 color: $theme-dark;
                 &:hover {
@@ -139,9 +145,11 @@ aside {
             }
         }
     }
+
     @media (min-width: 940px) {
         background-color: #0077bb;
         border-color: rgba(white, .3);
+        
         .navbar-header .navbar-brand {
             color: rgba(white, .7);
             &:hover,
@@ -149,16 +157,19 @@ aside {
                 color: white;
             }
         }
+
         .nav > li > a,
         .nav > li > a:focus {
-            color: rgba(white, .7);
+            color: white; // Cambia il colore dei link a bianco
             &:hover {
                 color: white;
             }
         }
+
         &.affix {
             background-color: white;
             border-color: rgba($theme-dark, .5);
+            
             .navbar-header .navbar-brand {
                 color: $theme-primary;
                 font-size: 14px;
@@ -167,6 +178,7 @@ aside {
                     color: darken($theme-primary, 10%);
                 }
             }
+
             .nav > li > a,
             .nav > li > a:focus {
                 color: $theme-dark;
@@ -398,7 +410,6 @@ body {
 .instagram-media{
     min-width:226px !important;
 }
-
 
 .hex-grid {
     margin-top: 50px;

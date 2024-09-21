@@ -105,7 +105,7 @@ aside {
     color: var(--bs-secondary-color);
 }
 @media (min-width: 940px) {
-    .navbar .nav-link{
+    .navbar.affix-top .nav-link{
         color: var(--bs-secondary-color);
     }
 }

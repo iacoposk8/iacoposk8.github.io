@@ -97,6 +97,11 @@ aside {
 
 .nav-link{
     font-weight:bold;
+}
+.navbar.affix-top{
+    color: rgba(white, .7);
+}
+.navbar.affix{
     color: var(--bs-secondary-color);
 }
 
@@ -151,7 +156,7 @@ aside {
         background-color: #0077bb;
         border-color: rgba(white, .3);
         
-        .navbar-header .navbar-brand, .nav-link {
+        .navbar-header .navbar-brand {
             color: rgba(white, .7);
             &:hover,
             &:focus {

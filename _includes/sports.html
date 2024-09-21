@@ -1,4 +1,4 @@
-<section id="sports">
+<!--<section id="sports">
     <div class="container">
         <div class="row">
             <div class="col-lg-8 col-lg-offset-2 text-center mx-auto">
@@ -79,5 +79,134 @@
                 }
             });
         });
+    </script>
+</section>-->
+
+    <style>
+        .medal-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 50px;
+        }
+        .medal-row {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .medal {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 5px solid #FFD700; /* Colore del bordo (oro) */
+            overflow: hidden;
+            margin: 10px;
+            transition: transform 0.5s ease;
+        }
+        .medal img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .medal:hover {
+            transform: scale(1.1); /* Zoom quando si passa sopra */
+        }
+    </style>
+
+<section id="sports">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 text-center mx-auto">
+                <h2 class="section-heading">Sports</h2>
+                <hr class="primary mx-auto">
+            </div>
+        </div>
+
+        <!-- Struttura piramidale delle medaglie -->
+        <div class="medal-container">
+            <!-- Prima riga: 1 immagine -->
+            <div class="medal-row">
+                <div class="medal" id="medal1">
+                    <a href="sports"><img src="" alt="Medal Image 1"></a>
+                </div>
+            </div>
+            <!-- Seconda riga: 2 immagini -->
+            <div class="medal-row">
+                <div class="medal" id="medal2">
+                    <a href="sports"><img src="" alt="Medal Image 2"></a>
+                </div>
+                <div class="medal" id="medal3">
+                    <a href="sports"><img src="" alt="Medal Image 3"></a>
+                </div>
+            </div>
+            <!-- Terza riga: 3 immagini -->
+            <div class="medal-row">
+                <div class="medal" id="medal4">
+                    <a href="sports"><img src="" alt="Medal Image 4"></a>
+                </div>
+                <div class="medal" id="medal5">
+                    <a href="sports"><img src="" alt="Medal Image 5"></a>
+                </div>
+                <div class="medal" id="medal6">
+                    <a href="sports"><img src="" alt="Medal Image 6"></a>
+                </div>
+            </div>
+            <!-- Quarta riga: 2 immagini -->
+            <div class="medal-row">
+                <div class="medal" id="medal7">
+                    <a href="sports"><img src="" alt="Medal Image 7"></a>
+                </div>
+                <div class="medal" id="medal8">
+                    <a href="sports"><img src="" alt="Medal Image 8"></a>
+                </div>
+            </div>
+            <!-- Quinta riga: 1 immagine -->
+            <div class="medal-row">
+                <div class="medal" id="medal9">
+                    <a href="sports"><img src="" alt="Medal Image 9"></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="container text-center sports-action-container">
+            <div class="call-to-action">
+                <a href="/sports" class="btn btn-primary btn-xl wow tada">View details of my sports highlights</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Percorso delle immagini nella cartella
+        const images = [
+            'img/sports/Kayak.jpg',
+            'img/sports/Margherita_thumb.JPG',
+            'img/sports/run5k_thumb.jpg',
+            'img/sports/Skate.jpeg',
+            'img/sports/Windsurf.jpg',
+            'img/sports/Snowboard.png',
+            'img/sports/Volley.png',
+            'img/sports/Skate.png',
+            'img/sports/Calisthenics.jpg',
+        ];
+
+        // Funzione per ottenere immagini casuali senza ripetizioni
+        function getUniqueImages(imageArray, num) {
+            let imagesCopy = [...imageArray];
+            let selectedImages = [];
+            for (let i = 0; i < num; i++) {
+                let randomIndex = Math.floor(Math.random() * imagesCopy.length);
+                selectedImages.push(imagesCopy[randomIndex]);
+                imagesCopy.splice(randomIndex, 1); // Rimuovi l'immagine scelta
+            }
+            return selectedImages;
+        }
+
+        // Assegna immagini uniche a ciascuna medaglia
+        let uniqueImages = getUniqueImages(images, document.querySelectorAll('.medal img').length);
+
+        document.querySelectorAll('.medal img').forEach((img, index) => {
+            img.src = uniqueImages[index];
+        });
+
     </script>
 </section>

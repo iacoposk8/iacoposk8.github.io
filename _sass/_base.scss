@@ -98,10 +98,10 @@ aside {
 .nav-link{
     font-weight:bold;
 }
-.navbar.affix-top{
+.navbar.affix-top .nav-link{
     color: rgba(white, .7);
 }
-.navbar.affix{
+.navbar.affix .nav-link{
     color: var(--bs-secondary-color);
 }
 

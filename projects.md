@@ -17,6 +17,13 @@ This tool creates seamless normal maps from black and white images, converting t
 
 ---
 
+## Public spending in Italy
+See how Italian public spending changes with the government in power. The interactive graph highlights differences in categories such as defense and healthcare as a percentage of GDP.
+
+<a href="/projects/public-spending" class="btn btn-primary btn-xl">Watch it!</a>
+
+---
+
 ## Worldwide Governance Indicators in Italy
 Chart showing the Worldwide Governance Indicators in Italy, to see the performance of the various parties.
 

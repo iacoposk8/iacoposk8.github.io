@@ -1,0 +1,94 @@
+/*background*/
+.cm-s-default .CodeMirror-sizer > div,
+.cm-s-default .CodeMirror-scroll{
+	background: #282923;
+}
+
+/*gutter background*/
+.cm-s-default .CodeMirror-gutters{
+	background: #282923 !important;
+}
+
+/*gutter foreground*/
+.cm-s-default .CodeMirror-linenumber{
+	color: #74705d;
+}
+
+/*comment*/
+.cm-s-default .cm-comment{
+	color: #74705d;
+}
+
+/*variableName*/
+.cm-s-default .cm-variable,
+.cm-s-default .cm-variable-2{
+	color: #f8f8f2;
+}
+
+/*number*/
+.cm-s-default .cm-number{
+	color: #a37df8;
+}
+
+/*bool*/
+.cm-s-default .cm-atom{
+	color: #a37df8;
+}
+
+/*null*/
+.cm-s-default .cm-null{
+	color: #a37df8;
+}
+
+/*keyword*/
+.cm-s-default .cm-keyword{
+	color: #f92472;
+}
+
+/*operator*/
+.cm-s-default .cm-operator{
+	color: #f92472;
+}
+
+/*className*/
+.cm-s-default .cm-def{
+	color: #f8f8f2;
+}
+
+/*type*/
+.cm-s-default .cm-type{
+	color: #f8f8f2;
+}
+
+/*attributeName*/
+.cm-s-default .cm-attribute{
+	color: #f8f8f1;
+}
+
+/*string*/
+.cm-s-default .cm-string, 
+.cm-s-default .cm-string-2{
+	color: #e7db74;
+}
+
+/*brace*/
+.cm-s-default span[role="presentation"]{
+	color: #f8f8f2;
+}
+
+/*const myTheme = createTheme({
+	variant: 'dark',
+	settings: {
+		
+		foreground: '#f8f8f2',
+		caret: '#f8f8f2',
+		selection: '#036dd626',
+		lineHighlight: '#8a91991a',
+	},
+	styles: [
+		{
+			tag: t.definition(t.typeName),
+			color: '#f8f8f2',
+		},
+	],
+});*/

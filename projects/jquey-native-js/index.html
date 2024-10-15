@@ -16,7 +16,7 @@ One of the primary goals of this project is to deepen my understanding of the DO
 
 To avoid conflict problems the base variable will be $$.
 
-<div id="codeEditor">
+<textarea id="codeEditor">
 clss ownJQ {
 	list_or_single(ret){
 		if(ret.length == 1)
@@ -286,11 +286,12 @@ clss ownJQ {
 
 
 const $$ = (q) => new ownJQ(q);
-</div>
+</textarea>
 
 <script>
 	editor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
 		lineNumbers: true,
+		mode: "javascript",
 		theme: "default",
 		lineWrapping: true
 	});

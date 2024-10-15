@@ -3,7 +3,12 @@ layout: default
 title: JQuey in native JS
 ---
 
-# JQuey in native JS
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/codemirror.min.css">
+<link rel="stylesheet" href="../css/editor.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/mode/javascript/javascript.min.js"></script>
+
+<h1>JQuey in native JS</h1>
 
 This project involves creating a custom JavaScript class that replicates some of the key methods of jQuery, focusing on DOM manipulation and event handling. By doing this, I aim to reduce the dependency on external libraries like jQuery, which, while powerful, includes a lot of unnecessary code for modern browsers and projects. This custom class allows for a more lightweight and modular approach, including only the specific methods required for the project, thereby improving both performance and flexibility. Moreover, it offers the advantage of complete control over the functionality, enabling tailored adjustments to fit project-specific needs.
 
@@ -11,7 +16,7 @@ One of the primary goals of this project is to deepen my understanding of the DO
 
 To avoid conflict problems the base variable will be $$.
 
-```
+<div id="codeEditor">
 clss ownJQ {
 	list_or_single(ret){
 		if(ret.length == 1)
@@ -281,4 +286,13 @@ clss ownJQ {
 
 
 const $$ = (q) => new ownJQ(q);
-```
+</div>
+
+<script>
+	editor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
+		lineNumbers: true,
+		mode: "javascript",
+		theme: "default",
+		lineWrapping: true
+	});
+</script>

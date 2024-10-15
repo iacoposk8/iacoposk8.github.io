@@ -3,11 +3,6 @@ layout: default
 title: JQuey in native JS
 ---
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/codemirror.min.css">
-<link rel="stylesheet" href="../../css/editor.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/codemirror.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/mode/javascript/javascript.min.js"></script>
-
 <h1>JQuey in native JS</h1>
 <br />
 <p>
@@ -18,7 +13,7 @@ One of the primary goals of this project is to deepen my understanding of the DO
 To avoid conflict problems the base variable will be $$.
 </p>
 
-<textarea id="codeEditor">
+<textarea class="view_code">
 clss ownJQ {
 	list_or_single(ret){
 		if(ret.length == 1)
@@ -286,16 +281,4 @@ clss ownJQ {
 	}
 }
 
-
-const $$ = (q) => new ownJQ(q);
-</textarea>
-
-<script>
-	editor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
-		lineNumbers: true,
-		mode: "javascript",
-		theme: "default",
-		lineWrapping: true,
-		viewportMargin: Infinity
-	});
-</script>
+const $$ = (q) => new ownJQ(q);</textarea>

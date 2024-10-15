@@ -5,8 +5,7 @@ title: Optimize the functions in javascript
 
 <h1>Optimize the functions in javascript</h1>
 
-If we have the function:<br /><br />
-
+If we have the function:<br />
 <textarea class="view_code">
 function test(a,b){
     return a + b;
@@ -15,8 +14,7 @@ function test(a,b){
 and we launch test(1,2) we will get 3 as a result.<br />
 If this function is for example inside a loop which could execute it again with the exact same parameters (i.e. test(1,2)) always obtaining the same result (3), we will have executed a function uselessly because it has already been launched previously, therefore, using computing power for nothing.<br /><br />
 
-While doing:<br /><br />
-
+While doing:<br />
 <textarea class="view_code">
 var of=new optimizeFunction();
 for(var i=0;i<10;i++)
@@ -24,20 +22,17 @@ for(var i=0;i<10;i++)
 
 we will always have the result 3 but the function will be executed only once and the value stored, at subsequent uses the value in memory will be shown without re-executing the function.<br /><br />
 
-In case we had the function:<br /><br />
-
+In case we had the function:<br />
 <textarea class="view_code">
 function test(a,b){
     return a + b + global_variable;
 }</textarea><br /><br />
 
-we will use the object like this:<br /><br />
-
+we will use the object like this:<br />
 <textarea class="view_code">
 of.exec("test", [1, 2], [global_variable]);</textarea><br /><br />
 
-Here is the code of optimizeFunction<br /><br />
-    
+Here is the code of optimizeFunction<br />
 <textarea class="view_code">
 function optimizeFunction(){
     this.memory={};

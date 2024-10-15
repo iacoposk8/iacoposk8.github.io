@@ -3,6 +3,13 @@ layout: default
 title: Projects
 ---
 
+## Langchain - Semantic Search
+I developed a small piece of code that uses LangChain to perform semantic searches within a file. This enables the extraction of relevant information based on the meaning of words, rather than simple text matches, improving the efficiency of finding specific content.
+
+<a href="/projects/langchain" class="btn btn-primary btn-xl">Search it!</a>
+
+---
+
 ## Random Map Tile Generator
 A Node.js application that randomly generates maps for 2D tile-based games using an XY grid system.
 

@@ -10,8 +10,7 @@ If we have the function:<br /><br />
 <textarea class="view_code">
 function test(a,b){
     return a + b;
-}
-</textarea><br /><br />
+}</textarea><br /><br />
     
 and we launch test(1,2) we will get 3 as a result.<br />
 If this function is for example inside a loop which could execute it again with the exact same parameters (i.e. test(1,2)) always obtaining the same result (3), we will have executed a function uselessly because it has already been launched previously, therefore, using computing power for nothing.<br /><br />
@@ -21,8 +20,7 @@ While doing:<br /><br />
 <textarea class="view_code">
 var of=new optimizeFunction();
 for(var i=0;i<10;i++)
-    console.log(of.exec("test",[1,2]));
-</textarea><br /><br />
+    console.log(of.exec("test",[1,2]));</textarea><br /><br />
 
 we will always have the result 3 but the function will be executed only once and the value stored, at subsequent uses the value in memory will be shown without re-executing the function.<br /><br />
 
@@ -31,14 +29,12 @@ In case we had the function:<br /><br />
 <textarea class="view_code">
 function test(a,b){
     return a + b + global_variable;
-}
-</textarea><br /><br />
+}</textarea><br /><br />
 
 we will use the object like this:<br /><br />
 
 <textarea class="view_code">
-of.exec("test", [1, 2], [global_variable]);
-</textarea><br /><br />
+of.exec("test", [1, 2], [global_variable]);</textarea><br /><br />
 
 Here is the code of optimizeFunction<br /><br />
     
@@ -57,5 +53,4 @@ function optimizeFunction(){
         }
         return self.memory[name];
     }
-}
-</textarea>
+}</textarea>

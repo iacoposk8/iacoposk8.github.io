@@ -136,11 +136,9 @@ This project that I developed in 2014 allows you to calculate the smallest size 
 <a href="/projects/vegetable_garden" class="btn btn-primary btn-xl">Try it!</a>
 
 ## Meet around
-![Logo pc charity](/img/meetaround.png)
+![Logo Meet around](/img/meetaround.png)
 
 With Meet Around, organizing your free time has never been easier. Every user can share their plans for the afternoon, evening, or a specific date, and all their friends or groups of friends can see them. So, when you’re unsure what to do or who to hang out with, just open the app's home screen to see what your friends are up to. Whether it's a drink, a walk, a movie night, or a game evening, Meet Around helps you make sure you never miss a chance to have fun together!
-
----
 
 ---
 

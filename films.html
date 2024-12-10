@@ -31,14 +31,12 @@ title: My favorite movies
 </style>
 
 <div class="container">
-    <div class="row row-cols-1 row-cols-md-4 g-4" id="movie-list">
-        <!-- Le card dei film verranno generate dinamicamente da JavaScript -->
-    </div>
+    <div class="row row-cols-1 row-cols-md-4 g-4" id="drama-list"></div>
 </div>
 
 <script>
     // Array di oggetti film con titolo, immagine e genere
-    const films = [
+    const drama = [
         { title: "American History X", image: "img/films/american-history-x.jpg" },
         { title: "Matrix", image: "img/films/matrix.jpg" },
         { title: "Cast Away", image: "img/films/cast-away.jpg" },
@@ -65,8 +63,8 @@ title: My favorite movies
     ];
 
     // Funzione per generare le card dei film
-    function generateMovieCards() {
-        const movieList = document.getElementById("movie-list");
+    function generateMovieCards(films, id) {
+        const movieList = document.getElementById(id);
         films.forEach((film, index) => {
             // Crea la struttura della card
             const colDiv = document.createElement("div");
@@ -104,5 +102,5 @@ title: My favorite movies
     }
 
     // Chiama la funzione per generare le card dei film
-    generateMovieCards();
+    generateMovieCards(drama, "drama");
 </script>

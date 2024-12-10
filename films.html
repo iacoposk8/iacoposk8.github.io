@@ -31,7 +31,10 @@ title: My favorite movies
 </style>
 
 <div class="container">
+    <h2>Drama</h2>
     <div class="row row-cols-1 row-cols-md-4 g-4" id="drama-list"></div>
+    <h2>Thriller</h2>
+    <div class="row row-cols-1 row-cols-md-4 g-4" id="thriller-list"></div>
 </div>
 
 <script>
@@ -60,6 +63,23 @@ title: My favorite movies
         { title: "Il Sorpasso", image: "img/films/il-sorpasso.jpg" },
         { title: "The Green Mile", image: "img/films/the-green-mile.jpg" },
         { title: "The Truman Show", image: "img/films/the-truman-show.jpg" }
+    ];
+
+    const thriller = [
+        { title: "The Chosen", image: "img/films/the-chosen.jpg" },
+        { title: "Seven", image: "img/films/seven.jpg" },
+        { title: "Shutter Island", image: "img/films/shutter-island.jpg" },
+        { title: "Snowpiercer", image: "img/films/snowpiercer.jpg" },
+        { title: "Oldboy", image: "img/films/oldboy.jpg" },
+        { title: "Inception", image: "img/films/inception.jpg" },
+        { title: "Fight Club", image: "img/films/fight-club.jpg" },
+        { title: "Memento", image: "img/films/memento.jpg" },
+        { title: "The Man in the Labyrinth", image: "img/films/the-man-in-the-labyrinth.jpg" },
+        { title: "The Experiment", image: "img/films/the-experiment.jpg" },
+        { title: "The Killing of a Sacred Deer", image: "img/films/the-killing-of-a-sacred-deer.jpg" },
+        { title: "Hostage", image: "img/films/hostage.jpg" },
+        { title: "The Hole", image: "img/films/the-hole.jpg" },
+        { title: "The Purge", image: "img/films/the-purge.jpg" }
     ];
 
     // Funzione per generare le card dei film
@@ -103,4 +123,5 @@ title: My favorite movies
 
     // Chiama la funzione per generare le card dei film
     generateMovieCards(drama, "drama-list");
+    generateMovieCards(thriller, "thriller-list");
 </script>

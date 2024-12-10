@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista dei Film Preferiti</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 2rem;
+        }
+        .movie-card {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            background-color: #fff;
+        }
+        .movie-img {
+            height: 300px;
+            object-fit: cover;
+        }
+        .movie-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .movie-genre {
+            font-style: italic;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mb-4 text-center">I miei film preferiti</h1>
+        <div class="row row-cols-1 row-cols-md-3 g-4" id="movie-list">
+            <!-- Le card dei film verranno generate dinamicamente da JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        // Array di oggetti film con titolo, immagine e genere
+        const films = [
+            { title: "American History X", image: "https://via.placeholder.com/300x450", genre: "Drammatico, Crime" },
+            { title: "Matrix", image: "https://via.placeholder.com/300x450", genre: "Fantascienza, Azione" },
+            { title: "CAST AWAY", image: "https://via.placeholder.com/300x450", genre: "Drammatico, Avventura" },
+            { title: "The Help", image: "https://via.placeholder.com/300x450", genre: "Drammatico, Storico" },
+            { title: "Dogville", image: "https://via.placeholder.com/300x450", genre: "Drammatico" },
+            { title: "Qualcuno volò sul nido del cuculo", image: "https://via.placeholder.com/300x450", genre: "Drammatico" },
+            { title: "12 Anni Schiavo", image: "https://via.placeholder.com/300x450", genre: "Drammatico, Storico" },
+            { title: "American Beauty (1999)", image: "https://via.placeholder.com/300x450", genre: "Drammatico" },
+            { title: "Arancia Meccanica", image: "https://via.placeholder.com/300x450", genre: "Drammatico, Fantascienza" },
+            { title: "Prima dell'alba-Before Sunrise", image: "https://via.placeholder.com/300x450", genre: "Romantico, Drammatico" },
+            { title: "La venticinquesima ora", image: "https://via.placeholder.com/300x450", genre: "Drammatico, Crime" },
+            { title: "The Wolf of Wall Street", image: "https://via.placeholder.com/300x450", genre: "Commedia, Biografico" },
+            { title: "Il colore viola", image: "https://via.placeholder.com/300x450", genre: "Drammatico" },
+            { title: "Le ali della Libertà", image: "https://via.placeholder.com/300x450", genre: "Drammatico" },
+            { title: "Lei", image: "https://via.placeholder.com/300x450", genre: "Fantascienza, Drammatico" },
+            { title: "Scarface", image: "https://via.placeholder.com/300x450", genre: "Crime, Drammatico" },
+            { title: "Sucker Free City", image: "https://via.placeholder.com/300x450", genre: "Drammatico, Crime" },
+            { title: "Ladri di biciclette", image: "https://via.placeholder.com/300x450", genre: "Drammatico" },
+            { title: "Room", image: "https://via.placeholder.com/300x450", genre: "Drammatico" },
+            { title: "Fa' La Cosa Giusta", image: "https://via.placeholder.com/300x450", genre: "Drammatico, Sociale" },
+            { title: "Il Sorpasso (1962)", image: "https://via.placeholder.com/300x450", genre: "Commedia, Drammatico" },
+            { title: "Il Miglio Verde", image: "https://via.placeholder.com/300x450", genre: "Drammatico, Fantascienza" },
+            { title: "The Truman Show", image: "https://via.placeholder.com/300x450", genre: "Drammatico, Fantascienza" }
+        ];
+
+        // Funzione per generare le card dei film
+        function generateMovieCards() {
+            const movieList = document.getElementById("movie-list");
+            films.forEach((film, index) => {
+                // Crea la struttura della card
+                const colDiv = document.createElement("div");
+                colDiv.classList.add("col");
+
+                const movieCardDiv = document.createElement("div");
+                movieCardDiv.classList.add("movie-card");
+
+                const img = document.createElement("img");
+                img.src = film.image;
+                img.alt = film.title;
+                img.classList.add("card-img-top", "movie-img");
+
+                const cardBodyDiv = document.createElement("div");
+                cardBodyDiv.classList.add("p-3");
+
+                const movieTitle = document.createElement("div");
+                movieTitle.classList.add("movie-title");
+                movieTitle.textContent = `${index + 1}. ${film.title}`;
+
+                const movieGenre = document.createElement("div");
+                movieGenre.classList.add("movie-genre");
+                movieGenre.textContent = film.genre;
+
+                // Aggiungi gli elementi alla card
+                cardBodyDiv.appendChild(movieTitle);
+                cardBodyDiv.appendChild(movieGenre);
+                movieCardDiv.appendChild(img);
+                movieCardDiv.appendChild(cardBodyDiv);
+                colDiv.appendChild(movieCardDiv);
+
+                // Aggiungi la card alla lista
+                movieList.appendChild(colDiv);
+            });
+        }
+
+        // Chiama la funzione per generare le card dei film
+        generateMovieCards();
+    </script>
+</body>
+</html>

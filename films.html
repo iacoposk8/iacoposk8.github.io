@@ -1,112 +1,110 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista dei Film Preferiti</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f8f9fa;
-            padding: 2rem;
-        }
-        .movie-card {
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            border-radius: 10px;
-            overflow: hidden;
-            background-color: #fff;
-        }
-        .movie-img {
-            height: 300px;
-            object-fit: cover;
-        }
-        .movie-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-        .movie-genre {
-            font-style: italic;
-            color: #6c757d;
-        }
-    </style>
+---
+layout: default
+title: My favorite movies
+---
+
+<h1>My favorite movies</h1>
+
+<style>
+    body {
+        background-color: #f8f9fa;
+        padding: 2rem;
+    }
+    .movie-card {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+        overflow: hidden;
+        background-color: #fff;
+    }
+    .movie-img {
+        height: 300px;
+        object-fit: cover;
+    }
+    .movie-title {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+    .movie-genre {
+        font-style: italic;
+        color: #6c757d;
+    }
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1 class="mb-4 text-center">I miei film preferiti</h1>
-        <div class="row row-cols-1 row-cols-md-5 g-4" id="movie-list">
-            <!-- Le card dei film verranno generate dinamicamente da JavaScript -->
-        </div>
+<div class="container">
+    <h1 class="mb-4 text-center">I miei film preferiti</h1>
+    <div class="row row-cols-1 row-cols-md-5 g-4" id="movie-list">
+        <!-- Le card dei film verranno generate dinamicamente da JavaScript -->
     </div>
+</div>
 
-    <script>
-        // Array di oggetti film con titolo, immagine e genere
-        const films = [
-            { title: "American History X", image: "img/films/american-history-x.jpg" },
-            { title: "Matrix", image: "img/films/matrix.jpg" },
-            { title: "Cast Away", image: "img/films/cast-away.jpg" },
-            { title: "The Help", image: "img/films/the-help.jpg" },
-            { title: "Dogville", image: "img/films/dogville.jpg" },
-            { title: "One Flew Over the Cuckoo's Nest", image: "img/films/one-flew-over-the-cuckoo-nest.jpg" },
-            { title: "12 Years a Slave", image: "img/films/12-years-slave.jpg" },
-            { title: "American Beauty", image: "img/films/american-beauty-1999.jpg" },
-            { title: "A Clockwork Orange", image: "img/films/clockwork-orange.jpg" },
-            { title: "Prima dell'alba-Before Sunrise", image: "img/films/prima-dell-alba-before-sunrise.jpg" },
-            { title: "La venticinquesima ora", image: "img/films/la-venticinquesima-ora.jpg" },
-            { title: "The Wolf of Wall Street", image: "img/films/the-wolf-of-wall-street.jpg" },
-            { title: "Il colore viola", image: "img/films/il-colore-viola.jpg" },
-            { title: "Le ali della Libertà", image: "img/films/le-ali-della-liberta.jpg" },
-            { title: "Lei", image: "img/films/lei.jpg" },
-            { title: "Scarface", image: "img/films/scarface.jpg" },
-            { title: "Sucker Free City", image: "img/films/sucker-free-city.jpg" },
-            { title: "Ladri di biciclette", image: "img/films/ladri-di-biciclette.jpg" },
-            { title: "Room", image: "img/films/room.jpg" },
-            { title: "Fa' La Cosa Giusta", image: "img/films/fa-la-cosa-giusta.jpg" },
-            { title: "Il Sorpasso (1962)", image: "img/films/il-sorpasso-1962.jpg" },
-            { title: "Il Miglio Verde", image: "img/films/il-miglio-verde.jpg" },
-            { title: "The Truman Show", image: "img/films/the-truman-show.jpg" }
-        ];
+<script>
+    // Array di oggetti film con titolo, immagine e genere
+    const films = [
+        { title: "American History X", image: "img/films/american-history-x.jpg" },
+        { title: "Matrix", image: "img/films/matrix.jpg" },
+        { title: "Cast Away", image: "img/films/cast-away.jpg" },
+        { title: "The Help", image: "img/films/the-help.jpg" },
+        { title: "Dogville", image: "img/films/dogville.jpg" },
+        { title: "One Flew Over the Cuckoo's Nest", image: "img/films/one-flew-over-the-cuckoo-nest.jpg" },
+        { title: "12 Years a Slave", image: "img/films/12-years-slave.jpg" },
+        { title: "American Beauty", image: "img/films/american-beauty-1999.jpg" },
+        { title: "A Clockwork Orange", image: "img/films/clockwork-orange.jpg" },
+        { title: "Prima dell'alba-Before Sunrise", image: "img/films/prima-dell-alba-before-sunrise.jpg" },
+        { title: "La venticinquesima ora", image: "img/films/la-venticinquesima-ora.jpg" },
+        { title: "The Wolf of Wall Street", image: "img/films/the-wolf-of-wall-street.jpg" },
+        { title: "Il colore viola", image: "img/films/il-colore-viola.jpg" },
+        { title: "Le ali della Libertà", image: "img/films/le-ali-della-liberta.jpg" },
+        { title: "Lei", image: "img/films/lei.jpg" },
+        { title: "Scarface", image: "img/films/scarface.jpg" },
+        { title: "Sucker Free City", image: "img/films/sucker-free-city.jpg" },
+        { title: "Ladri di biciclette", image: "img/films/ladri-di-biciclette.jpg" },
+        { title: "Room", image: "img/films/room.jpg" },
+        { title: "Fa' La Cosa Giusta", image: "img/films/fa-la-cosa-giusta.jpg" },
+        { title: "Il Sorpasso (1962)", image: "img/films/il-sorpasso-1962.jpg" },
+        { title: "Il Miglio Verde", image: "img/films/il-miglio-verde.jpg" },
+        { title: "The Truman Show", image: "img/films/the-truman-show.jpg" }
+    ];
 
-        // Funzione per generare le card dei film
-        function generateMovieCards() {
-            const movieList = document.getElementById("movie-list");
-            films.forEach((film, index) => {
-                // Crea la struttura della card
-                const colDiv = document.createElement("div");
-                colDiv.classList.add("col");
+    // Funzione per generare le card dei film
+    function generateMovieCards() {
+        const movieList = document.getElementById("movie-list");
+        films.forEach((film, index) => {
+            // Crea la struttura della card
+            const colDiv = document.createElement("div");
+            colDiv.classList.add("col");
 
-                const movieCardDiv = document.createElement("div");
-                movieCardDiv.classList.add("movie-card");
+            const movieCardDiv = document.createElement("div");
+            movieCardDiv.classList.add("movie-card");
 
-                const img = document.createElement("img");
-                img.src = film.image;
-                img.alt = film.title;
-                img.classList.add("card-img-top", "movie-img");
+            const img = document.createElement("img");
+            img.src = film.image;
+            img.alt = film.title;
+            img.classList.add("card-img-top", "movie-img");
 
-                const cardBodyDiv = document.createElement("div");
-                cardBodyDiv.classList.add("p-3");
+            const cardBodyDiv = document.createElement("div");
+            cardBodyDiv.classList.add("p-3");
 
-                const movieTitle = document.createElement("div");
-                movieTitle.classList.add("movie-title");
-                movieTitle.textContent = `${index + 1}. ${film.title}`;
+            const movieTitle = document.createElement("div");
+            movieTitle.classList.add("movie-title");
+            movieTitle.textContent = `${index + 1}. ${film.title}`;
 
-                const movieGenre = document.createElement("div");
-                movieGenre.classList.add("movie-genre");
-                movieGenre.textContent = film.genre;
+            const movieGenre = document.createElement("div");
+            movieGenre.classList.add("movie-genre");
+            movieGenre.textContent = film.genre;
 
-                // Aggiungi gli elementi alla card
-                cardBodyDiv.appendChild(movieTitle);
-                cardBodyDiv.appendChild(movieGenre);
-                movieCardDiv.appendChild(img);
-                movieCardDiv.appendChild(cardBodyDiv);
-                colDiv.appendChild(movieCardDiv);
+            // Aggiungi gli elementi alla card
+            cardBodyDiv.appendChild(movieTitle);
+            cardBodyDiv.appendChild(movieGenre);
+            movieCardDiv.appendChild(img);
+            movieCardDiv.appendChild(cardBodyDiv);
+            colDiv.appendChild(movieCardDiv);
 
-                // Aggiungi la card alla lista
-                movieList.appendChild(colDiv);
-            });
-        }
+            // Aggiungi la card alla lista
+            movieList.appendChild(colDiv);
+        });
+    }
 
-        // Chiama la funzione per generare le card dei film
-        generateMovieCards();
-    </script>
-</body>
-</html>
+    // Chiama la funzione per generare le card dei film
+    generateMovieCards();
+</script>

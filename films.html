@@ -39,9 +39,18 @@ title: My favorite movies
     <div class="movie-separator"></div>
     <h2>Drama</h2><br />
     <div class="row row-cols-1 row-cols-md-4 g-4" id="drama-list"></div>
+
     <div class="movie-separator"></div>
     <h2>Thriller</h2><br />
     <div class="row row-cols-1 row-cols-md-4 g-4" id="thriller-list"></div>
+
+    <div class="movie-separator"></div>
+    <h2>Action</h2><br />
+    <div class="row row-cols-1 row-cols-md-4 g-4" id="action-list"></div>
+
+    <div class="movie-separator"></div>
+    <h2>Comedy</h2><br />
+    <div class="row row-cols-1 row-cols-md-4 g-4" id="comedy-list"></div>
 </div>
 
 <script>
@@ -89,6 +98,26 @@ title: My favorite movies
         { title: "The Purge", image: "img/films/the-purge.jpg" }
     ];
 
+    const action = [
+        { title: "300", image: "img/films/300.jpg" },
+        { title: "The Batman 2022", image: "img/films/the-batman-2022.jpg" },
+        { title: "The Warriors", image: "img/films/the-warriors.jpg" },
+        { title: "The Hunger Games", image: "img/films/the-hunger-games.jpg" },
+        { title: "Django Unchained", image: "img/films/django-unchained.jpg" },
+        { title: "Inglourious Basterds", image: "img/films/inglourious-basterds.jpg" },
+        { title: "I Am Legend", image: "img/films/i-am-legend.jpg" }
+    ];
+
+    const comedy = [
+        { title: "The Intouchables", image: "img/films/the-intouchables.jpg" },
+        { title: "I Hate Summer", image: "img/films/i-hate-summer.jpg" },
+        { title: "Lord of the Gags", image: "img/films/lord-of-the-gags.jpg" },
+        { title: "Tel Chi el Telun", image: "img/films/tel-chi-el-telun.jpg" },
+        { title: "What a Beautiful Day", image: "img/films/what-a-beautiful-day.jpg" },
+        { title: "Tenacious D in The Pick of Destiny", image: "img/films/tenacious-d-in-the-pick-of-destiny.jpg" },
+        { title: "Click", image: "img/films/click.jpg" }
+    ];
+
     // Funzione per generare le card dei film
     function generateMovieCards(films, id) {
         const movieList = document.getElementById(id);
@@ -131,4 +160,6 @@ title: My favorite movies
     // Chiama la funzione per generare le card dei film
     generateMovieCards(drama, "drama-list");
     generateMovieCards(thriller, "thriller-list");
+    generateMovieCards(action, "action-list");
+    generateMovieCards(comedy, "comedy-list");
 </script>

@@ -39,6 +39,7 @@ title: My favorite movies
         <li><a href="#thriller">Thriller</a></li>
         <li><a href="#action">Action</a></li>
         <li><a href="#comedy">Comedy</a></li>
+        <li><a href="#biopic">Biopic</a></li>
     </ul>
     
     <div class="movie-separator"></div>
@@ -56,6 +57,10 @@ title: My favorite movies
     <div class="movie-separator"></div>
     <h2>Comedy</h2><br />
     <div class="row row-cols-1 row-cols-md-4 g-4" id="comedy-list"></div>
+
+    <div class="movie-separator"></div>
+    <h2>Biopic</h2><br />
+    <div class="row row-cols-1 row-cols-md-4 g-4" id="biopic-list"></div>
 </div>
 
 <script>
@@ -123,6 +128,14 @@ title: My favorite movies
         { title: "Click", image: "img/films/click.jpg" }
     ];
 
+    const biopic = [
+        { title: "Get Rich or Die Tryin'", image: "img/films/get-rich-or-die-tryin.jpg" },
+        { title: "Straight Outta Compton", image: "img/films/straight-outta-compton.jpg" },
+        { title: "The End Is My Beginning", image: "img/films/the-end-is-my-beginning.jpg" },
+        { title: "The Zookeeper's Wife", image: "img/films/the-zookeepers-wife.jpg" },
+        { title: "Hachiko: A Dog's Story", image: "img/films/hachiko-a-dogs-story.jpg" }
+    ];
+
     // Funzione per generare le card dei film
     function generateMovieCards(films, id) {
         const movieList = document.getElementById(id);
@@ -167,4 +180,5 @@ title: My favorite movies
     generateMovieCards(thriller, "thriller-list");
     generateMovieCards(action, "action-list");
     generateMovieCards(comedy, "comedy-list");
+    generateMovieCards(biopic, "biopic-list");
 </script>

@@ -130,11 +130,12 @@ title: My Favorites
 
         favorites_elem.innerHTML += `
             <div class="favorite-separator"></div>
+            <a name="`+id+`"></a>
             <h2>`+capitalizeFirstLetter(id)+`</h2><br />
             <div class="row row-cols-1 row-cols-md-4 g-4" id="`+id+`-list"></div>
         `;
 
-        menu_elem.innerHTML += '<li><a href="#'+category+'">'+capitalizeFirstLetter(category)+'</a></li>';
+        menu_elem.innerHTML += '<li><a href="#'+id+'">'+capitalizeFirstLetter(id)+'</a></li>';
         
         const favoriteList = document.getElementById(id + '-list');
         

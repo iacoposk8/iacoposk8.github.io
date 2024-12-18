@@ -174,7 +174,7 @@ title: My Favorites
         `;
 
         var menu_elem = document.getElementById('menu-' + category);
-        if (!element) {
+        if (!menu_elem) {
             macromenu_elem.innerHTML += '<li>'+capitalizeFirstLetter(category)+'<ul id="menu-'+category+'"></ul></li>';
             menu_elem = document.getElementById('menu-' + category);
         }

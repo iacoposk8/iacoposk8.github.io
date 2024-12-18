@@ -120,13 +120,18 @@ title: My favorite movies
         ]
     };
 
+    function capitalizeFirstLetter(str) {
+        if (!str) return ''; // Gestisce il caso di stringa vuota o null
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
     // Funzione per generare le card dei film
     function generateMovieCards(films, id) {
         const favorites = document.getElementById('favorites');
 
         favorites.innerHTML += `
             <div class="movie-separator"></div>
-            <h2>`+id+`</h2><br />
+            <h2>`+capitalizeFirstLetter(id)+`</h2><br />
             <div class="row row-cols-1 row-cols-md-4 g-4" id="`+id+`-list"></div>
         `;
         

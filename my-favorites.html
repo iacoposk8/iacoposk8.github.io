@@ -146,7 +146,7 @@ title: My Favorites
         const category = info[0];
         const id = info[1];
         const favorites_elem = document.getElementById('favorites');
-        const menu_elem = document.getElementById('menu-movie');
+        const menu_elem = document.getElementById('menu-' + category);
 
         favorites_elem.innerHTML += `
             <div class="favorite-separator"></div>

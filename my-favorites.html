@@ -162,9 +162,12 @@ title: My Favorites
     function generateCards(favorites, info) {
         info = info.split("-");
         const category = info[0];
-        const id = info[1];
+        var id = info[1];
         const favorites_elem = document.getElementById('favorites');
         const macromenu_elem = document.getElementById('favorites-menu');
+
+        if(id == "all")
+            id = category;
 
         favorites_elem.innerHTML += `
             <div class="favorite-separator"></div>

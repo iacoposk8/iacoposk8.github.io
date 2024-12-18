@@ -41,110 +41,97 @@ title: My favorite movies
         <li><a href="#comedy">Comedy</a></li>
         <li><a href="#biopic">Biopic</a></li>
     </ul>
-    
-    <div class="movie-separator"></div>
-    <h2>Drama</h2><br />
-    <div class="row row-cols-1 row-cols-md-4 g-4" id="drama-list"></div>
 
-    <div class="movie-separator"></div>
-    <h2>Thriller</h2><br />
-    <div class="row row-cols-1 row-cols-md-4 g-4" id="thriller-list"></div>
-
-    <div class="movie-separator"></div>
-    <h2>Action</h2><br />
-    <div class="row row-cols-1 row-cols-md-4 g-4" id="action-list"></div>
-
-    <div class="movie-separator"></div>
-    <h2>Comedy</h2><br />
-    <div class="row row-cols-1 row-cols-md-4 g-4" id="comedy-list"></div>
-
-    <div class="movie-separator"></div>
-    <h2>Biopic</h2><br />
-    <div class="row row-cols-1 row-cols-md-4 g-4" id="biopic-list"></div>
+    <div id="favorites"></div>
 </div>
 
 <script>
-    // Array di oggetti film con titolo, immagine e genere
-    const drama = [
-        { title: "American History X", image: "img/films/american-history-x.jpg" },
-        { title: "Matrix", image: "img/films/matrix.jpg" },
-        { title: "Cast Away", image: "img/films/cast-away.jpg" },
-        { title: "The Help", image: "img/films/the-help.jpg" },
-        { title: "Dogville", image: "img/films/dogville.jpg" },
-        { title: "One Flew Over the Cuckoo's Nest", image: "img/films/one-flew-over-the-cuckoo-nest.jpg" },
-        { title: "12 Years a Slave", image: "img/films/12-years-slave.jpg" },
-        { title: "American Beauty", image: "img/films/american-beauty.jpg" },
-        { title: "A Clockwork Orange", image: "img/films/clockwork-orange.jpg" },
-        { title: "Before Sunrise", image: "img/films/before-sunrise.jpg" },
-        { title: "25th Hour", image: "img/films/25th-hour.jpg" },
-        { title: "The Wolf of Wall Street", image: "img/films/the-wolf-of-wall-street.jpg" },
-        { title: "The Color Purple", image: "img/films/the-color-purple.jpg" },
-        { title: "The Shawshank Redemption", image: "img/films/the-hawshank-redemption.jpg" },
-        { title: "Her", image: "img/films/her.jpg" },
-        { title: "Scarface", image: "img/films/scarface.jpg" },
-        { title: "Sucker Free City", image: "img/films/sucker-free-city.jpg" },
-        { title: "Ladri di biciclette", image: "img/films/ladri-di-biciclette.jpg" },
-        { title: "Room", image: "img/films/room.jpg" },
-        { title: "Do the Right Thing", image: "img/films/do-the-right-thing.jpg" },
-        { title: "Il Sorpasso", image: "img/films/il-sorpasso.jpg" },
-        { title: "The Green Mile", image: "img/films/the-green-mile.jpg" },
-        { title: "The Truman Show", image: "img/films/the-truman-show.jpg" },
-        { title: "Sleepers", image: "img/films/sleepers.jpg" }
-    ];
-
-    const thriller = [
-        { title: "The Wicker Man", image: "img/films/the-wicker-man.jpg" },
-        { title: "Seven", image: "img/films/seven.jpg" },
-        { title: "Shutter Island", image: "img/films/shutter-island.jpg" },
-        { title: "Snowpiercer", image: "img/films/snowpiercer.jpg" },
-        { title: "Oldboy", image: "img/films/oldboy.jpg" },
-        { title: "Inception", image: "img/films/inception.jpg" },
-        { title: "Fight Club", image: "img/films/fight-club.jpg" },
-        { title: "Memento", image: "img/films/memento.jpg" },
-        { title: "Into the Labyrinth", image: "img/films/into-the-labyrinth.jpg" },
-        { title: "The Experiment", image: "img/films/the-experiment.jpg" },
-        { title: "The Killing of a Sacred Deer", image: "img/films/the-killing-of-a-sacred-deer.jpg" },
-        { title: "Hostage", image: "img/films/hostage.jpg" },
-        { title: "El Hoyo.jpg", image: "img/films/el-hoyo.jpg" },
-        { title: "The Purge", image: "img/films/the-purge.jpg" }
-    ];
-
-    const action = [
-        { title: "300", image: "img/films/300.jpg" },
-        { title: "The Batman 2022", image: "img/films/the-batman-2022.jpg" },
-        { title: "The Warriors", image: "img/films/the-warriors.jpg" },
-        { title: "The Hunger Games", image: "img/films/the-hunger-games.jpg" },
-        { title: "Django Unchained", image: "img/films/django-unchained.jpg" },
-        { title: "Inglourious Basterds", image: "img/films/inglourious-basterds.jpg" },
-        { title: "I Am Legend", image: "img/films/i-am-legend.jpg" }
-    ];
-
-    const comedy = [
-        { title: "The Intouchables", image: "img/films/the-intouchables.jpg" },
-        { title: "Odio l'estate", image: "img/films/odio-estate.jpg" },
-        { title: "Svarione degli anelli ", image: "img/films/svarione-degli-anelli.jpg" },
-        { title: "Tel Chi el Telun", image: "img/films/tel-chi-el-telun.jpg" },
-        { title: "Cado dalle nubi", image: "img/films/cado-dalle-nubi.jpg" },
-        { title: "Tenacious D in The Pick of Destiny", image: "img/films/tenacious-d-in-the-pick-of-destiny.jpg" },
-        { title: "Click", image: "img/films/click.jpg" }
-    ];
-
-    const biopic = [
-        { title: "Get Rich or Die Tryin'", image: "img/films/get-rich-or-die-tryin.jpg" },
-        { title: "Straight Outta Compton", image: "img/films/straight-outta-compton.jpg" },
-        { title: "The End Is My Beginning", image: "img/films/the-end-is-my-beginning.jpg" },
-        { title: "The Zookeeper's Wife", image: "img/films/the-zookeepers-wife.jpg" },
-        { title: "Hachiko: A Dog's Story", image: "img/films/hachiko-a-dogs-story.jpg" }
-    ];
-
-    const sports = [
-        { title: "He Got Game", image: "img/films/he-got-game.jpg" },
-        { title: "White Men Can't Jump", image: "img/films/white-men-cant-jump.jpg" }
-    ];
+    const favorites = {
+        "drama": [
+            { title: "American History X", image: "img/films/american-history-x.jpg" },
+            { title: "Matrix", image: "img/films/matrix.jpg" },
+            { title: "Cast Away", image: "img/films/cast-away.jpg" },
+            { title: "The Help", image: "img/films/the-help.jpg" },
+            { title: "Dogville", image: "img/films/dogville.jpg" },
+            { title: "One Flew Over the Cuckoo's Nest", image: "img/films/one-flew-over-the-cuckoo-nest.jpg" },
+            { title: "12 Years a Slave", image: "img/films/12-years-slave.jpg" },
+            { title: "American Beauty", image: "img/films/american-beauty.jpg" },
+            { title: "A Clockwork Orange", image: "img/films/clockwork-orange.jpg" },
+            { title: "Before Sunrise", image: "img/films/before-sunrise.jpg" },
+            { title: "25th Hour", image: "img/films/25th-hour.jpg" },
+            { title: "The Wolf of Wall Street", image: "img/films/the-wolf-of-wall-street.jpg" },
+            { title: "The Color Purple", image: "img/films/the-color-purple.jpg" },
+            { title: "The Shawshank Redemption", image: "img/films/the-hawshank-redemption.jpg" },
+            { title: "Her", image: "img/films/her.jpg" },
+            { title: "Scarface", image: "img/films/scarface.jpg" },
+            { title: "Sucker Free City", image: "img/films/sucker-free-city.jpg" },
+            { title: "Ladri di biciclette", image: "img/films/ladri-di-biciclette.jpg" },
+            { title: "Room", image: "img/films/room.jpg" },
+            { title: "Do the Right Thing", image: "img/films/do-the-right-thing.jpg" },
+            { title: "Il Sorpasso", image: "img/films/il-sorpasso.jpg" },
+            { title: "The Green Mile", image: "img/films/the-green-mile.jpg" },
+            { title: "The Truman Show", image: "img/films/the-truman-show.jpg" },
+            { title: "Sleepers", image: "img/films/sleepers.jpg" }
+        ],
+        "thriller": [
+            { title: "The Wicker Man", image: "img/films/the-wicker-man.jpg" },
+            { title: "Seven", image: "img/films/seven.jpg" },
+            { title: "Shutter Island", image: "img/films/shutter-island.jpg" },
+            { title: "Snowpiercer", image: "img/films/snowpiercer.jpg" },
+            { title: "Oldboy", image: "img/films/oldboy.jpg" },
+            { title: "Inception", image: "img/films/inception.jpg" },
+            { title: "Fight Club", image: "img/films/fight-club.jpg" },
+            { title: "Memento", image: "img/films/memento.jpg" },
+            { title: "Into the Labyrinth", image: "img/films/into-the-labyrinth.jpg" },
+            { title: "The Experiment", image: "img/films/the-experiment.jpg" },
+            { title: "The Killing of a Sacred Deer", image: "img/films/the-killing-of-a-sacred-deer.jpg" },
+            { title: "Hostage", image: "img/films/hostage.jpg" },
+            { title: "El Hoyo.jpg", image: "img/films/el-hoyo.jpg" },
+            { title: "The Purge", image: "img/films/the-purge.jpg" }
+        ],
+        "action": [
+            { title: "300", image: "img/films/300.jpg" },
+            { title: "The Batman 2022", image: "img/films/the-batman-2022.jpg" },
+            { title: "The Warriors", image: "img/films/the-warriors.jpg" },
+            { title: "The Hunger Games", image: "img/films/the-hunger-games.jpg" },
+            { title: "Django Unchained", image: "img/films/django-unchained.jpg" },
+            { title: "Inglourious Basterds", image: "img/films/inglourious-basterds.jpg" },
+            { title: "I Am Legend", image: "img/films/i-am-legend.jpg" }
+        ];
+        "comedy": [
+            { title: "The Intouchables", image: "img/films/the-intouchables.jpg" },
+            { title: "Odio l'estate", image: "img/films/odio-estate.jpg" },
+            { title: "Svarione degli anelli ", image: "img/films/svarione-degli-anelli.jpg" },
+            { title: "Tel Chi el Telun", image: "img/films/tel-chi-el-telun.jpg" },
+            { title: "Cado dalle nubi", image: "img/films/cado-dalle-nubi.jpg" },
+            { title: "Tenacious D in The Pick of Destiny", image: "img/films/tenacious-d-in-the-pick-of-destiny.jpg" },
+            { title: "Click", image: "img/films/click.jpg" }
+        ],
+        "biopic": [
+            { title: "Get Rich or Die Tryin'", image: "img/films/get-rich-or-die-tryin.jpg" },
+            { title: "Straight Outta Compton", image: "img/films/straight-outta-compton.jpg" },
+            { title: "The End Is My Beginning", image: "img/films/the-end-is-my-beginning.jpg" },
+            { title: "The Zookeeper's Wife", image: "img/films/the-zookeepers-wife.jpg" },
+            { title: "Hachiko: A Dog's Story", image: "img/films/hachiko-a-dogs-story.jpg" }
+        ],  
+        "sports": [
+            { title: "He Got Game", image: "img/films/he-got-game.jpg" },
+            { title: "White Men Can't Jump", image: "img/films/white-men-cant-jump.jpg" }
+        ]
+    }:
 
     // Funzione per generare le card dei film
     function generateMovieCards(films, id) {
-        const movieList = document.getElementById(id);
+        const favorites = document.getElementById('favorites');
+
+        favorites.innerHTML += `
+            <div class="movie-separator"></div>
+            <h2>`+id+`</h2><br />
+            <div class="row row-cols-1 row-cols-md-4 g-4" id="`+id+`-list"></div>
+        `;
+        
+        const movieList = document.getElementById(id + 'list');
+        
         films.forEach((film, index) => {
             // Crea la struttura della card
             const colDiv = document.createElement("div");
@@ -181,10 +168,7 @@ title: My favorite movies
         });
     }
 
-    // Chiama la funzione per generare le card dei film
-    generateMovieCards(drama, "drama-list");
-    generateMovieCards(thriller, "thriller-list");
-    generateMovieCards(action, "action-list");
-    generateMovieCards(comedy, "comedy-list");
-    generateMovieCards(biopic, "biopic-list");
+    for(i in favorites){
+        generateMovieCards(favorites[i], i);
+    }
 </script>

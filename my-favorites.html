@@ -178,7 +178,10 @@ title: My Favorites
 
         var menu_elem = document.getElementById('menu-' + category);
         if (!menu_elem) {
-            macromenu_elem.innerHTML += '<li>'+capitalizeFirstLetter(category)+'<ul id="menu-'+category+'"></ul></li>';
+            if(id != category)
+                macromenu_elem.innerHTML += '<li>'+capitalizeFirstLetter(category)+'<ul id="menu-'+category+'"></ul></li>';
+            else
+                macromenu_elem.innerHTML += '<li id="menu-'+category+'"></li>';
             menu_elem = document.getElementById('menu-' + category);
         }
 

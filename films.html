@@ -126,12 +126,15 @@ title: My Favorites
         const category = info[0];
         const id = info[1];
         const favorites_elem = document.getElementById('favorites');
+        const menu_elem = document.getElementById('menu-movie');
 
         favorites_elem.innerHTML += `
             <div class="favorite-separator"></div>
             <h2>`+capitalizeFirstLetter(id)+`</h2><br />
             <div class="row row-cols-1 row-cols-md-4 g-4" id="`+id+`-list"></div>
         `;
+
+        menu_elem.innerHTML += '<li><a href="#'+category+'">'+capitalizeFirstLetter(category)+'</a></li>';
         
         const favoriteList = document.getElementById(id + '-list');
         

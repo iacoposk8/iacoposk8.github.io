@@ -1,34 +1,34 @@
 ---
 layout: default
-title: My favorite movies
+title: My Favorites
 ---
 
-<h1>My favorite movies</h1>
+<h1>My Favorites</h1>
 
 <style>
     body {
         background-color: #f8f9fa;
         padding: 2rem;
     }
-    .movie-card {
+    .favorite-card {
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         border-radius: 10px;
         overflow: hidden;
         background-color: #fff;
     }
-    .movie-img {
+    .favorite-img {
         height: 300px;
         object-fit: cover;
     }
-    .movie-title {
+    .favorite-title {
         font-size: 1.5rem;
         font-weight: bold;
     }
-    .movie-genre {
+    .favorite-genre {
         font-style: italic;
         color: #6c757d;
     }
-    .movie-separator{
+    .favorite-separator{
         height:200px;
     }
 </style>
@@ -126,54 +126,54 @@ title: My favorite movies
     }
 
     // Funzione per generare le card dei film
-    function generateMovieCards(films, id) {
+    function generateCards(films, id) {
         const favorites = document.getElementById('favorites');
 
         favorites.innerHTML += `
-            <div class="movie-separator"></div>
+            <div class="favorite-separator"></div>
             <h2>`+capitalizeFirstLetter(id)+`</h2><br />
             <div class="row row-cols-1 row-cols-md-4 g-4" id="`+id+`-list"></div>
         `;
         
-        const movieList = document.getElementById(id + '-list');
+        const favoriteList = document.getElementById(id + '-list');
         
         films.forEach((film, index) => {
             // Crea la struttura della card
             const colDiv = document.createElement("div");
             colDiv.classList.add("col");
 
-            const movieCardDiv = document.createElement("div");
-            movieCardDiv.classList.add("movie-card");
+            const favoriteCardDiv = document.createElement("div");
+            favoriteCardDiv.classList.add("favorite-card");
 
             const img = document.createElement("img");
             img.src = film.image;
             img.alt = film.title;
-            img.classList.add("card-img-top", "movie-img");
+            img.classList.add("card-img-top", "favorite-img");
 
             const cardBodyDiv = document.createElement("div");
             cardBodyDiv.classList.add("p-3");
 
-            const movieTitle = document.createElement("div");
-            movieTitle.classList.add("movie-title");
-            movieTitle.textContent = `${index + 1}. ${film.title}`;
+            const favoriteTitle = document.createElement("div");
+            favoriteTitle.classList.add("favorite-title");
+            favoriteTitle.textContent = `${index + 1}. ${film.title}`;
 
-            const movieGenre = document.createElement("div");
-            movieGenre.classList.add("movie-genre");
-            movieGenre.textContent = film.genre;
+            const favoriteGenre = document.createElement("div");
+            favoriteGenre.classList.add("favorite-genre");
+            favoriteGenre.textContent = film.genre;
 
             // Aggiungi gli elementi alla card
-            cardBodyDiv.appendChild(movieTitle);
-            cardBodyDiv.appendChild(movieGenre);
-            movieCardDiv.appendChild(img);
-            movieCardDiv.appendChild(cardBodyDiv);
-            colDiv.appendChild(movieCardDiv);
+            cardBodyDiv.appendChild(favoriteTitle);
+            cardBodyDiv.appendChild(favoriteGenre);
+            favoriteCardDiv.appendChild(img);
+            favoriteCardDiv.appendChild(cardBodyDiv);
+            colDiv.appendChild(favoriteCardDiv);
 
             // Aggiungi la card alla lista
-            movieList.appendChild(colDiv);
+            favoriteList.appendChild(colDiv);
         });
     }
 
     for(i in favorites){
-        generateMovieCards(favorites[i], i);
+        generateCards(favorites[i], i);
     }
 </script>

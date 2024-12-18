@@ -34,11 +34,7 @@ title: My Favorites
 </style>
 
 <div class="container">
-    <ul>
-        <li>Movies<ul id="menu-movie"></ul></li>
-        <li>TV shows<ul id="menu-tv"></ul></li>
-    </ul>
-
+    <ul id="favorites-menu"></ul>
     <div id="favorites"></div>
 </div>
 
@@ -134,7 +130,7 @@ title: My Favorites
             { title: "Silicon Valley", image: "img/tv/silicon-valley.jpg" },
             { title: "This Is Us", image: "img/tv/this-is-us.jpg" },
         ],
-        "books-all-books": [
+        "books-all": [
             { title: "La Trappola della Felicità", image: "img/books/la-trappola-della-felicita.jpg" },
             { title: "L'Arte di Non Amareggiarsi la Vita", image: "img/books/larte-di-non-amareggiarsi-la-vita.jpg" },
             { title: "Diventa Ciò Che Sei", image: "img/books/diventa-cio-che-sei.jpg" },
@@ -149,6 +145,12 @@ title: My Favorites
             { title: "Pensa Come un Monaco", image: "img/books/pensa-come-un-monaco.jpg" },
             { title: "Istruzioni per Rendersi Infelici", image: "img/books/istruzioni-per-rendersi-infelici.jpg" },
             { title: "Quiet", image: "img/books/quiet.jpg" }
+        ],
+        "comics-all": [
+            { title: "Dragon Ball", image: "img/books/dragon-ball.jpg" },
+            { title: "Berserk", image: "img/books/berserk.jpg" },
+            { title: "Storie Zen a Fumetti", image: "img/books/storie-zen-a-fumetti.jpg" },
+            { title: "Dice lo Zen", image: "img/books/dice-lo-zen.jpg" }
         ]
     };
 
@@ -162,7 +164,7 @@ title: My Favorites
         const category = info[0];
         const id = info[1];
         const favorites_elem = document.getElementById('favorites');
-        const menu_elem = document.getElementById('menu-' + category);
+        const macromenu_elem = document.getElementById('favorites-menu');
 
         favorites_elem.innerHTML += `
             <div class="favorite-separator"></div>
@@ -170,6 +172,12 @@ title: My Favorites
             <h2>`+capitalizeFirstLetter(id)+`</h2><br />
             <div class="row row-cols-1 row-cols-md-4 g-4" id="`+id+`-list"></div>
         `;
+
+        var menu_elem = document.getElementById('menu-' + category);
+        if (!element) {
+            macromenu_elem.innerHTML += '<li>'+capitalizeFirstLetter(category)+'<ul id="menu-'+category+'"></ul></li>';
+            menu_elem = document.getElementById('menu-' + category);
+        }
 
         menu_elem.innerHTML += '<li><a href="#'+id+'">'+capitalizeFirstLetter(id)+'</a></li>';
         

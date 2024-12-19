@@ -269,6 +269,11 @@ title: My Favorites
             const cardBodyDiv = document.createElement("div");
             cardBodyDiv.classList.add("p-3");
 
+            if "english_title" in favorite:
+                favorite.title = favorite.english_title + " - "+favorite.author+" (Italian title: "+favorite.title+")"
+            else if "author" in favorite:
+                favorite.title = favorite.title + " - "+favorite.author
+
             const favoriteTitle = document.createElement("div");
             favoriteTitle.classList.add("favorite-title");
             favoriteTitle.textContent = `${index + 1}. ${favorite.title}`;

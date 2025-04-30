@@ -136,14 +136,14 @@ This project that I developed in 2014 allows you to calculate the smallest size 
 <a href="/projects/vegetable_garden" class="btn btn-primary btn-xl">Try it!</a>
 
 ## Meet around
-![Logo Meet around](/img/meetaround.png)
+![Logo Meet around](/img/meetaround.webp)
 
 With Meet Around, organizing your free time has never been easier. Every user can share their plans for the afternoon, evening, or a specific date, and all their friends or groups of friends can see them. So, when you’re unsure what to do or who to hang out with, just open the app's home screen to see what your friends are up to. Whether it's a drink, a walk, a movie night, or a game evening, Meet Around helps you make sure you never miss a chance to have fun together!
 
 ---
 
 ## Pc charity
-![Logo pc charity](/img/charity.png)
+![Logo pc charity](/img/charity.webp)
 
 Pc charity is software that is used to do charity with the computer.
 It sounds too good to be true but that's it, is free and does not ask working hours, just turn on your computer Pc charity starts and taking advantage of the unused power of your computer generates money that will be donated to charity.
@@ -151,7 +151,7 @@ It sounds too good to be true but that's it, is free and does not ask working ho
 ---
 
 ## Fare rap
-![Logo fare rap](/img/farerap.png)
+![Logo fare rap](/img/farerap.webp)
 
 Fare rap is a portal in Italian of rap and hip hop, which specializes in finding mc's and emerging producers.
 The site is several years that is online and has become increasingly important by the work of great bloggers who have become part of the team.
@@ -162,7 +162,7 @@ There are several services in addition to the blog, there is a forum, chat for f
 ---
 
 ## Joomla extension
-![Logo html tool](/img/logo_html_tool.png)
+![Logo html tool](/img/logo_html_tool.webp)
 
 In the-html-tool.com my old site, as well as various projects, I introduced the extensions of joomla.
 Working as a web developer, every now we needed extensions that do not exist, in that case the development and share them.

@@ -4,10 +4,12 @@
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-    
-      gtag('config', 'G-8G10DKQ6J6');
+      window.addEventListener('load', function () {
+        gtag('js', new Date());
+        gtag('config', 'G-8G10DKQ6J6');
+      });
     </script>
+
     <link rel="sitemap" type="application/xml" title="Sitemap" href="https://iacoposk8.github.io/sitemap.xml" />
     
     <meta charset="utf-8">
@@ -54,11 +56,14 @@
 
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/codemirror.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="../../css/editor.css"></noscript>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/codemirror.min.js" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/mode/javascript/javascript.min.js" defer></script>
+
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             document.querySelectorAll('.view_code').forEach((element) => {
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/codemirror.min.js';
+                document.head.appendChild(script);
+                
                 CodeMirror.fromTextArea(element, {
                     lineNumbers: true,
                     mode: "javascript",

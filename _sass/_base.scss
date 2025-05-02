@@ -446,20 +446,26 @@ body {
 .blue-icon {
   filter: invert(34%) sepia(100%) saturate(900%) hue-rotate(185deg) brightness(94%) contrast(101%);
 }
+
 .icon-animation {
-  animation: fadeInUp01 1s ease forwards;
-  animation-delay: 0.1s;
+  animation: popupIn 0.6s ease-out forwards;
+  animation-delay: 0.1s; /* equivalente a data-wow-delay=".1s" */
   opacity: 0;
 }
 
-/* Esempio animazione */
-@keyframes fadeInUp01 {
-  from {
+@keyframes popupIn {
+  0% {
     opacity: 0;
-    transform: translateY(20px);
+    transform: scale(0.8);
   }
-  to {
+  60% {
     opacity: 1;
-    transform: translateY(0);
+    transform: scale(1.05);
+  }
+  80% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
   }
 }

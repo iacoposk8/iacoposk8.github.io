@@ -446,3 +446,20 @@ body {
 .blue-icon {
   filter: invert(34%) sepia(100%) saturate(900%) hue-rotate(185deg) brightness(94%) contrast(101%);
 }
+.icon-animation {
+  animation: fadeInUp01 1s ease forwards;
+  animation-delay: 0.1s;
+  opacity: 0;
+}
+
+/* Esempio animazione */
+@keyframes fadeInUp01 {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

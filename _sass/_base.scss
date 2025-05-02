@@ -449,6 +449,7 @@ body {
 
 .popup-animation.animated {
   animation: popupIn 0.6s ease-out forwards;
+  animation-delay: 0.3s;
 }
 
 @keyframes popupIn {

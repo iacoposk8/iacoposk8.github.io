@@ -35,16 +35,16 @@
     <script>
         // Percorso delle immagini nella cartella
         const images = [
-            'img/sports/Kayak.webp',
-            'img/sports/Margherita_thumb.webp',
-            'img/sports/run5k_thumb.webp',
-            'img/sports/Skateboard.webp',
-            'img/sports/Windsurf.webp',
-            'img/sports/Snowboard.webp',
-            'img/sports/Volley.webp',
-            'img/sports/Skate.webp',
-            'img/sports/Calisthenics.webp',
-            'img/sports/Climbing.webp',
+            ['img/sports/Kayak.webp', 512, 512],
+            ['img/sports/Margherita_thumb.webp', 512, 512],
+            ['img/sports/run5k_thumb.webp', 512, 512],
+            ['img/sports/Skateboard.webp', 512, 512],
+            ['img/sports/Windsurf.webp', 512, 512],
+            ['img/sports/Snowboard.webp', 512, 512],
+            ['img/sports/Volley.webp', 512, 512],
+            ['img/sports/Skate.webp', 512, 512],
+            ['img/sports/Calisthenics.webp', 512, 512],
+            ['img/sports/Climbing.webp', 512, 512],
         ];
 
         // Funzione per ottenere immagini casuali senza ripetizioni
@@ -63,7 +63,9 @@
         let uniqueImages = getUniqueImages(images, document.querySelectorAll('.hex img').length);
         
         document.querySelectorAll('.hex img').forEach((img, index) => {
-            img.src = uniqueImages[index];
+            img.src = uniqueImages[index][0];
+            img.width = uniqueImages[index][1];
+            img.height = uniqueImages[index][2];
             // Aggiungi un event listener per reindirizzare alla sezione "sports" quando l'immagine viene cliccata
             img.parentElement.addEventListener('click', function() {
                 window.location.href = "/sports";

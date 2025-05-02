@@ -1,15 +1,4 @@
 <head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-8G10DKQ6J6" defer></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      window.addEventListener('load', function () {
-        gtag('js', new Date());
-        gtag('config', 'G-8G10DKQ6J6');
-      });
-    </script>
-
     <link rel="sitemap" type="application/xml" title="Sitemap" href="https://iacoposk8.github.io/sitemap.xml" />
     
     <meta charset="utf-8">
@@ -66,6 +55,12 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
+            //analytics
+            var script = document.createElement('script');
+            script.src = "https://www.googletagmanager.com/gtag/js?id=G-8G10DKQ6J6";
+            script.async = true;
+            document.head.appendChild(script);
+    
             //icon animation
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
@@ -77,16 +72,16 @@
             }, {
                 threshold: 0.3
             });
-        
+            
             document.querySelectorAll('.popup-animation').forEach(el => observer.observe(el));
-
+            
             //codemirror loader
             const elements = document.querySelectorAll('.view_code');
             if (elements.length === 0) return;
-        
+            
             const script = document.createElement('script');
             script.src = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/codemirror.min.js';
-        
+            
             // Quando lo script è caricato
             script.onload = () => {
                 elements.forEach((element) => {
@@ -99,7 +94,7 @@
                     });
                 });
             };
-        
+            
             document.head.appendChild(script);
         });
     </script>

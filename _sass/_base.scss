@@ -453,7 +453,7 @@ body {
 
 .popup-animation.animated {
   animation: popupIn 0.8s ease-out forwards;
-  animation-delay: 0.4s;
+  animation-delay: 0.3s;
 }
 
 @keyframes popupIn {
@@ -463,10 +463,7 @@ body {
   }
   60% {
     opacity: 1;
-    transform: scale(1.05);
-  }
-  80% {
-    transform: scale(1.02);
+    transform: scale(1.1);
   }
   100% {
     opacity: 1;

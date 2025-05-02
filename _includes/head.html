@@ -82,6 +82,20 @@
             };
         
             document.head.appendChild(script);
+
+            //animazioni icone
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                  if (entry.isIntersecting) {
+                    entry.target.classList.add('animated'); // <--- aggiunge solo 'animated'
+                    observer.unobserve(entry.target); // opzionale: anima solo una volta
+                  }
+                });
+            }, {
+                threshold: 0.3
+            });
+        
+            document.querySelectorAll('.popup-animation').forEach(el => observer.observe(el));
         });
     </script>
 </head>

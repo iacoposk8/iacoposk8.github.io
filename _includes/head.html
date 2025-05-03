@@ -62,13 +62,14 @@
             //codemirror loader
             const elements = document.querySelectorAll('.view_code');
             if (elements.length === 0) return;
-            
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/codemirror.min.js';
-            document.head.appendChild(script);
+
+            var script1 = document.createElement('script');
+            script1.src = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/codemirror.min.js';
+            document.head.appendChild(script1);
             
             // Quando lo script è caricato
-            setTimeout(function(){
-            script.onload = () => {
+            //setTimeout(function(){
+            script1.onload = () => {
                 elements.forEach((element) => {
                     CodeMirror.fromTextArea(element, {
                         lineNumbers: true,
@@ -78,7 +79,7 @@
                         viewportMargin: Infinity
                     });
                 });
-            };},5000);
+            };//},5000);
         });
     </script>
 </head>

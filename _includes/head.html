@@ -67,6 +67,7 @@
             document.head.appendChild(script);
             
             // Quando lo script è caricato
+            setTimeout(function(){
             script.onload = () => {
                 elements.forEach((element) => {
                     CodeMirror.fromTextArea(element, {
@@ -77,7 +78,7 @@
                         viewportMargin: Infinity
                     });
                 });
-            };
+            };},5000);
         });
     </script>
 </head>

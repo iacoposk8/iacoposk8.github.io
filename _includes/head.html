@@ -35,9 +35,11 @@
     <![endif]-->
 
     <!-- Base CSS di CodeMirror -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.css">
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.css"></noscript>
     <!-- Tema opzionale -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/theme/dracula.min.css">
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/theme/dracula.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/theme/dracula.min.css"></noscript>
     <!-- Libreria principale -->
     <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.js"></script>
     <!-- Modalità JavaScript -->

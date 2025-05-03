@@ -64,6 +64,7 @@
             if (elements.length === 0) return;
             
             script.src = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.7/codemirror.min.js';
+            document.head.appendChild(script);
             
             // Quando lo script è caricato
             script.onload = () => {
@@ -77,8 +78,6 @@
                     });
                 });
             };
-            
-            document.head.appendChild(script);
         });
     </script>
 </head>

@@ -453,10 +453,6 @@ body {
 
 /*****************************************/
 
-/*body {
-    background-color: #f8f9fa;
-    padding: 2rem;
-}*/
 .favorite-card {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     border-radius: 10px;
@@ -477,6 +473,11 @@ body {
 }
 .favorite-separator{
     height:200px;
+}
+
+.favorite-card.card.mb-5{
+    margin-bottom: 20px;
+    padding:10px;
 }
 
 /*****************************************/

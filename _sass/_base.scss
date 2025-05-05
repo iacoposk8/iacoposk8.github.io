@@ -450,8 +450,8 @@ body {
 .blue-icon {
   filter: invert(34%) sepia(100%) saturate(900%) hue-rotate(185deg) brightness(94%) contrast(101%);
 }
-
-.popup-animation {
+.row-cols-md-4>*{flex:0 0 auto;width:25%}
+/*.popup-animation {
   opacity: 0;
 }
 
@@ -473,4 +473,4 @@ body {
     opacity: 1;
     transform: scale(1);
   }
-}
+}*/

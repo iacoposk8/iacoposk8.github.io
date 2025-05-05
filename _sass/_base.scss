@@ -450,27 +450,3 @@ body {
 .blue-icon {
   filter: invert(34%) sepia(100%) saturate(900%) hue-rotate(185deg) brightness(94%) contrast(101%);
 }
-.row-cols-md-4>*{flex:0 0 auto;width:25%}
-/*.popup-animation {
-  opacity: 0;
-}
-
-.popup-animation.animated {
-  animation: popupIn 0.6s ease-out forwards;
-  animation-delay: 0.2s;
-}
-
-@keyframes popupIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  60% {
-    opacity: 1;
-    transform: scale(1.2);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}*/

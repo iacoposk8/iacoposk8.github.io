@@ -1,6 +1,6 @@
 <script type="module">
   // Import the functions you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  /*import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
   // Your Firebase config
@@ -32,5 +32,179 @@
       const email = error.email;
       const credential = GoogleAuthProvider.credentialFromError(error);
       console.error("Error during sign in:", errorMessage);
+    });*/
+</script>
+
+<!-- Sostituisci con la tua configurazione Firebase -->
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAAHS48qlq5rC-E9F1RbcIRwN_x71oceTo",
+    authDomain: "workout-inside-23d9b.firebaseapp.com",
+    projectId: "workout-inside-23d9b",
+    storageBucket: "workout-inside-23d9b.appspot.com",
+    messagingSenderId: "54802022321",
+    appId: "1:54802022321:web:f88980bdef5dc255d54790"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+</script>
+
+<div id="auth-container">
+  <div class="card p-4 mb-4">
+    <h2 class="mb-4">Accedi/Registrati</h2>
+    <input type="email" id="email" class="form-control mb-2" placeholder="Email">
+    <input type="password" id="password" class="form-control mb-2" placeholder="Password">
+    <button onclick="login()" class="btn btn-primary mb-2">Accedi</button>
+    <button onclick="signup()" class="btn btn-success">Registrati</button>
+  </div>
+</div>
+
+<div id="app-container" style="display: none;">
+  <button onclick="logout()" class="btn btn-danger mb-4">Logout</button>
+  
+  <div class="card p-4 mb-4">
+    <h3 class="mb-3">Nuovo Reminder</h3>
+    <input type="text" id="reminder-text" class="form-control mb-2" placeholder="Testo del reminder">
+    <input type="time" id="reminder-time" class="form-control mb-2">
+    <select id="reminder-days" class="form-select mb-2" multiple>
+      <option value="1">Lunedì</option>
+      <option value="2">Martedì</option>
+      <option value="3">Mercoledì</option>
+      <option value="4">Giovedì</option>
+      <option value="5">Venerdì</option>
+      <option value="6">Sabato</option>
+      <option value="0">Domenica</option>
+    </select>
+    <div class="form-check mb-2">
+      <input type="checkbox" id="timer-enabled" class="form-check-input">
+      <label class="form-check-label">Abilita Timer</label>
+    </div>
+    <input type="number" id="timer-duration" class="form-control mb-2" placeholder="Durata timer (minuti)" disabled>
+    <button onclick="addReminder()" class="btn btn-primary">Aggiungi Reminder</button>
+  </div>
+
+  <div id="reminders-list" class="card p-4"></div>
+</div>
+
+<script>
+// Gestione Autenticazione
+function login() {
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+  auth.signInWithEmailAndPassword(email, password)
+    .catch(error => alert(error.message));
+}
+
+function signup() {
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+  auth.createUserWithEmailAndPassword(email, password)
+    .catch(error => alert(error.message));
+}
+
+function logout() {
+  auth.signOut();
+}
+
+// Gestione Reminder
+function addReminder() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const reminder = {
+    text: document.getElementById('reminder-text').value,
+    time: document.getElementById('reminder-time').value,
+    days: Array.from(document.getElementById('reminder-days').selectedOptions).map(o => o.value),
+    timerEnabled: document.getElementById('timer-enabled').checked,
+    timerDuration: document.getElementById('timer-duration').value,
+    userId: user.uid
+  };
+
+  db.collection('reminders').add(reminder)
+    .then(() => loadReminders())
+    .catch(error => alert(error.message));
+}
+
+function loadReminders() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  db.collection('reminders').where('userId', '==', user.uid).onSnapshot(snapshot => {
+    const reminders = [];
+    snapshot.forEach(doc => reminders.push({id: doc.id, ...doc.data()}));
+    renderReminders(reminders);
+    scheduleNotifications(reminders);
+  });
+}
+
+// Notifiche
+function scheduleNotifications(reminders) {
+  reminders.forEach(reminder => {
+    reminder.days.forEach(day => {
+      const nextDate = getNextOccurrence(day, reminder.time);
+      const timeout = nextDate.getTime() - Date.now();
+      
+      if (timeout > 0) {
+        setTimeout(() => {
+          showNotification(reminder.text);
+          if (reminder.timerEnabled) {
+            setTimeout(() => {
+              showNotification(`Timer scaduto per: ${reminder.text}`);
+            }, reminder.timerDuration * 60000);
+          }
+        }, timeout);
+      }
     });
+  });
+}
+
+function getNextOccurrence(dayNumber, timeString) {
+  const [hours, minutes] = timeString.split(':');
+  const date = new Date();
+  date.setHours(hours, minutes, 0, 0);
+  
+  while (date.getDay() !== parseInt(dayNumber) || date < new Date()) {
+    date.setDate(date.getDate() + 1);
+  }
+  
+  return date;
+}
+
+function showNotification(message) {
+  if (Notification.permission === 'granted') {
+    new Notification(message);
+  }
+}
+
+// UI
+function renderReminders(reminders) {
+  const container = document.getElementById('reminders-list');
+  container.innerHTML = reminders.map(reminder => `
+    <div class="card mb-2 p-2">
+      <h5>${reminder.text}</h5>
+      <p>Ora: ${reminder.time}</p>
+      <p>Giorni: ${reminder.days.map(d => ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'][d]).join(', ')}</p>
+      ${reminder.timerEnabled ? `<p>Timer: ${reminder.timerDuration} minuti</p>` : ''}
+      <button onclick="deleteReminder('${reminder.id}')" class="btn btn-sm btn-danger">Elimina</button>
+    </div>
+  `).join('');
+}
+
+function deleteReminder(id) {
+  db.collection('reminders').doc(id).delete();
+}
+
+// Init
+auth.onAuthStateChanged(user => {
+  document.getElementById('auth-container').style.display = user ? 'none' : 'block';
+  document.getElementById('app-container').style.display = user ? 'block' : 'none';
+  if (user) loadReminders();
+});
+
+document.getElementById('timer-enabled').addEventListener('change', function() {
+  document.getElementById('timer-duration').disabled = !this.checked;
+});
+
+Notification.requestPermission();
 </script>

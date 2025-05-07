@@ -554,7 +554,7 @@
 
       // Mostra il popup per modificarlo
       const userRef = doc(db, 'users', user.uid); 
-      const userSnap = await getDoc(userRef);
+      const userSnap = await getDoc(userRef).data();
       console.log(userSnap);
       showNicknameModal(nickname);
     }

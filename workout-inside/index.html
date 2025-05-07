@@ -277,7 +277,7 @@
       });
     }
 
-    async function editReminder(id) {
+    window.editReminder = async function (id) {
       const docRef = doc(db, "reminders", id);
       const docSnap = await getDoc(docRef);
 

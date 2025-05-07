@@ -162,7 +162,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc, deleteDoc, doc, getDoc, updateDoc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, deleteDoc, doc, setDoc, getDoc, updateDoc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAAHS48qlq5rC-E9F1RbcIRwN_x71oceTo",
@@ -506,14 +506,6 @@
             </div>
           </div>
         `).join('');
-
-        // Inizializza i timer
-        filteredReminders.forEach((reminder, index) => {
-          if(reminder.timerEnabled) {
-            const timerContainer = container.children[index].querySelector('.timer-container');
-            //setupTimer(reminder.timerDuration, timerContainer);
-          }
-        });
       }
     }
     loadSharedReminders();

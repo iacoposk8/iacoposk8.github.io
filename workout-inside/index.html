@@ -284,11 +284,33 @@
       if (docSnap.exists()) {
         const reminder = docSnap.data();
 
-        document.getElementById('reminderTitle').value = reminder.title;
-        document.getElementById('editingReminderId').value = id;
-        document.getElementById('saveReminderButton').textContent = "Salva modifiche";
+        // Popola i campi del modal
+        document.getElementById('reminder-text').value = reminder.text || '';
+        document.getElementById('reminder-time').value = reminder.time || '';
+        
+        // Seleziona i giorni
+        const selectDays = document.getElementById('reminder-days');
+        for (const option of selectDays.options) {
+          option.selected = reminder.days.includes(option.value);
+        }
 
-        const modal = new bootstrap.Modal(document.getElementById('addReminderModal'));
+        // Checkbox timer
+        const timerCheckbox = document.getElementById('timer-enabled');
+        timerCheckbox.checked = reminder.timerEnabled || false;
+
+        const timerDuration = document.getElementById('timer-duration');
+        timerDuration.disabled = !timerCheckbox.checked;
+        timerDuration.value = reminder.timerDuration || '';
+
+        // Checkbox share
+        document.getElementById('share-checkbox').checked = reminder.shared || false;
+
+        // Salva l'id del reminder in modifica in un attributo temporaneo
+        document.getElementById('btn-add-reminder').setAttribute('data-editing-id', id);
+        document.getElementById('btn-add-reminder').textContent = "Salva modifiche";
+
+        // Mostra il modal
+        const modal = new bootstrap.Modal(document.getElementById('newReminderModal'));
         modal.show();
       } else {
         alert("Promemoria non trovato.");

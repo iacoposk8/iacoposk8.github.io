@@ -293,7 +293,7 @@
       const q = query(collection(db, 'reminders'), where('userId', '==', userId));
       onSnapshot(q, (snapshot) => {
         const reminders = [];
-        snapshot.forEach(doc => reminders.push({ id: doc.id, ...doc.data() }));
+        snapshot.forEach(row => reminders.push({ id: row.id, ...row.data() }));
         renderReminders(reminders);
         scheduleNotifications(reminders);
       });

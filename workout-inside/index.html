@@ -214,6 +214,10 @@
 
         try {
           await addDoc(collection(db, 'reminders'), reminder);
+
+          // Chiudi il modal dopo l'aggiunta
+          const modal = bootstrap.Modal.getInstance(document.getElementById('newReminderModal'));
+          modal.hide();
         } catch (err) {
           alert(err.message);
         }

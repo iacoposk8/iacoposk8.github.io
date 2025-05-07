@@ -1,347 +1,206 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-  <meta charset="UTF-8">
-  <title>Workout Inside - Reminder</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-  <style>
-    .progress-bar-timer {
-      transition: width 1s linear;
-    }
-    .reminder-card {
-      transition: transform 0.2s;
-    }
-    .reminder-card:hover {
-      transform: translateY(-2px);
-    }
-  </style>
-</head>
-<body class="bg-light">
-  <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
-    <div class="container">
-      <a class="navbar-brand" href="#">Workout Inside</a>
-      <div class="collapse navbar-collapse">
-        <ul class="navbar-nav me-auto" id="main-nav">
-          <li class="nav-item"><a class="nav-link active" href="#" data-bs-target="my-reminders">Miei Reminder</a></li>
-          <li class="nav-item"><a class="nav-link" href="#" data-bs-target="shared-reminders">Reminder</a></li>
-          <li class="nav-item"><a class="nav-link" href="#" data-bs-target="questions">Domande</a></li>
-        </ul>
-        <button id="btn-logout" class="btn btn-outline-light">Logout</button>
-      </div>
-    </div>
-  </nav>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-  <div class="container">
-    <!-- Auth Container -->
-    <div id="auth-container" class="row justify-content-center">
-      <div class="col-md-6">
-        <div class="card shadow">
-          <div class="card-body">
-            <h2 class="card-title text-center mb-4">Accedi/Registrati</h2>
-            <input type="email" id="email" class="form-control mb-3" placeholder="Email">
-            <input type="password" id="password" class="form-control mb-3" placeholder="Password">
-            <div class="d-grid gap-2">
-              <button id="btn-login" class="btn btn-primary">Accedi</button>
-              <button id="btn-signup" class="btn btn-success">Registrati</button>
-              <button id="btn-google" class="btn btn-danger">Continua con Google</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAAHS48qlq5rC-E9F1RbcIRwN_x71oceTo",
+    authDomain: "workout-inside-23d9b.firebaseapp.com",
+    projectId: "workout-inside-23d9b",
+    storageBucket: "workout-inside-23d9b.appspot.com",
+    messagingSenderId: "54802022321",
+    appId: "1:54802022321:web:f88980bdef5dc255d54790"
+  };
 
-    <!-- App Container -->
-    <div id="app-container" style="display: none;">
-      <!-- Content Sections -->
-      <div id="my-reminders" class="content-section">
-        <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#newReminderModal">
-          + Nuovo Reminder
-        </button>
-        <div id="reminders-list" class="row g-4"></div>
-      </div>
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-      <div id="shared-reminders" class="content-section" style="display: none;">
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <input type="text" class="form-control" placeholder="Cerca reminder...">
-          </div>
-          <div class="col-md-3">
-            <select class="form-select">
-              <option>Ordina per punteggio</option>
-              <option>Ordina casualmente</option>
-            </select>
-          </div>
-        </div>
-        <div id="shared-reminders-list" class="row g-4"></div>
-      </div>
-
-      <div id="questions" class="content-section" style="display: none;">
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <input type="text" class="form-control" placeholder="Cerca domande...">
-          </div>
-          <div class="col-md-3">
-            <select class="form-select">
-              <option>Ordina per punteggio</option>
-              <option>Ordina casualmente</option>
-            </select>
-          </div>
-        </div>
-        <div id="questions-list" class="row g-4"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modals -->
-  <div class="modal fade" id="newReminderModal">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Nuovo Reminder</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <input type="text" id="reminder-text" class="form-control mb-2" placeholder="Testo del reminder">
-          <input type="time" id="reminder-time" class="form-control mb-2">
-          <select id="reminder-days" class="form-select mb-2" multiple>
-            <option value="1">Lunedì</option>
-            <option value="2">Martedì</option>
-            <option value="3">Mercoledì</option>
-            <option value="4">Giovedì</option>
-            <option value="5">Venerdì</option>
-            <option value="6">Sabato</option>
-            <option value="0">Domenica</option>
-          </select>
-          <div class="form-check mb-2">
-            <input type="checkbox" id="timer-enabled" class="form-check-input">
-            <label class="form-check-label">Abilita Timer</label>
-          </div>
-          <input type="number" id="timer-duration" class="form-control mb-2" placeholder="Durata timer (minuti)" disabled>
-          <div class="form-check mb-2">
-            <input type="checkbox" id="share-checkbox" class="form-check-input">
-            <label class="form-check-label">Pubblica</label>
-          </div>
-          <button id="btn-add-reminder" class="btn btn-primary">Aggiungi Reminder</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Timer Template -->
-  <template id="timer-template">
-    <div class="timer-container mt-2">
-      <div class="progress mb-2" style="height: 20px;">
-        <div class="progress-bar progress-bar-timer bg-info" role="progressbar" style="width: 100%"></div>
-      </div>
-      <button class="btn btn-sm btn-start-timer btn-success">Avvia Timer</button>
-    </div>
-  </template>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyAAHS48qlq5rC-E9F1RbcIRwN_x71oceTo",
-      authDomain: "workout-inside-23d9b.firebaseapp.com",
-      projectId: "workout-inside-23d9b",
-      storageBucket: "workout-inside-23d9b.appspot.com",
-      messagingSenderId: "54802022321",
-      appId: "1:54802022321:web:f88980bdef5dc255d54790"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    window.addEventListener('DOMContentLoaded', () => {
-      // Google login
-      document.getElementById('btn-google')?.addEventListener('click', async () => {
-        const provider = new GoogleAuthProvider();
-        try {
-          const result = await signInWithPopup(auth, provider);
-          console.log("Google login success:", result.user.email);
-        } catch (err) {
-          console.error("Google login error:", err.message);
-        }
-      });
-
-      // Email login
-      document.getElementById('btn-login')?.addEventListener('click', async () => {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        try {
-          await signInWithEmailAndPassword(auth, email, password);
-        } catch (err) {
-          alert(err.message);
-        }
-      });
-
-      // Signup
-      document.getElementById('btn-signup')?.addEventListener('click', async () => {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        try {
-          await createUserWithEmailAndPassword(auth, email, password);
-        } catch (err) {
-          alert(err.message);
-        }
-      });
-
-      // Logout
-      document.getElementById('btn-logout')?.addEventListener('click', () => {
-        signOut(auth);
-      });
-
-      // Add reminder
-      document.getElementById('btn-add-reminder')?.addEventListener('click', async () => {
-        const user = auth.currentUser;
-        if (!user) return;
-
-        const reminder = {
-          text: document.getElementById('reminder-text').value,
-          time: document.getElementById('reminder-time').value,
-          days: Array.from(document.getElementById('reminder-days').selectedOptions).map(o => o.value),
-          timerEnabled: document.getElementById('timer-enabled').checked,
-          timerDuration: document.getElementById('timer-duration').value,
-          userId: user.uid,
-          shared: document.getElementById('share-checkbox').checked,
-          score: 0
-        };
-
-        try {
-          await addDoc(collection(db, 'reminders'), reminder);
-        } catch (err) {
-          alert(err.message);
-        }
-      });
-
-      // Abilita/disabilita input durata timer
-      document.getElementById('timer-enabled').addEventListener('change', function () {
-        document.getElementById('timer-duration').disabled = !this.checked;
-      });
-
-      // Notifiche browser
-      Notification.requestPermission();
-
-      // Listener autenticazione
-      onAuthStateChanged(auth, (user) => {
-        document.getElementById('auth-container').style.display = user ? 'none' : 'block';
-        document.getElementById('app-container').style.display = user ? 'block' : 'none';
-        if (user) loadReminders(user.uid);
-      });
+  window.addEventListener('DOMContentLoaded', () => {
+    // Google login
+    document.getElementById('btn-google')?.addEventListener('click', async () => {
+      const provider = new GoogleAuthProvider();
+      try {
+        const result = await signInWithPopup(auth, provider);
+        console.log("Google login success:", result.user.email);
+      } catch (err) {
+        console.error("Google login error:", err.message);
+      }
     });
 
-    function loadReminders(userId) {
-      const q = query(collection(db, 'reminders'), where('userId', '==', userId));
-      onSnapshot(q, (snapshot) => {
-        const reminders = [];
-        snapshot.forEach(doc => reminders.push({ id: doc.id, ...doc.data() }));
-        renderReminders(reminders);
-        scheduleNotifications(reminders);
-      });
-    }
-
-    function renderReminders(reminders) {
-      const container = document.getElementById('reminders-list');
-      container.innerHTML = reminders.map(reminder => `
-        <div class="col-md-6">
-          <div class="card reminder-card shadow-sm">
-            <div class="card-body">
-              <h5 class="card-title">${reminder.text}</h5>
-              <p class="card-text">Ora: ${reminder.time}</p>
-              ${reminder.timerEnabled ? `
-                <div class="timer-container">
-                  ${document.getElementById('timer-template').innerHTML}
-                </div>
-              ` : ''}
-              <button class="btn btn-sm btn-danger" onclick="deleteReminder('${reminder.id}')">Elimina</button>
-            </div>
-          </div>
-        </div>
-      `).join('');
-
-      reminders.forEach((reminder, index) => {
-        if(reminder.timerEnabled) {
-          const timerContainer = container.children[index].querySelector('.timer-container');
-          setupTimer(reminder.timerDuration, timerContainer);
-        }
-      });
-    }
-
-    window.deleteReminder = async function (id) {
+    // Email login
+    document.getElementById('btn-login')?.addEventListener('click', async () => {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
       try {
-        await deleteDoc(doc(db, 'reminders', id));
+        await signInWithEmailAndPassword(auth, email, password);
       } catch (err) {
         alert(err.message);
       }
-    };
+    });
 
-    function scheduleNotifications(reminders) {
-      reminders.forEach(reminder => {
-        reminder.days.forEach(day => {
-          const nextDate = getNextOccurrence(day, reminder.time);
-          const timeout = nextDate.getTime() - Date.now();
-
-          if (timeout > 0) {
-            setTimeout(() => {
-              showNotification(reminder.text);
-              if (reminder.timerEnabled) {
-                setTimeout(() => {
-                  showNotification(`Timer scaduto per: ${reminder.text}`);
-                }, reminder.timerDuration * 60000);
-              }
-            }, timeout);
-          }
-        });
-      });
-    }
-
-    function getNextOccurrence(dayNumber, timeString) {
-      const [hours, minutes] = timeString.split(':');
-      const now = new Date();
-      const date = new Date();
-      date.setHours(hours, minutes, 0, 0);
-
-      while (date.getDay() !== parseInt(dayNumber) || date < now) {
-        date.setDate(date.getDate() + 1);
+    // Signup
+    document.getElementById('btn-signup')?.addEventListener('click', async () => {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+      } catch (err) {
+        alert(err.message);
       }
+    });
 
-      return date;
-    }
+    // Logout
+    document.getElementById('btn-logout')?.addEventListener('click', () => {
+      signOut(auth);
+    });
 
-    function showNotification(message) {
-      if (Notification.permission === 'granted') {
-        new Notification(message);
+    // Add reminder
+    document.getElementById('btn-add-reminder')?.addEventListener('click', async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const reminder = {
+        text: document.getElementById('reminder-text').value,
+        time: document.getElementById('reminder-time').value,
+        days: Array.from(document.getElementById('reminder-days').selectedOptions).map(o => o.value),
+        timerEnabled: document.getElementById('timer-enabled').checked,
+        timerDuration: document.getElementById('timer-duration').value,
+        userId: user.uid,
+        shared: document.getElementById('share-checkbox').checked,
+        score: 0
+      };
+
+      try {
+        await addDoc(collection(db, 'reminders'), reminder);
+      } catch (err) {
+        alert(err.message);
       }
-    }
+    });
 
-    // Nuova funzione per i timer
-    function setupTimer(duration, element) {
-      let timer = duration * 60;
-      const progressBar = element.querySelector('.progress-bar');
-      const startBtn = element.querySelector('.btn-start-timer');
-      
-      startBtn.addEventListener('click', () => {
-        startBtn.disabled = true;
-        const initialWidth = 100;
-        const interval = setInterval(() => {
-          timer--;
-          const widthPercent = (timer / (duration * 60)) * 100;
-          progressBar.style.width = `${widthPercent}%`;
-          
-          if(timer <= 0) {
-            clearInterval(interval);
-            element.remove();
-          }
-        }, 1000);
+    // Abilita/disabilita input durata timer
+    document.getElementById('timer-enabled').addEventListener('change', function () {
+      document.getElementById('timer-duration').disabled = !this.checked;
+    });
+
+    // Notifiche browser
+    Notification.requestPermission();
+
+    // Listener autenticazione
+    onAuthStateChanged(auth, (user) => {
+      document.getElementById('auth-container').style.display = user ? 'none' : 'block';
+      document.getElementById('app-container').style.display = user ? 'block' : 'none';
+      if (user) loadReminders(user.uid);
+    });
+  });
+
+  function loadReminders(userId) {
+    const q = query(collection(db, 'reminders'), where('userId', '==', userId));
+    onSnapshot(q, (snapshot) => {
+      const reminders = [];
+      snapshot.forEach(doc => reminders.push({ id: doc.id, ...doc.data() }));
+      renderReminders(reminders);
+      scheduleNotifications(reminders);
+    });
+  }
+
+  function renderReminders(reminders) {
+    const container = document.getElementById('reminders-list');
+    container.innerHTML = reminders.map(reminder => `
+      <div class="col-md-6">
+        <div class="card reminder-card shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title">${reminder.text}</h5>
+            <p class="card-text">Ora: ${reminder.time}</p>
+            ${reminder.timerEnabled ? `
+              <div class="timer-container">
+                ${document.getElementById('timer-template').innerHTML}
+              </div>
+            ` : ''}
+            <button class="btn btn-sm btn-danger" onclick="deleteReminder('${reminder.id}')">Elimina</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    reminders.forEach((reminder, index) => {
+      if(reminder.timerEnabled) {
+        const timerContainer = container.children[index].querySelector('.timer-container');
+        setupTimer(reminder.timerDuration, timerContainer);
+      }
+    });
+  }
+
+  window.deleteReminder = async function (id) {
+    try {
+      await deleteDoc(doc(db, 'reminders', id));
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  function scheduleNotifications(reminders) {
+    reminders.forEach(reminder => {
+      reminder.days.forEach(day => {
+        const nextDate = getNextOccurrence(day, reminder.time);
+        const timeout = nextDate.getTime() - Date.now();
+
+        if (timeout > 0) {
+          setTimeout(() => {
+            showNotification(reminder.text);
+            if (reminder.timerEnabled) {
+              setTimeout(() => {
+                showNotification(`Timer scaduto per: ${reminder.text}`);
+              }, reminder.timerDuration * 60000);
+            }
+          }, timeout);
+        }
       });
+    });
+  }
+
+  function getNextOccurrence(dayNumber, timeString) {
+    const [hours, minutes] = timeString.split(':');
+    const now = new Date();
+    const date = new Date();
+    date.setHours(hours, minutes, 0, 0);
+
+    while (date.getDay() !== parseInt(dayNumber) || date < now) {
+      date.setDate(date.getDate() + 1);
     }
 
-    async function loadSharedReminders() {
+    return date;
+  }
+
+  function showNotification(message) {
+    if (Notification.permission === 'granted') {
+      new Notification(message);
+    }
+  }
+
+  // Nuova funzione per i timer
+  function setupTimer(duration, element) {
+    let timer = duration * 60;
+    const progressBar = element.querySelector('.progress-bar');
+    const startBtn = element.querySelector('.btn-start-timer');
+    
+    startBtn.addEventListener('click', () => {
+      startBtn.disabled = true;
+      const initialWidth = 100;
+      const interval = setInterval(() => {
+        timer--;
+        const widthPercent = (timer / (duration * 60)) * 100;
+        progressBar.style.width = `${widthPercent}%`;
+        
+        if(timer <= 0) {
+          clearInterval(interval);
+          element.remove();
+        }
+      }, 1000);
+    });
+  }
+
+  async function loadSharedReminders() {
   const q = query(collection(db, 'reminders'), where('shared', '==', true));
   const searchInput = document.querySelector('#shared-reminders input[type="text"]');
   const sortSelect = document.querySelector('#shared-reminders select');
@@ -466,6 +325,6 @@
       document.getElementById(e.target.dataset.bsTarget).style.display = 'block';
     });
   });
-  </script>
+ </script>
 </body>
 </html>

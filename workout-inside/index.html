@@ -166,14 +166,14 @@ function showNotification(message) {
 }
 
 // UI
-function renderReminders(reminders) {
+function renderReminders(reminders) { 
   const container = document.getElementById('reminders-list');
   container.innerHTML = reminders.map(reminder => 
     `<div class="card mb-2 p-2">
       <h5>${reminder.text}</h5>
       <p>Ora: ${reminder.time}</p>
       <p>Giorni: ${reminder.days.map(d => ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'][d]).join(', ')}</p>
-      ${reminder.timerEnabled ? <p>Timer: ${reminder.timerDuration} minuti</p> : ''}
+      ${reminder.timerEnabled ? `<p>Timer: ${reminder.timerDuration} minuti</p>` : ''}
       <button onclick="deleteReminder('${reminder.id}')" class="btn btn-sm btn-danger">Elimina</button>
     </div>`
   ).join('');

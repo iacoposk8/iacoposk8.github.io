@@ -101,7 +101,26 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <!-- Il form esistente va qui -->
+          <div class="card p-4 mb-4">
+            <h3 class="mb-3">Nuovo Reminder</h3>
+            <input type="text" id="reminder-text" class="form-control mb-2" placeholder="Testo del reminder">
+            <input type="time" id="reminder-time" class="form-control mb-2">
+            <select id="reminder-days" class="form-select mb-2" multiple>
+              <option value="1">Lunedì</option>
+              <option value="2">Martedì</option>
+              <option value="3">Mercoledì</option>
+              <option value="4">Giovedì</option>
+              <option value="5">Venerdì</option>
+              <option value="6">Sabato</option>
+              <option value="0">Domenica</option>
+            </select>
+            <div class="form-check mb-2">
+              <input type="checkbox" id="timer-enabled" class="form-check-input">
+              <label class="form-check-label">Abilita Timer</label>
+            </div>
+            <input type="number" id="timer-duration" class="form-control mb-2" placeholder="Durata timer (minuti)" disabled>
+            <button id="btn-add-reminder" class="btn btn-primary">Aggiungi Reminder</button>
+          </div>
         </div>
       </div>
     </div>

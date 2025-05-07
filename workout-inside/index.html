@@ -5,7 +5,7 @@
     <input type="password" id="password" class="form-control mb-2" placeholder="Password">
     <button onclick="login()" class="btn btn-primary mb-2">Accedi</button>
     <button onclick="signup()" class="btn btn-success">Registrati</button>
-    <button onclick="google_login()" class="btn btn-primary mb-2">Google</button>
+    <button id="google-login-btn" class="btn btn-primary mb-2">Google</button>
   </div>
 </div>
 
@@ -57,7 +57,7 @@
   const db = firebase.firestore();
 
 // Gestione Autenticazione
-window.google_login = function() {
+document.getElementById('google-login-btn').addEventListener('click', () => {
   const provider = new GoogleAuthProvider();
   //provider.addScope('https://www.googleapis.com/auth/contacts.readonly');
 
@@ -74,7 +74,7 @@ window.google_login = function() {
       const credential = GoogleAuthProvider.credentialFromError(error);
       console.error("Error during sign in:", errorMessage);
     });
-}
+});
 window.login = function() {
   const email = document.getElementById('email').value;
   const password = document.getElementById('password').value;

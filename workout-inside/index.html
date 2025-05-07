@@ -5,14 +5,18 @@
   <title>Workout Inside - Reminder</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <style>
-    .progress-bar-timer { transition: width 1s linear; }
-    .reminder-card { transition: transform 0.2s; cursor: pointer; }
-    .reminder-card:hover { transform: translateY(-2px); }
-    [data-bs-target="shared-reminders"] .badge { font-size: 0.8em; }
+    .progress-bar-timer {
+      transition: width 1s linear;
+    }
+    .reminder-card {
+      transition: transform 0.2s;
+    }
+    .reminder-card:hover {
+      transform: translateY(-2px);
+    }
   </style>
 </head>
 <body class="bg-light">
-  <!-- Navbar e Modals -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
     <div class="container">
       <a class="navbar-brand" href="#">Workout Inside</a>
@@ -22,7 +26,6 @@
           <li class="nav-item"><a class="nav-link" href="#" data-bs-target="shared-reminders">Reminder</a></li>
           <li class="nav-item"><a class="nav-link" href="#" data-bs-target="questions">Domande</a></li>
         </ul>
-        <button class="btn btn-outline-light me-2" data-bs-toggle="modal" data-bs-target="#profileModal">Profilo</button>
         <button id="btn-logout" class="btn btn-outline-light">Logout</button>
       </div>
     </div>
@@ -31,12 +34,61 @@
   <div class="container">
     <!-- Auth Container -->
     <div id="auth-container" class="row justify-content-center">
-      <!-- Form autenticazione esistente -->
+      <div class="col-md-6">
+        <div class="card shadow">
+          <div class="card-body">
+            <h2 class="card-title text-center mb-4">Accedi/Registrati</h2>
+            <input type="email" id="email" class="form-control mb-3" placeholder="Email">
+            <input type="password" id="password" class="form-control mb-3" placeholder="Password">
+            <div class="d-grid gap-2">
+              <button id="btn-login" class="btn btn-primary">Accedi</button>
+              <button id="btn-signup" class="btn btn-success">Registrati</button>
+              <button id="btn-google" class="btn btn-danger">Continua con Google</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- App Container -->
     <div id="app-container" style="display: none;">
-      <!-- Sezioni contenuto esistenti -->
+      <!-- Content Sections -->
+      <div id="my-reminders" class="content-section">
+        <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#newReminderModal">
+          + Nuovo Reminder
+        </button>
+        <div id="reminders-list" class="row g-4"></div>
+      </div>
+
+      <div id="shared-reminders" class="content-section" style="display: none;">
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <input type="text" class="form-control" placeholder="Cerca reminder...">
+          </div>
+          <div class="col-md-3">
+            <select class="form-select">
+              <option>Ordina per punteggio</option>
+              <option>Ordina casualmente</option>
+            </select>
+          </div>
+        </div>
+        <div id="shared-reminders-list" class="row g-4"></div>
+      </div>
+
+      <div id="questions" class="content-section" style="display: none;">
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <input type="text" class="form-control" placeholder="Cerca domande...">
+          </div>
+          <div class="col-md-3">
+            <select class="form-select">
+              <option>Ordina per punteggio</option>
+              <option>Ordina casualmente</option>
+            </select>
+          </div>
+        </div>
+        <div id="questions-list" class="row g-4"></div>
+      </div>
     </div>
   </div>
 
@@ -45,50 +97,52 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title"><span id="modal-mode">Nuovo</span> Reminder</h5>
+          <h5 class="modal-title">Nuovo Reminder</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <input type="hidden" id="editing-id">
-          <input type="text" id="reminder-title" class="form-control mb-2" placeholder="Titolo">
-          <textarea id="reminder-description" class="form-control mb-2" placeholder="Descrizione"></textarea>
-          <!-- Altri campi esistenti -->
-          <button id="btn-save-reminder" class="btn btn-primary w-100">Salva</button>
+          <input type="text" id="reminder-text" class="form-control mb-2" placeholder="Testo del reminder">
+          <input type="time" id="reminder-time" class="form-control mb-2">
+          <select id="reminder-days" class="form-select mb-2" multiple>
+            <option value="1">Lunedì</option>
+            <option value="2">Martedì</option>
+            <option value="3">Mercoledì</option>
+            <option value="4">Giovedì</option>
+            <option value="5">Venerdì</option>
+            <option value="6">Sabato</option>
+            <option value="0">Domenica</option>
+          </select>
+          <div class="form-check mb-2">
+            <input type="checkbox" id="timer-enabled" class="form-check-input">
+            <label class="form-check-label">Abilita Timer</label>
+          </div>
+          <input type="number" id="timer-duration" class="form-control mb-2" placeholder="Durata timer (minuti)" disabled>
+          <div class="form-check mb-2">
+            <input type="checkbox" id="share-checkbox" class="form-check-input">
+            <label class="form-check-label">Pubblica</label>
+          </div>
+          <button id="btn-add-reminder" class="btn btn-primary">Aggiungi Reminder</button>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="modal fade" id="profileModal">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Modifica Profilo</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <input type="text" id="user-nickname" class="form-control mb-3" placeholder="Nickname">
-          <button id="btn-save-profile" class="btn btn-primary w-100">Salva</button>
-        </div>
+  <!-- Timer Template -->
+  <template id="timer-template">
+    <div class="timer-container mt-2">
+      <div class="progress mb-2" style="height: 20px;">
+        <div class="progress-bar progress-bar-timer bg-info" role="progressbar" style="width: 100%"></div>
       </div>
+      <button class="btn btn-sm btn-start-timer btn-success">Avvia Timer</button>
     </div>
-  </div>
+  </template>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <script type="module">
-    import { 
-      initializeApp, 
-      deleteApp 
-    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { 
-      getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
-      signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup 
-    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { 
-      getFirestore, collection, addDoc, deleteDoc, doc, 
-      onSnapshot, query, where, updateDoc, increment, getDoc, setDoc 
-    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAAHS48qlq5rC-E9F1RbcIRwN_x71oceTo",
@@ -98,141 +152,320 @@
       messagingSenderId: "54802022321",
       appId: "1:54802022321:web:f88980bdef5dc255d54790"
     };
+
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    let currentUserData = null;
 
-    // Gestione profilo utente
-    async function updateProfile(nickname) {
-      const user = auth.currentUser;
-      if (!user) return;
-      
-      await setDoc(doc(db, 'users', user.uid), {
-        uid: user.uid,
-        nickname: nickname,
-        email: user.email,
-        lastUpdate: new Date()
-      });
-      currentUserData = { ...currentUserData, nickname };
-    }
-
-    async function loadUserProfile(uid) {
-      const docRef = doc(db, 'users', uid);
-      const docSnap = await getDoc(docRef);
-      currentUserData = docSnap.exists() ? docSnap.data() : null;
-      
-      if (!currentUserData?.nickname) {
-        new bootstrap.Modal('#profileModal').show();
-      }
-    }
-
-    // Gestione reminder
-    async function saveReminder(data, isEdit = false) {
-      try {
-        if (data.shared && !currentUserData?.nickname) {
-          alert('Devi impostare un nickname per condividere i reminder!');
-          new bootstrap.Modal('#profileModal').show();
-          return;
+    window.addEventListener('DOMContentLoaded', () => {
+      // Google login
+      document.getElementById('btn-google')?.addEventListener('click', async () => {
+        const provider = new GoogleAuthProvider();
+        try {
+          const result = await signInWithPopup(auth, provider);
+          console.log("Google login success:", result.user.email);
+        } catch (err) {
+          console.error("Google login error:", err.message);
         }
+      });
 
-        const reminderData = {
-          ...data,
-          sharedBy: data.shared ? currentUserData.nickname : null,
-          userId: auth.currentUser.uid,
-          timestamp: new Date()
+      // Email login
+      document.getElementById('btn-login')?.addEventListener('click', async () => {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        try {
+          await signInWithEmailAndPassword(auth, email, password);
+        } catch (err) {
+          alert(err.message);
+        }
+      });
+
+      // Signup
+      document.getElementById('btn-signup')?.addEventListener('click', async () => {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        try {
+          await createUserWithEmailAndPassword(auth, email, password);
+        } catch (err) {
+          alert(err.message);
+        }
+      });
+
+      // Logout
+      document.getElementById('btn-logout')?.addEventListener('click', () => {
+        signOut(auth);
+      });
+
+      // Add reminder
+      document.getElementById('btn-add-reminder')?.addEventListener('click', async () => {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        const reminder = {
+          text: document.getElementById('reminder-text').value,
+          time: document.getElementById('reminder-time').value,
+          days: Array.from(document.getElementById('reminder-days').selectedOptions).map(o => o.value),
+          timerEnabled: document.getElementById('timer-enabled').checked,
+          timerDuration: document.getElementById('timer-duration').value,
+          userId: user.uid,
+          shared: document.getElementById('share-checkbox').checked,
+          score: 0
         };
 
-        if (isEdit) {
-          await updateDoc(doc(db, 'reminders', data.id), reminderData);
-        } else {
-          await addDoc(collection(db, 'reminders'), reminderData);
+        try {
+          await addDoc(collection(db, 'reminders'), reminder);
+        } catch (err) {
+          alert(err.message);
         }
-      } catch (err) {
-        alert(`Errore durante il salvataggio: ${err.message}`);
-      }
-    }
+      });
 
-    function setupReminderClick(card, reminder) {
-      card.addEventListener('click', () => {
-        if (reminder.userId === auth.currentUser?.uid) return;
-        
-        document.getElementById('reminder-title').value = reminder.title;
-        document.getElementById('reminder-description').value = reminder.description;
-        // Popola altri campi
-        new bootstrap.Modal('#newReminderModal').show();
+      // Abilita/disabilita input durata timer
+      document.getElementById('timer-enabled').addEventListener('change', function () {
+        document.getElementById('timer-duration').disabled = !this.checked;
+      });
+
+      // Notifiche browser
+      Notification.requestPermission();
+
+      // Listener autenticazione
+      onAuthStateChanged(auth, (user) => {
+        document.getElementById('auth-container').style.display = user ? 'none' : 'block';
+        document.getElementById('app-container').style.display = user ? 'block' : 'none';
+        if (user) loadReminders(user.uid);
+      });
+    });
+
+    function loadReminders(userId) {
+      const q = query(collection(db, 'reminders'), where('userId', '==', userId));
+      onSnapshot(q, (snapshot) => {
+        const reminders = [];
+        snapshot.forEach(doc => reminders.push({ id: doc.id, ...doc.data() }));
+        renderReminders(reminders);
+        scheduleNotifications(reminders);
       });
     }
 
-    // Renderizzazione reminder
-    function renderReminder(reminder, isOwner = false) {
-      const card = document.createElement('div');
-      card.className = 'col-md-6 mb-3';
-      card.innerHTML = `
-        <div class="card reminder-card shadow-sm">
-          <div class="card-body">
-            <h5 class="card-title">${reminder.title}</h5>
-            <p class="card-text text-muted">${reminder.description}</p>
-            ${reminder.sharedBy ? `
-              <small class="text-muted">Condiviso da: ${reminder.sharedBy}</small>
-            ` : ''}
-            ${isOwner ? `
-              <div class="mt-2">
-                <button class="btn btn-sm btn-warning me-2 edit-btn">Modifica</button>
-                <button class="btn btn-sm btn-danger delete-btn">Elimina</button>
-              </div>
-            ` : ''}
+    function renderReminders(reminders) {
+      const container = document.getElementById('reminders-list');
+      container.innerHTML = reminders.map(reminder => `
+        <div class="col-md-6">
+          <div class="card reminder-card shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title">${reminder.text}</h5>
+              <p class="card-text">Ora: ${reminder.time}</p>
+              ${reminder.timerEnabled ? `
+                <div class="timer-container">
+                  ${document.getElementById('timer-template').innerHTML}
+                </div>
+              ` : ''}
+              <button class="btn btn-sm btn-danger" onclick="deleteReminder('${reminder.id}')">Elimina</button>
+            </div>
           </div>
         </div>
-      `;
+      `).join('');
 
-      if (isOwner) {
-        card.querySelector('.delete-btn').onclick = () => deleteReminder(reminder.id);
-        card.querySelector('.edit-btn').onclick = () => {
-          document.getElementById('editing-id').value = reminder.id;
-          document.getElementById('reminder-title').value = reminder.title;
-          document.getElementById('reminder-description').value = reminder.description;
-          // Popola altri campi
-          document.getElementById('modal-mode').textContent = 'Modifica';
-          new bootstrap.Modal('#newReminderModal').show();
-        };
-      } else {
-        setupReminderClick(card, reminder);
-      }
-
-      return card;
+      reminders.forEach((reminder, index) => {
+        if(reminder.timerEnabled) {
+          const timerContainer = container.children[index].querySelector('.timer-container');
+          setupTimer(reminder.timerDuration, timerContainer);
+        }
+      });
     }
 
-    // Inizializzazione
-    window.addEventListener('DOMContentLoaded', () => {
-      // ... inizializzazione esistente ...
+    window.deleteReminder = async function (id) {
+      try {
+        await deleteDoc(doc(db, 'reminders', id));
+      } catch (err) {
+        alert(err.message);
+      }
+    };
 
-      // Gestione salvataggio reminder
-      document.getElementById('btn-save-reminder').onclick = async () => {
-        const reminderData = {
-          title: document.getElementById('reminder-title').value,
-          description: document.getElementById('reminder-description').value,
-          // Recupera altri valori
-        };
+    function scheduleNotifications(reminders) {
+      reminders.forEach(reminder => {
+        reminder.days.forEach(day => {
+          const nextDate = getNextOccurrence(day, reminder.time);
+          const timeout = nextDate.getTime() - Date.now();
 
-        const isEdit = !!document.getElementById('editing-id').value;
-        await saveReminder(isEdit ? { id: document.getElementById('editing-id').value, ...reminderData } : reminderData, isEdit);
+          if (timeout > 0) {
+            setTimeout(() => {
+              showNotification(reminder.text);
+              if (reminder.timerEnabled) {
+                setTimeout(() => {
+                  showNotification(`Timer scaduto per: ${reminder.text}`);
+                }, reminder.timerDuration * 60000);
+              }
+            }, timeout);
+          }
+        });
+      });
+    }
+
+    function getNextOccurrence(dayNumber, timeString) {
+      const [hours, minutes] = timeString.split(':');
+      const now = new Date();
+      const date = new Date();
+      date.setHours(hours, minutes, 0, 0);
+
+      while (date.getDay() !== parseInt(dayNumber) || date < now) {
+        date.setDate(date.getDate() + 1);
+      }
+
+      return date;
+    }
+
+    function showNotification(message) {
+      if (Notification.permission === 'granted') {
+        new Notification(message);
+      }
+    }
+
+    // Nuova funzione per i timer
+    function setupTimer(duration, element) {
+      let timer = duration * 60;
+      const progressBar = element.querySelector('.progress-bar');
+      const startBtn = element.querySelector('.btn-start-timer');
+      
+      startBtn.addEventListener('click', () => {
+        startBtn.disabled = true;
+        const initialWidth = 100;
+        const interval = setInterval(() => {
+          timer--;
+          const widthPercent = (timer / (duration * 60)) * 100;
+          progressBar.style.width = `${widthPercent}%`;
+          
+          if(timer <= 0) {
+            clearInterval(interval);
+            element.remove();
+          }
+        }, 1000);
+      });
+    }
+
+    async function loadSharedReminders() {
+      const q = query(collection(db, 'reminders'), where('shared', '==', true));
+      const searchInput = document.querySelector('#shared-reminders input[type="text"]');
+      const sortSelect = document.querySelector('#shared-reminders select');
+
+      let reminders = [];
+      
+      // Real-time listener per aggiornamenti
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        reminders = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            text: data.text,
+            time: data.time,
+            days: data.days,
+            score: data.score || 0,
+            userId: data.userId,
+            timerEnabled: data.timerEnabled,
+            timerDuration: data.timerDuration
+          };
+        });
         
-        $('#newReminderModal').modal('hide');
-        document.getElementById('editing-id').value = '';
-      };
+        applySearchAndSort();
+      });
 
-      // Gestione profilo
-      document.getElementById('btn-save-profile').onclick = async () => {
-        await updateProfile(document.getElementById('user-nickname').value);
-        $('#profileModal').modal('hide');
-      };
+      // Funzioni di filtro e ordinamento
+      function applySearchAndSort(searchTerm = searchInput.value, sortType = sortSelect.value) {
+        let filtered = reminders.filter(reminder => 
+          reminder.text.toLowerCase().includes(searchTerm.toLowerCase())
+        );
 
-      onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          await loadUserProfile(user.uid);
-          loadReminders(user.uid);
+        switch(sortType) {
+          case 'Ordina per punteggio':
+            filtered.sort((a, b) => b.score - a.score);
+            break;
+          case 'Ordina casualmente':
+            filtered = filtered.sort(() => Math.random() - 0.5);
+            break;
         }
+
+        renderSharedReminders(filtered);
+      }
+
+      // Handler per ricerca
+      searchInput.addEventListener('input', (e) => {
+        applySearchAndSort(e.target.value);
+      });
+
+      // Handler per ordinamento
+      sortSelect.addEventListener('change', (e) => {
+        applySearchAndSort(undefined, e.target.value);
+      });
+
+      // Renderizzazione
+      function renderSharedReminders(filteredReminders) {
+        const container = document.getElementById('shared-reminders-list');
+        container.innerHTML = filteredReminders.map(reminder => `
+          <div class="col-md-6">
+            <div class="card reminder-card shadow-sm mb-3">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <h5 class="card-title">${reminder.text}</h5>
+                    <p class="card-text text-muted small">Condiviso da: ${reminder.userId}</p>
+                  </div>
+                  <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-sm btn-outline-success vote-btn" 
+                            onclick="voteReminder('${reminder.id}', 'up')">
+                      ↑
+                    </button>
+                    <span class="badge bg-primary">${reminder.score}</span>
+                    <button class="btn btn-sm btn-outline-danger vote-btn" 
+                            onclick="voteReminder('${reminder.id}', 'down')">
+                      ↓
+                    </button>
+                  </div>
+                </div>
+                <p class="card-text">Ora: ${reminder.time}</p>
+                ${reminder.timerEnabled ? `
+                  <div class="timer-container">
+                    ${document.getElementById('timer-template').innerHTML}
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        `).join('');
+
+        // Inizializza i timer
+        filteredReminders.forEach((reminder, index) => {
+          if(reminder.timerEnabled) {
+            const timerContainer = container.children[index].querySelector('.timer-container');
+            setupTimer(reminder.timerDuration, timerContainer);
+          }
+        });
+      }
+    }
+    loadSharedReminders();
+
+    // Funzione globale per i voti
+    window.voteReminder = async function(id, voteType) {
+      try {
+        const reminderRef = doc(db, 'reminders', id);
+        await updateDoc(reminderRef, {
+          score: increment(voteType === 'up' ? 1 : -1)
+        });
+      } catch (err) {
+        console.error("Errore nel voto:", err);
+        alert('Si è verificato un errore durante il voto');
+      }
+    };
+
+    async function loadQuestions() {
+      const q = query(collection(db, 'questions'));
+      // ... caricamento domande con voti ...
+    }
+
+    // Gestione navigazione
+    document.querySelectorAll('#main-nav .nav-link').forEach(link => {
+      link.addEventListener('click', (e) => {
+        document.querySelectorAll('.content-section').forEach(section => {
+          section.style.display = 'none';
+        });
+        document.getElementById(e.target.dataset.bsTarget).style.display = 'block';
       });
     });
   </script>

@@ -152,15 +152,29 @@
 
     function renderReminders(reminders) {
       const container = document.getElementById('reminders-list');
-      container.innerHTML = reminders.map(reminder =>
-        `<div class="card mb-2 p-2">
-          <h5>${reminder.text}</h5>
-          <p>Ora: ${reminder.time}</p>
-          <p>Giorni: ${reminder.days.map(d => ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'][d]).join(', ')}</p>
-          ${reminder.timerEnabled ? `<p>Timer: ${reminder.timerDuration} minuti</p>` : ''}
-          <button class="btn btn-sm btn-danger" onclick="deleteReminder('${reminder.id}')">Elimina</button>
-        </div>`
-      ).join('');
+      container.innerHTML = reminders.map(reminder => `
+        <div class="col-md-6">
+          <div class="card reminder-card shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title">${reminder.text}</h5>
+              <p class="card-text">Ora: ${reminder.time}</p>
+              ${reminder.timerEnabled ? `
+                <div class="timer-container">
+                  ${document.getElementById('timer-template').innerHTML}
+                </div>
+              ` : ''}
+              <button class="btn btn-sm btn-danger" onclick="deleteReminder('${reminder.id}')">Elimina</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      reminders.forEach((reminder, index) => {
+        if(reminder.timerEnabled) {
+          const timerContainer = container.children[index].querySelector('.timer-container');
+          setupTimer(reminder.timerDuration, timerContainer);
+        }
+      });
     }
 
     window.deleteReminder = async function (id) {
@@ -229,34 +243,6 @@
             element.remove();
           }
         }, 1000);
-      });
-    }
-
-    // Modifica renderReminders per aggiungere i timer
-    function renderReminders(reminders) {
-      const container = document.getElementById('reminders-list');
-      container.innerHTML = reminders.map(reminder => `
-        <div class="col-md-6">
-          <div class="card reminder-card shadow-sm">
-            <div class="card-body">
-              <h5 class="card-title">${reminder.text}</h5>
-              <p class="card-text">Ora: ${reminder.time}</p>
-              ${reminder.timerEnabled ? `
-                <div class="timer-container">
-                  ${document.getElementById('timer-template').innerHTML}
-                </div>
-              ` : ''}
-              <button class="btn btn-sm btn-danger" onclick="deleteReminder('${reminder.id}')">Elimina</button>
-            </div>
-          </div>
-        </div>
-      `).join('');
-
-      reminders.forEach((reminder, index) => {
-        if(reminder.timerEnabled) {
-          const timerContainer = container.children[index].querySelector('.timer-container');
-          setupTimer(reminder.timerDuration, timerContainer);
-        }
       });
     }
 

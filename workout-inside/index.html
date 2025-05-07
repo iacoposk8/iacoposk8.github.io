@@ -592,17 +592,17 @@
 
       if (!userDocSnap.exists()) {
         // Se l'utente non esiste, crealo
-        const emailPrefix = user.email.split('@')[0];  // Prendi la parte prima della chiocciola dell'email
+        const nick = user.email.split('@')[0];  // Prendi la parte prima della chiocciola dell'email
 
         // Crea un nuovo documento per l'utente
         await setDoc(userDocRef, {
-          emailPrefix: emailPrefix, // Aggiungi l'email prefix
-          nickname: emailPrefix, // Imposta inizialmente il nickname come l'email prefix
+          email: user.email, // Aggiungi l'email 
+          nickname: nick, // Imposta inizialmente il nickname come l'email prefix
           createdAt: new Date() // Data di creazione
         });
 
         // Mostra il popup per modificare l'account
-        showNicknameModal(emailPrefix);
+        showNicknameModal(nick);
       } else {
         console.log("Utente già presente nel database.");
       }

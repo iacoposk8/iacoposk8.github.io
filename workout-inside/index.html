@@ -90,7 +90,14 @@
       onSnapshot, query, where, updateDoc, increment, getDoc, setDoc 
     } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    const firebaseConfig = { /* tua configurazione */ };
+    const firebaseConfig = {
+      apiKey: "AIzaSyAAHS48qlq5rC-E9F1RbcIRwN_x71oceTo",
+      authDomain: "workout-inside-23d9b.firebaseapp.com",
+      projectId: "workout-inside-23d9b",
+      storageBucket: "workout-inside-23d9b.appspot.com",
+      messagingSenderId: "54802022321",
+      appId: "1:54802022321:web:f88980bdef5dc255d54790"
+    };
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);

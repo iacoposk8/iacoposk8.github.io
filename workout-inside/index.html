@@ -366,78 +366,78 @@
         
         applySearchAndSort();
       });
-    }
-    
-    // Funzioni di filtro e ordinamento
-    function applySearchAndSort(searchTerm = searchInput.value, sortType = sortSelect.value) {
-      let filtered = reminders.filter(reminder => 
-        reminder.text.toLowerCase().includes(searchTerm.toLowerCase())
-      );
 
-      switch(sortType) {
-        case 'Ordina per punteggio':
-          filtered.sort((a, b) => b.score - a.score);
-          break;
-        case 'Ordina casualmente':
-          filtered = filtered.sort(() => Math.random() - 0.5);
-          break;
+      // Funzioni di filtro e ordinamento
+      function applySearchAndSort(searchTerm = searchInput.value, sortType = sortSelect.value) {
+        let filtered = reminders.filter(reminder => 
+          reminder.text.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+
+        switch(sortType) {
+          case 'Ordina per punteggio':
+            filtered.sort((a, b) => b.score - a.score);
+            break;
+          case 'Ordina casualmente':
+            filtered = filtered.sort(() => Math.random() - 0.5);
+            break;
+        }
+
+        renderSharedReminders(filtered);
       }
 
-      renderSharedReminders(filtered);
-    }
+      // Handler per ricerca
+      searchInput.addEventListener('input', (e) => {
+        applySearchAndSort(e.target.value);
+      });
 
-    // Handler per ricerca
-    searchInput.addEventListener('input', (e) => {
-      applySearchAndSort(e.target.value);
-    });
+      // Handler per ordinamento
+      sortSelect.addEventListener('change', (e) => {
+        applySearchAndSort(undefined, e.target.value);
+      });
 
-    // Handler per ordinamento
-    sortSelect.addEventListener('change', (e) => {
-      applySearchAndSort(undefined, e.target.value);
-    });
-
-    // Renderizzazione
-    function renderSharedReminders(filteredReminders) {
-      const container = document.getElementById('shared-reminders-list');
-      container.innerHTML = filteredReminders.map(reminder => `
-        <div class="col-md-6">
-          <div class="card reminder-card shadow-sm mb-3">
-            <div class="card-body">
-              <div class="d-flex justify-content-between align-items-start">
-                <div>
-                  <h5 class="card-title">${reminder.text}</h5>
-                  <p class="card-text text-muted small">Condiviso da: ${reminder.userId}</p>
+      // Renderizzazione
+      function renderSharedReminders(filteredReminders) {
+        const container = document.getElementById('shared-reminders-list');
+        container.innerHTML = filteredReminders.map(reminder => `
+          <div class="col-md-6">
+            <div class="card reminder-card shadow-sm mb-3">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <h5 class="card-title">${reminder.text}</h5>
+                    <p class="card-text text-muted small">Condiviso da: ${reminder.userId}</p>
+                  </div>
+                  <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-sm btn-outline-success vote-btn" 
+                            onclick="voteReminder('${reminder.id}', 'up')">
+                      ↑
+                    </button>
+                    <span class="badge bg-primary">${reminder.score}</span>
+                    <button class="btn btn-sm btn-outline-danger vote-btn" 
+                            onclick="voteReminder('${reminder.id}', 'down')">
+                      ↓
+                    </button>
+                  </div>
                 </div>
-                <div class="d-flex align-items-center gap-2">
-                  <button class="btn btn-sm btn-outline-success vote-btn" 
-                          onclick="voteReminder('${reminder.id}', 'up')">
-                    ↑
-                  </button>
-                  <span class="badge bg-primary">${reminder.score}</span>
-                  <button class="btn btn-sm btn-outline-danger vote-btn" 
-                          onclick="voteReminder('${reminder.id}', 'down')">
-                    ↓
-                  </button>
-                </div>
+                <p class="card-text">Ora: ${reminder.time}</p>
+                ${reminder.timerEnabled ? `
+                  <div class="timer-container">
+                    ${document.getElementById('timer-template').innerHTML}
+                  </div>
+                ` : ''}
               </div>
-              <p class="card-text">Ora: ${reminder.time}</p>
-              ${reminder.timerEnabled ? `
-                <div class="timer-container">
-                  ${document.getElementById('timer-template').innerHTML}
-                </div>
-              ` : ''}
             </div>
           </div>
-        </div>
-      `).join('');
+        `).join('');
 
-      // Inizializza i timer
-      filteredReminders.forEach((reminder, index) => {
-        if(reminder.timerEnabled) {
-          const timerContainer = container.children[index].querySelector('.timer-container');
-          setupTimer(reminder.timerDuration, timerContainer);
-        }
-      });
+        // Inizializza i timer
+        filteredReminders.forEach((reminder, index) => {
+          if(reminder.timerEnabled) {
+            const timerContainer = container.children[index].querySelector('.timer-container');
+            setupTimer(reminder.timerDuration, timerContainer);
+          }
+        });
+      }
     }
 
     // Funzione globale per i voti

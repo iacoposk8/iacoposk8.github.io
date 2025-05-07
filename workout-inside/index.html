@@ -5,7 +5,7 @@
     <input type="password" id="password" class="form-control mb-2" placeholder="Password">
     <button onclick="login()" class="btn btn-primary mb-2">Accedi</button>
     <button onclick="signup()" class="btn btn-success">Registrati</button>
-    <button id="google-login-btn" class="btn btn-primary mb-2">Google</button>
+    <button onclick="google_login()" class="btn btn-primary mb-2">Google</button>
   </div>
 </div>
 
@@ -36,7 +36,7 @@
   <div id="reminders-list" class="card p-4"></div>
 </div>
 
-<script type="module">
+<script>
   // Import the functions you need
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -55,11 +55,10 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = firebase.firestore();
-</script>
-<script>
+
 window.addEventListener('DOMContentLoaded', () => {
 // Gestione Autenticazione
-document.getElementById('google-login-btn').addEventListener('click', () => {
+window.google_login = function() {
   const provider = new GoogleAuthProvider();
   //provider.addScope('https://www.googleapis.com/auth/contacts.readonly');
 

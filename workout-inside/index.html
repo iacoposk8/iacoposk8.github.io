@@ -26,6 +26,7 @@
           <li class="nav-item"><a class="nav-link" href="#" data-bs-target="shared-reminders">Reminder</a></li>
           <li class="nav-item"><a class="nav-link" href="#" data-bs-target="questions">Domande</a></li>
         </ul>
+        <button class="btn btn-outline-secondary" id="account-btn">Account</button>
         <button id="btn-logout" class="btn btn-outline-light">Logout</button>
       </div>
     </div>
@@ -122,6 +123,25 @@
             <label class="form-check-label">Pubblica</label>
           </div>
           <button id="btn-add-reminder" class="btn btn-primary">Aggiungi Reminder</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal per modificare il nickname -->
+  <div class="modal fade" id="nicknameModal" tabindex="-1" aria-labelledby="nicknameModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="nicknameModalLabel">Modifica Nickname</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <input type="text" id="nickname-input" class="form-control" placeholder="Inserisci il tuo nickname">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+          <button type="button" class="btn btn-primary" id="save-nickname-btn">Salva</button>
         </div>
       </div>
     </div>
@@ -244,6 +264,12 @@
       // Abilita/disabilita input durata timer
       document.getElementById('timer-enabled').addEventListener('change', function () {
         document.getElementById('timer-duration').disabled = !this.checked;
+      });
+
+      // Aggiungi l'evento per il pulsante "Account"
+      document.getElementById('account-btn')?.addEventListener('click', () => {
+        // Mostra il popup per modificare il nickname
+        checkAndCreateNickname();
       });
 
       // Notifiche browser
@@ -498,6 +524,61 @@
         console.log('Si è verificato un errore durante il voto');
       }
     };
+
+    // Funzione per verificare se l'utente ha un nickname
+    async function checkAndCreateNickname() {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const userDocRef = doc(db, "users", user.uid); // Supponiamo che i dati dell'utente siano salvati in "users"
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (userDocSnap.exists()) {
+        const userData = userDocSnap.data();
+        if (!userData.nickname) {
+          // Se il nickname non esiste, crealo con il nome e cognome
+          const displayName = user.displayName || "Utente";
+          const [firstName, lastName] = displayName.split(" ");
+          const nickname = `${firstName.toLowerCase()}${lastName.toLowerCase()}`;
+
+          // Salva il nickname nel database
+          await updateDoc(userDocRef, { nickname });
+
+          // Mostra il popup per modificarlo
+          showNicknameModal(nickname);
+        }
+      } else {
+        console.log("Utente non trovato nel database.");
+      }
+    }
+
+    // Funzione per mostrare il modal di modifica nickname
+    function showNicknameModal(existingNickname) {
+      const nicknameInput = document.getElementById('nickname-input');
+      nicknameInput.value = existingNickname || ""; // Imposta il nickname esistente, se presente
+
+      // Mostra il modal
+      const nicknameModal = new bootstrap.Modal(document.getElementById('nicknameModal'));
+      nicknameModal.show();
+
+      // Aggiungi evento per salvare il nickname
+      document.getElementById('save-nickname-btn').addEventListener('click', async () => {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        const newNickname = nicknameInput.value.trim();
+        if (newNickname) {
+          // Salva il nuovo nickname nel database
+          const userDocRef = doc(db, "users", user.uid);
+          await updateDoc(userDocRef, { nickname: newNickname });
+
+          // Chiudi il modal
+          nicknameModal.hide();
+        } else {
+          alert("Il nickname non può essere vuoto.");
+        }
+      });
+    }
 
     async function loadQuestions() {
       const q = query(collection(db, 'questions'));

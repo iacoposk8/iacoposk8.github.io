@@ -281,7 +281,7 @@
         document.getElementById('app-container').style.display = user ? 'block' : 'none';
 
         if (user) {
-          await initializeUser();
+          initializeUser();
           loadReminders(user.uid);
         } else {
           console.log("Nessun utente loggato.");

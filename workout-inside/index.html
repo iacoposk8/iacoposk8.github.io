@@ -279,7 +279,13 @@
       onAuthStateChanged(auth, (user) => {
         document.getElementById('auth-container').style.display = user ? 'none' : 'block';
         document.getElementById('app-container').style.display = user ? 'block' : 'none';
-        if (user) loadReminders(user.uid);
+
+        if (user) {
+          await initializeUser();
+          loadReminders(user.uid);
+        } else {
+          console.log("Nessun utente loggato.");
+        }
       });
     });
 
@@ -583,6 +589,31 @@
     async function loadQuestions() {
       const q = query(collection(db, 'questions'));
       // ... caricamento domande con voti ...
+    }
+
+    async function initializeUser() {
+      const user = auth.currentUser;
+      if (!user) return;  // Se l'utente non è loggato, non fare nulla
+
+      const userDocRef = doc(db, "users", user.uid); // Ottieni il riferimento al documento dell'utente nel database
+      const userDocSnap = await getDoc(userDocRef);  // Controlla se l'utente esiste già nel database
+
+      if (!userDocSnap.exists()) {
+        // Se l'utente non esiste, crealo
+        const emailPrefix = user.email.split('@')[0];  // Prendi la parte prima della chiocciola dell'email
+
+        // Crea un nuovo documento per l'utente
+        await setDoc(userDocRef, {
+          emailPrefix: emailPrefix, // Aggiungi l'email prefix
+          nickname: emailPrefix, // Imposta inizialmente il nickname come l'email prefix
+          createdAt: new Date() // Data di creazione
+        });
+
+        // Mostra il popup per modificare l'account
+        showNicknameModal(emailPrefix);
+      } else {
+        console.log("Utente già presente nel database.");
+      }
     }
 
     // Gestione navigazione

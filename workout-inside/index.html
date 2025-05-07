@@ -596,9 +596,9 @@
 
         // Crea un nuovo documento per l'utente
         await setDoc(userDocRef, {
+          id: user.uid,
           email: user.email, // Aggiungi l'email 
           nickname: nick, // Imposta inizialmente il nickname come l'email prefix
-          createdAt: new Date() // Data di creazione
         });
 
         // Mostra il popup per modificare l'account

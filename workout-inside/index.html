@@ -112,7 +112,9 @@
           days: Array.from(document.getElementById('reminder-days').selectedOptions).map(o => o.value),
           timerEnabled: document.getElementById('timer-enabled').checked,
           timerDuration: document.getElementById('timer-duration').value,
-          userId: user.uid
+          userId: user.uid,
+          shared: document.getElementById('share-checkbox').checked,
+          score: 0
         };
 
         try {
@@ -207,6 +209,77 @@
         new Notification(message);
       }
     }
+
+    // Nuova funzione per i timer
+    function setupTimer(duration, element) {
+      let timer = duration * 60;
+      const progressBar = element.querySelector('.progress-bar');
+      const startBtn = element.querySelector('.btn-start-timer');
+      
+      startBtn.addEventListener('click', () => {
+        startBtn.disabled = true;
+        const initialWidth = 100;
+        const interval = setInterval(() => {
+          timer--;
+          const widthPercent = (timer / (duration * 60)) * 100;
+          progressBar.style.width = `${widthPercent}%`;
+          
+          if(timer <= 0) {
+            clearInterval(interval);
+            element.remove();
+          }
+        }, 1000);
+      });
+    }
+
+    // Modifica renderReminders per aggiungere i timer
+    function renderReminders(reminders) {
+      const container = document.getElementById('reminders-list');
+      container.innerHTML = reminders.map(reminder => `
+        <div class="col-md-6">
+          <div class="card reminder-card shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title">${reminder.text}</h5>
+              <p class="card-text">Ora: ${reminder.time}</p>
+              ${reminder.timerEnabled ? `
+                <div class="timer-container">
+                  ${document.getElementById('timer-template').innerHTML}
+                </div>
+              ` : ''}
+              <button class="btn btn-sm btn-danger" onclick="deleteReminder('${reminder.id}')">Elimina</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      reminders.forEach((reminder, index) => {
+        if(reminder.timerEnabled) {
+          const timerContainer = container.children[index].querySelector('.timer-container');
+          setupTimer(reminder.timerDuration, timerContainer);
+        }
+      });
+    }
+
+    // Nuove funzioni per le sezioni condivise e domande
+    async function loadSharedReminders() {
+      const q = query(collection(db, 'reminders'), where('shared', '==', true));
+      // ... caricamento e render simile a loadReminders ...
+    }
+
+    async function loadQuestions() {
+      const q = query(collection(db, 'questions'));
+      // ... caricamento domande con voti ...
+    }
+
+    // Gestione navigazione
+    document.querySelectorAll('#main-nav .nav-link').forEach(link => {
+      link.addEventListener('click', (e) => {
+        document.querySelectorAll('.content-section').forEach(section => {
+          section.style.display = 'none';
+        });
+        document.getElementById(e.target.dataset.bsTarget).style.display = 'block';
+      });
+    });
   </script>
 </body>
 </html>

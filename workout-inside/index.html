@@ -19,7 +19,7 @@
 <body class="bg-light">
   <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
     <div class="container">
-      <a class="navbar-brand" href="#">Workout Reminder</a>
+      <a class="navbar-brand" href="#">Workout Inside</a>
       <div class="collapse navbar-collapse">
         <ul class="navbar-nav me-auto" id="main-nav">
           <li class="nav-item"><a class="nav-link active" href="#" data-bs-target="my-reminders">Miei Reminder</a></li>
@@ -101,30 +101,27 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <div class="card p-4 mb-4">
-            <h3 class="mb-3">Nuovo Reminder</h3>
-            <input type="text" id="reminder-text" class="form-control mb-2" placeholder="Testo del reminder">
-            <input type="time" id="reminder-time" class="form-control mb-2">
-            <select id="reminder-days" class="form-select mb-2" multiple>
-              <option value="1">Lunedì</option>
-              <option value="2">Martedì</option>
-              <option value="3">Mercoledì</option>
-              <option value="4">Giovedì</option>
-              <option value="5">Venerdì</option>
-              <option value="6">Sabato</option>
-              <option value="0">Domenica</option>
-            </select>
-            <div class="form-check mb-2">
-              <input type="checkbox" id="timer-enabled" class="form-check-input">
-              <label class="form-check-label">Abilita Timer</label>
-            </div>
-            <input type="number" id="timer-duration" class="form-control mb-2" placeholder="Durata timer (minuti)" disabled>
-            <div class="form-check mb-2">
-              <input type="checkbox" id="share-checkbox" class="form-check-input">
-              <label class="form-check-label">Pubblica</label>
-            </div>
-            <button id="btn-add-reminder" class="btn btn-primary">Aggiungi Reminder</button>
+          <input type="text" id="reminder-text" class="form-control mb-2" placeholder="Testo del reminder">
+          <input type="time" id="reminder-time" class="form-control mb-2">
+          <select id="reminder-days" class="form-select mb-2" multiple>
+            <option value="1">Lunedì</option>
+            <option value="2">Martedì</option>
+            <option value="3">Mercoledì</option>
+            <option value="4">Giovedì</option>
+            <option value="5">Venerdì</option>
+            <option value="6">Sabato</option>
+            <option value="0">Domenica</option>
+          </select>
+          <div class="form-check mb-2">
+            <input type="checkbox" id="timer-enabled" class="form-check-input">
+            <label class="form-check-label">Abilita Timer</label>
           </div>
+          <input type="number" id="timer-duration" class="form-control mb-2" placeholder="Durata timer (minuti)" disabled>
+          <div class="form-check mb-2">
+            <input type="checkbox" id="share-checkbox" class="form-check-input">
+            <label class="form-check-label">Pubblica</label>
+          </div>
+          <button id="btn-add-reminder" class="btn btn-primary">Aggiungi Reminder</button>
         </div>
       </div>
     </div>
@@ -344,26 +341,131 @@
       });
     }
 
-    // Nuove funzioni per le sezioni condivise e domande
     async function loadSharedReminders() {
-      const q = query(collection(db, 'reminders'), where('shared', '==', true));
-      // ... caricamento e render simile a loadReminders ...
-    }
+  const q = query(collection(db, 'reminders'), where('shared', '==', true));
+  const searchInput = document.querySelector('#shared-reminders input[type="text"]');
+  const sortSelect = document.querySelector('#shared-reminders select');
 
-    async function loadQuestions() {
-      const q = query(collection(db, 'questions'));
-      // ... caricamento domande con voti ...
-    }
-
-    // Gestione navigazione
-    document.querySelectorAll('#main-nav .nav-link').forEach(link => {
-      link.addEventListener('click', (e) => {
-        document.querySelectorAll('.content-section').forEach(section => {
-          section.style.display = 'none';
-        });
-        document.getElementById(e.target.dataset.bsTarget).style.display = 'block';
-      });
+  let reminders = [];
+  
+  // Real-time listener per aggiornamenti
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    reminders = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        text: data.text,
+        time: data.time,
+        days: data.days,
+        score: data.score || 0,
+        userId: data.userId,
+        timerEnabled: data.timerEnabled,
+        timerDuration: data.timerDuration
+      };
     });
+    
+    applySearchAndSort();
+  });
+
+  // Funzioni di filtro e ordinamento
+  function applySearchAndSort(searchTerm = searchInput.value, sortType = sortSelect.value) {
+    let filtered = reminders.filter(reminder => 
+      reminder.text.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    switch(sortType) {
+      case 'Ordina per punteggio':
+        filtered.sort((a, b) => b.score - a.score);
+        break;
+      case 'Ordina casualmente':
+        filtered = filtered.sort(() => Math.random() - 0.5);
+        break;
+    }
+
+    renderSharedReminders(filtered);
+  }
+
+  // Handler per ricerca
+  searchInput.addEventListener('input', (e) => {
+    applySearchAndSort(e.target.value);
+  });
+
+  // Handler per ordinamento
+  sortSelect.addEventListener('change', (e) => {
+    applySearchAndSort(undefined, e.target.value);
+  });
+
+  // Renderizzazione
+  function renderSharedReminders(filteredReminders) {
+    const container = document.getElementById('shared-reminders-list');
+    container.innerHTML = filteredReminders.map(reminder => `
+      <div class="col-md-6">
+        <div class="card reminder-card shadow-sm mb-3">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <h5 class="card-title">${reminder.text}</h5>
+                <p class="card-text text-muted small">Condiviso da: ${reminder.userId}</p>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-sm btn-outline-success vote-btn" 
+                        onclick="voteReminder('${reminder.id}', 'up')">
+                  ↑
+                </button>
+                <span class="badge bg-primary">${reminder.score}</span>
+                <button class="btn btn-sm btn-outline-danger vote-btn" 
+                        onclick="voteReminder('${reminder.id}', 'down')">
+                  ↓
+                </button>
+              </div>
+            </div>
+            <p class="card-text">Ora: ${reminder.time}</p>
+            ${reminder.timerEnabled ? `
+              <div class="timer-container">
+                ${document.getElementById('timer-template').innerHTML}
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    // Inizializza i timer
+    filteredReminders.forEach((reminder, index) => {
+      if(reminder.timerEnabled) {
+        const timerContainer = container.children[index].querySelector('.timer-container');
+        setupTimer(reminder.timerDuration, timerContainer);
+      }
+    });
+  }
+
+  // Funzione globale per i voti
+  window.voteReminder = async function(id, voteType) {
+    try {
+      const reminderRef = doc(db, 'reminders', id);
+      await updateDoc(reminderRef, {
+        score: increment(voteType === 'up' ? 1 : -1)
+      });
+    } catch (err) {
+      console.error("Errore nel voto:", err);
+      alert('Si è verificato un errore durante il voto');
+    }
+  };
+
+  async function loadQuestions() {
+    const q = query(collection(db, 'questions'));
+    // ... caricamento domande con voti ...
+  }
+
+  // Gestione navigazione
+  document.querySelectorAll('#main-nav .nav-link').forEach(link => {
+    link.addEventListener('click', (e) => {
+      document.querySelectorAll('.content-section').forEach(section => {
+        section.style.display = 'none';
+      });
+      document.getElementById(e.target.dataset.bsTarget).style.display = 'block';
+    });
+  });
   </script>
 </body>
 </html>

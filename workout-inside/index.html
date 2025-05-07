@@ -176,7 +176,7 @@
         try {
           await signInWithEmailAndPassword(auth, email, password);
         } catch (err) {
-          alert(err.message);
+          console.log(err.message);
         }
       });
 
@@ -187,7 +187,7 @@
         try {
           await createUserWithEmailAndPassword(auth, email, password);
         } catch (err) {
-          alert(err.message);
+          console.log(err.message);
         }
       });
 
@@ -237,7 +237,7 @@
           if (typeof loadReminders === "function") loadReminders();
 
         } catch (err) {
-          alert(err.message);
+          console.log(err.message);
         }
       });
 
@@ -318,7 +318,7 @@
         const modal = new bootstrap.Modal(document.getElementById('newReminderModal'));
         modal.show();
       } else {
-        alert("Promemoria non trovato.");
+        console.log("Promemoria non trovato.");
       }
     }
     window.editReminder = editReminder;
@@ -327,7 +327,7 @@
       try {
         await deleteDoc(doc(db, 'reminders', id));
       } catch (err) {
-        alert(err.message);
+        console.log(err.message);
       }
     };
 
@@ -470,12 +470,6 @@
                     </button>
                   </div>
                 </div>
-                <p class="card-text">Ora: ${reminder.time}</p>
-                ${reminder.timerEnabled ? `
-                  <div class="timer-container">
-                    ${document.getElementById('timer-template').innerHTML}
-                  </div>
-                ` : ''}
               </div>
             </div>
           </div>
@@ -501,7 +495,7 @@
         });
       } catch (err) {
         console.error("Errore nel voto:", err);
-        alert('Si è verificato un errore durante il voto');
+        console.log('Si è verificato un errore durante il voto');
       }
     };
 

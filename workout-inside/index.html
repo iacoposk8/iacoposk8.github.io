@@ -262,6 +262,7 @@
                   ${document.getElementById('timer-template').innerHTML}
                 </div>
               ` : ''}
+              <button class="btn btn-sm btn-primary" onclick="editReminder('${reminder.id}')">Modifica</button>
               <button class="btn btn-sm btn-danger" onclick="deleteReminder('${reminder.id}')">Elimina</button>
             </div>
           </div>
@@ -274,6 +275,24 @@
           setupTimer(reminder.timerDuration, timerContainer);
         }
       });
+    }
+
+    async function editReminder(id) {
+      const docRef = doc(db, "reminders", id);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const reminder = docSnap.data();
+
+        document.getElementById('reminderTitle').value = reminder.title;
+        document.getElementById('editingReminderId').value = id;
+        document.getElementById('saveReminderButton').textContent = "Salva modifiche";
+
+        const modal = new bootstrap.Modal(document.getElementById('addReminderModal'));
+        modal.show();
+      } else {
+        alert("Promemoria non trovato.");
+      }
     }
 
     window.deleteReminder = async function (id) {

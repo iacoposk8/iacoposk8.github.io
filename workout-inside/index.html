@@ -429,15 +429,15 @@
       const searchInput = document.querySelector('#shared-reminders input[type="text"]');
       const sortSelect = document.querySelector('#shared-reminders select');
 
-      const remindersSnapshot = await getDocs(collection(db, "reminders"));
+      const remindersSnapshot = await getDocs(q);  // Usa la query che filtra per 'shared'
       const reminders = [];
 
       for (const doc of remindersSnapshot.docs) {
         const data = doc.data();
-        
+
         // Recupera il documento dell'utente per ottenere il nickname
         const userDocRef = doc(db, "users", data.userId);
-        const userDocSnap = await getDoc(userDocRef);
+        const userDocSnap = await getDoc(userDocRef);  // Usa getDoc per ottenere i dati dell'utente
         const nickname = userDocSnap.exists() ? userDocSnap.data().nickname : "Sconosciuto"; // Se l'utente non ha un nickname, usa "Sconosciuto"
 
         // Aggiungi il reminder e il nickname
@@ -453,33 +453,16 @@
           timerDuration: data.timerDuration
         });
       }
-      
-      // Real-time listener per aggiornamenti
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-        reminders = snapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            text: data.text,
-            time: data.time,
-            days: data.days,
-            score: data.score || 0,
-            userId: data.userId,
-            timerEnabled: data.timerEnabled,
-            timerDuration: data.timerDuration
-          };
-        });
-        
-        applySearchAndSort();
-      });
+
+      applySearchAndSort();
 
       // Funzioni di filtro e ordinamento
       function applySearchAndSort(searchTerm = searchInput.value, sortType = sortSelect.value) {
-        let filtered = reminders.filter(reminder => 
+        let filtered = reminders.filter(reminder =>
           reminder.text.toLowerCase().includes(searchTerm.toLowerCase())
         );
 
-        switch(sortType) {
+        switch (sortType) {
           case 'Ordina per punteggio':
             filtered.sort((a, b) => b.score - a.score);
             break;
@@ -511,7 +494,7 @@
                 <div class="d-flex justify-content-between align-items-start">
                   <div>
                     <h5 class="card-title">${reminder.text}</h5>
-                    <p class="card-text text-muted small">Condiviso da: ${reminder.userId}</p>
+                    <p class="card-text text-muted small">Condiviso da: ${reminder.nickname}</p>  <!-- Usa il nickname -->
                   </div>
                   <div class="d-flex align-items-center gap-2">
                     <button class="btn btn-sm btn-outline-success vote-btn" 
@@ -531,6 +514,7 @@
         `).join('');
       }
     }
+
     loadSharedReminders();
 
     // Funzione globale per i voti

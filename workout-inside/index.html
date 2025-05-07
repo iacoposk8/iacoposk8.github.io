@@ -56,6 +56,7 @@
   const auth = getAuth(app);
   const db = firebase.firestore();
 
+window.addEventListener('DOMContentLoaded', () => {
 // Gestione Autenticazione
 document.getElementById('google-login-btn').addEventListener('click', () => {
   const provider = new GoogleAuthProvider();
@@ -193,4 +194,5 @@ document.getElementById('timer-enabled').addEventListener('change', function() {
 });
 
 Notification.requestPermission();
+});
 </script>

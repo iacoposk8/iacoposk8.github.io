@@ -429,7 +429,30 @@
       const searchInput = document.querySelector('#shared-reminders input[type="text"]');
       const sortSelect = document.querySelector('#shared-reminders select');
 
-      let reminders = [];
+      const remindersSnapshot = await getDocs(collection(db, "reminders"));
+      const reminders = [];
+
+      for (const doc of remindersSnapshot.docs) {
+        const data = doc.data();
+        
+        // Recupera il documento dell'utente per ottenere il nickname
+        const userDocRef = doc(db, "users", data.userId);
+        const userDocSnap = await getDoc(userDocRef);
+        const nickname = userDocSnap.exists() ? userDocSnap.data().nickname : "Sconosciuto"; // Se l'utente non ha un nickname, usa "Sconosciuto"
+
+        // Aggiungi il reminder e il nickname
+        reminders.push({
+          id: doc.id,
+          text: data.text,
+          time: data.time,
+          days: data.days,
+          score: data.score || 0,
+          userId: data.userId,
+          nickname: nickname, // Aggiungi il nickname
+          timerEnabled: data.timerEnabled,
+          timerDuration: data.timerDuration
+        });
+      }
       
       // Real-time listener per aggiornamenti
       const unsubscribe = onSnapshot(q, (snapshot) => {

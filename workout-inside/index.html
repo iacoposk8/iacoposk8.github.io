@@ -4,46 +4,120 @@
   <meta charset="UTF-8">
   <title>Workout Inside - Reminder</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    .progress-bar-timer {
+      transition: width 1s linear;
+    }
+    .reminder-card {
+      transition: transform 0.2s;
+    }
+    .reminder-card:hover {
+      transform: translateY(-2px);
+    }
+  </style>
 </head>
-<body>
-  <div id="auth-container">
-    <div class="card p-4 mb-4">
-      <h2 class="mb-4">Accedi/Registrati</h2>
-      <input type="email" id="email" class="form-control mb-2" placeholder="Email">
-      <input type="password" id="password" class="form-control mb-2" placeholder="Password">
-      <button id="btn-login" class="btn btn-primary mb-2">Accedi</button>
-      <button id="btn-signup" class="btn btn-success mb-2">Registrati</button>
-      <button id="btn-google" class="btn btn-danger">Google</button>
-    </div>
-  </div>
-
-  <div id="app-container" style="display: none;">
-    <button id="btn-logout" class="btn btn-danger mb-4">Logout</button>
-
-    <div class="card p-4 mb-4">
-      <h3 class="mb-3">Nuovo Reminder</h3>
-      <input type="text" id="reminder-text" class="form-control mb-2" placeholder="Testo del reminder">
-      <input type="time" id="reminder-time" class="form-control mb-2">
-      <select id="reminder-days" class="form-select mb-2" multiple>
-        <option value="1">Lunedì</option>
-        <option value="2">Martedì</option>
-        <option value="3">Mercoledì</option>
-        <option value="4">Giovedì</option>
-        <option value="5">Venerdì</option>
-        <option value="6">Sabato</option>
-        <option value="0">Domenica</option>
-      </select>
-      <div class="form-check mb-2">
-        <input type="checkbox" id="timer-enabled" class="form-check-input">
-        <label class="form-check-label">Abilita Timer</label>
+<body class="bg-light">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+    <div class="container">
+      <a class="navbar-brand" href="#">Workout Reminder</a>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav me-auto" id="main-nav">
+          <li class="nav-item"><a class="nav-link active" href="#" data-bs-target="my-reminders">Miei Reminder</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" data-bs-target="shared-reminders">Reminder</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" data-bs-target="questions">Domande</a></li>
+        </ul>
+        <button id="btn-logout" class="btn btn-outline-light">Logout</button>
       </div>
-      <input type="number" id="timer-duration" class="form-control mb-2" placeholder="Durata timer (minuti)" disabled>
-      <input type="checkbox" id="share-checkbox" class="form-check-input">
-      <button id="btn-add-reminder" class="btn btn-primary">Aggiungi Reminder</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- Auth Container -->
+    <div id="auth-container" class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="card shadow">
+          <div class="card-body">
+            <h2 class="card-title text-center mb-4">Accedi/Registrati</h2>
+            <input type="email" id="email" class="form-control mb-3" placeholder="Email">
+            <input type="password" id="password" class="form-control mb-3" placeholder="Password">
+            <div class="d-grid gap-2">
+              <button id="btn-login" class="btn btn-primary">Accedi</button>
+              <button id="btn-signup" class="btn btn-success">Registrati</button>
+              <button id="btn-google" class="btn btn-danger">Continua con Google</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div id="reminders-list" class="card p-4"></div>
+    <!-- App Container -->
+    <div id="app-container" style="display: none;">
+      <!-- Content Sections -->
+      <div id="my-reminders" class="content-section">
+        <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#newReminderModal">
+          + Nuovo Reminder
+        </button>
+        <div id="reminders-list" class="row g-4"></div>
+      </div>
+
+      <div id="shared-reminders" class="content-section" style="display: none;">
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <input type="text" class="form-control" placeholder="Cerca reminder...">
+          </div>
+          <div class="col-md-3">
+            <select class="form-select">
+              <option>Ordina per punteggio</option>
+              <option>Ordina casualmente</option>
+            </select>
+          </div>
+        </div>
+        <div id="shared-reminders-list" class="row g-4"></div>
+      </div>
+
+      <div id="questions" class="content-section" style="display: none;">
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <input type="text" class="form-control" placeholder="Cerca domande...">
+          </div>
+          <div class="col-md-3">
+            <select class="form-select">
+              <option>Ordina per punteggio</option>
+              <option>Ordina casualmente</option>
+            </select>
+          </div>
+        </div>
+        <div id="questions-list" class="row g-4"></div>
+      </div>
+    </div>
   </div>
+
+  <!-- Modals -->
+  <div class="modal fade" id="newReminderModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Nuovo Reminder</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Il form esistente va qui -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timer Template -->
+  <template id="timer-template">
+    <div class="timer-container mt-2">
+      <div class="progress mb-2" style="height: 20px;">
+        <div class="progress-bar progress-bar-timer bg-info" role="progressbar" style="width: 100%"></div>
+      </div>
+      <button class="btn btn-sm btn-start-timer btn-success">Avvia Timer</button>
+    </div>
+  </template>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";

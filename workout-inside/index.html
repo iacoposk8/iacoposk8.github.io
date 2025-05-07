@@ -1,24 +1,3 @@
-<script type="module">
-  // Import the functions you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-
-  // Your Firebase config
-  const firebaseConfig = {
-    apiKey: "AIzaSyAAHS48qlq5rC-E9F1RbcIRwN_x71oceTo",
-    authDomain: "workout-inside-23d9b.firebaseapp.com",
-    projectId: "workout-inside-23d9b",
-    storageBucket: "workout-inside-23d9b.appspot.com",
-    messagingSenderId: "54802022321",
-    appId: "1:54802022321:web:f88980bdef5dc255d54790"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = firebase.firestore();
-</script>
-
 <div id="auth-container">
   <div class="card p-4 mb-4">
     <h2 class="mb-4">Accedi/Registrati</h2>
@@ -57,7 +36,26 @@
   <div id="reminders-list" class="card p-4"></div>
 </div>
 
-<script>
+<script type="module">
+  // Import the functions you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+  // Your Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyAAHS48qlq5rC-E9F1RbcIRwN_x71oceTo",
+    authDomain: "workout-inside-23d9b.firebaseapp.com",
+    projectId: "workout-inside-23d9b",
+    storageBucket: "workout-inside-23d9b.appspot.com",
+    messagingSenderId: "54802022321",
+    appId: "1:54802022321:web:f88980bdef5dc255d54790"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = firebase.firestore();
+
 // Gestione Autenticazione
 function google_login(){
   const provider = new GoogleAuthProvider();

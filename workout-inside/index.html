@@ -554,9 +554,10 @@
 
       // Mostra il popup per modificarlo
       const userRef = doc(db, 'users', user.uid); 
-      const userSnap = await getDoc(userRef).data();
-      console.log(userSnap);
-      showNicknameModal(nickname);
+      const userSnap = await getDoc(userRef);
+      const userdb = userSnap.data();
+      console.log(userdb);
+      showNicknameModal(userdb.nickname);
     }
 
     // Funzione per mostrare il modal di modifica nickname

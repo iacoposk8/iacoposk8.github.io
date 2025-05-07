@@ -26,7 +26,7 @@
           <li class="nav-item"><a class="nav-link" href="#" data-bs-target="shared-reminders">Reminder</a></li>
           <li class="nav-item"><a class="nav-link" href="#" data-bs-target="questions">Domande</a></li>
         </ul>
-        <button class="btn btn-outline-secondary" id="account-btn">Account</button>
+        <button id="account-btn" class="btn btn-outline-light">Account</button>
         <button id="btn-logout" class="btn btn-outline-light">Logout</button>
       </div>
     </div>
@@ -549,13 +549,11 @@
 
           // Salva il nickname nel database
           await updateDoc(userDocRef, { nickname });
-
-          // Mostra il popup per modificarlo
-          showNicknameModal(nickname);
         }
-      } else {
-        console.log("Utente non trovato nel database.");
       }
+      
+      // Mostra il popup per modificarlo
+      showNicknameModal(nickname);
     }
 
     // Funzione per mostrare il modal di modifica nickname

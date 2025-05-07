@@ -1,10 +1,9 @@
-<!-- Firebase App e servizi -->
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+<script type="module">
+  // Import the functions you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-<script>
-  // Config Firebase
+  // Your Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyAAHS48qlq5rC-E9F1RbcIRwN_x71oceTo",
     authDomain: "workout-inside-23d9b.firebaseapp.com",
@@ -14,10 +13,27 @@
     appId: "1:54802022321:web:f88980bdef5dc255d54790"
   };
 
-  // Init Firebase
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
   const db = firebase.firestore();
+
+  const provider = new GoogleAuthProvider();
+  //provider.addScope('https://www.googleapis.com/auth/contacts.readonly');
+
+  signInWithPopup(auth, provider)
+    .then((result) => {
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      const token = credential.accessToken;
+      const user = result.user;
+      console.log("User signed in:", user.email);
+    }).catch((error) => {
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      const email = error.email;
+      const credential = GoogleAuthProvider.credentialFromError(error);
+      console.error("Error during sign in:", errorMessage);
+    });
 </script>
 
 <div id="auth-container">
@@ -26,8 +42,7 @@
     <input type="email" id="email" class="form-control mb-2" placeholder="Email">
     <input type="password" id="password" class="form-control mb-2" placeholder="Password">
     <button onclick="login()" class="btn btn-primary mb-2">Accedi</button>
-    <button onclick="signup()" class="btn btn-success mb-2">Registrati</button>
-    <button onclick="loginWithGoogle()" class="btn btn-outline-danger mt-2">Accedi con Google</button>
+    <button onclick="signup()" class="btn btn-success">Registrati</button>
   </div>
 </div>
 
@@ -59,6 +74,7 @@
 </div>
 
 <script>
+// Gestione Autenticazione
 function login() {
   const email = document.getElementById('email').value;
   const password = document.getElementById('password').value;
@@ -73,21 +89,11 @@ function signup() {
     .catch(error => alert(error.message));
 }
 
-function loginWithGoogle() {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider)
-    .then((result) => {
-      console.log("User signed in with Google:", result.user.email);
-    })
-    .catch((error) => {
-      alert("Errore durante l'accesso con Google: " + error.message);
-    });
-}
-
 function logout() {
   auth.signOut();
 }
 
+// Gestione Reminder
 function addReminder() {
   const user = auth.currentUser;
   if (!user) return;
@@ -118,18 +124,19 @@ function loadReminders() {
   });
 }
 
+// Notifiche
 function scheduleNotifications(reminders) {
   reminders.forEach(reminder => {
     reminder.days.forEach(day => {
       const nextDate = getNextOccurrence(day, reminder.time);
       const timeout = nextDate.getTime() - Date.now();
-
+      
       if (timeout > 0) {
         setTimeout(() => {
           showNotification(reminder.text);
           if (reminder.timerEnabled) {
             setTimeout(() => {
-              showNotification(`Timer scaduto per: ${reminder.text}`);
+              showNotification(Timer scaduto per: ${reminder.text});
             }, reminder.timerDuration * 60000);
           }
         }, timeout);
@@ -142,11 +149,11 @@ function getNextOccurrence(dayNumber, timeString) {
   const [hours, minutes] = timeString.split(':');
   const date = new Date();
   date.setHours(hours, minutes, 0, 0);
-
+  
   while (date.getDay() !== parseInt(dayNumber) || date < new Date()) {
     date.setDate(date.getDate() + 1);
   }
-
+  
   return date;
 }
 
@@ -156,24 +163,25 @@ function showNotification(message) {
   }
 }
 
+// UI
 function renderReminders(reminders) {
   const container = document.getElementById('reminders-list');
-  container.innerHTML = reminders.map(reminder => `
+  container.innerHTML = reminders.map(reminder => 
     <div class="card mb-2 p-2">
       <h5>${reminder.text}</h5>
       <p>Ora: ${reminder.time}</p>
       <p>Giorni: ${reminder.days.map(d => ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'][d]).join(', ')}</p>
-      ${reminder.timerEnabled ? `<p>Timer: ${reminder.timerDuration} minuti</p>` : ''}
+      ${reminder.timerEnabled ? <p>Timer: ${reminder.timerDuration} minuti</p> : ''}
       <button onclick="deleteReminder('${reminder.id}')" class="btn btn-sm btn-danger">Elimina</button>
     </div>
-  `).join('');
+  ).join('');
 }
 
 function deleteReminder(id) {
   db.collection('reminders').doc(id).delete();
 }
 
-// UI setup
+// Init
 auth.onAuthStateChanged(user => {
   document.getElementById('auth-container').style.display = user ? 'none' : 'block';
   document.getElementById('app-container').style.display = user ? 'block' : 'none';

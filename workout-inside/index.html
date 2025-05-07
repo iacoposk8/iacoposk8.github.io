@@ -212,12 +212,30 @@
           score: 0
         };
 
-        try {
-          await addDoc(collection(db, 'reminders'), reminder);
+        const editingId = document.getElementById('btn-add-reminder').getAttribute('data-editing-id');  // Controlliamo se l'ID esiste
 
-          // Chiudi il modal dopo l'aggiunta
+        try {
+          if (editingId) {
+            // Aggiorna il reminder esistente
+            const reminderRef = doc(db, 'reminders', editingId);
+            await updateDoc(reminderRef, reminder);
+
+            // Rimuovi l'ID di modifica e aggiorna il testo del bottone
+            document.getElementById('btn-add-reminder').removeAttribute('data-editing-id');
+            document.getElementById('btn-add-reminder').textContent = "Aggiungi Reminder";
+
+          } else {
+            // Aggiungi un nuovo reminder
+            await addDoc(collection(db, 'reminders'), reminder);
+          }
+
+          // Chiudi il modal dopo l'aggiunta o la modifica
           const modal = bootstrap.Modal.getInstance(document.getElementById('newReminderModal'));
           modal.hide();
+
+          // (Ricarica i reminder, se hai una funzione tipo loadReminders())
+          if (typeof loadReminders === "function") loadReminders();
+
         } catch (err) {
           alert(err.message);
         }
@@ -283,29 +301,16 @@
 
       if (docSnap.exists()) {
         const reminder = docSnap.data();
-
-        // Popola i campi del modal
-        document.getElementById('reminder-text').value = reminder.text || '';
-        document.getElementById('reminder-time').value = reminder.time || '';
         
-        // Seleziona i giorni
-        const selectDays = document.getElementById('reminder-days');
-        for (const option of selectDays.options) {
-          option.selected = reminder.days.includes(option.value);
-        }
+        // Riempi i campi con i dati del reminder
+        document.getElementById('reminder-text').value = reminder.text;
+        document.getElementById('reminder-time').value = reminder.time;
+        document.getElementById('reminder-days').value = reminder.days.join(',');  // Puoi usare un'implementazione migliore per le opzioni multiple
+        document.getElementById('timer-enabled').checked = reminder.timerEnabled;
+        document.getElementById('timer-duration').value = reminder.timerDuration;
+        document.getElementById('share-checkbox').checked = reminder.shared;
 
-        // Checkbox timer
-        const timerCheckbox = document.getElementById('timer-enabled');
-        timerCheckbox.checked = reminder.timerEnabled || false;
-
-        const timerDuration = document.getElementById('timer-duration');
-        timerDuration.disabled = !timerCheckbox.checked;
-        timerDuration.value = reminder.timerDuration || '';
-
-        // Checkbox share
-        document.getElementById('share-checkbox').checked = reminder.shared || false;
-
-        // Salva l'id del reminder in modifica in un attributo temporaneo
+        // Imposta l'ID per l'aggiornamento
         document.getElementById('btn-add-reminder').setAttribute('data-editing-id', id);
         document.getElementById('btn-add-reminder').textContent = "Salva modifiche";
 

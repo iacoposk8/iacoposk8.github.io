@@ -203,21 +203,6 @@
       return card;
     }
 
-    async function loadReminders(userId) {
-      const remindersContainer = document.getElementById('app-container');
-      remindersContainer.innerHTML = ''; // Svuota o aggiorna la UI a seconda della tua struttura
-
-      const q = query(collection(db, 'reminders'), where('userId', '==', userId));
-      onSnapshot(q, (querySnapshot) => {
-        remindersContainer.innerHTML = ''; // Rimuovi i reminder precedenti prima di reinserirli
-        querySnapshot.forEach((doc) => {
-          const reminder = { id: doc.id, ...doc.data() };
-          const card = renderReminder(reminder, true);
-          remindersContainer.appendChild(card);
-        });
-      });
-    }
-
     // Inizializzazione
     window.addEventListener('DOMContentLoaded', () => {
       // ... inizializzazione esistente ...

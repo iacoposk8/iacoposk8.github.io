@@ -425,6 +425,7 @@
     }
 
     async function loadSharedReminders() {
+      const db = getFirestore();  // Assicurati di avere l'istanza di Firestore
       const q = query(collection(db, 'reminders'), where('shared', '==', true));
       const searchInput = document.querySelector('#shared-reminders input[type="text"]');
       const sortSelect = document.querySelector('#shared-reminders select');
@@ -432,17 +433,17 @@
       const remindersSnapshot = await getDocs(q);  // Usa la query che filtra per 'shared'
       const reminders = [];
 
-      for (const doc of remindersSnapshot.docs) {
-        const data = doc.data();
+      for (const reminderDoc of remindersSnapshot.docs) {  // Rinomina `doc` in `reminderDoc` per evitare conflitti
+        const data = reminderDoc.data();
 
         // Recupera il documento dell'utente per ottenere il nickname
-        const userDocRef = doc(db, "users", data.userId);
+        const userDocRef = doc(db, "users", data.userId);  // Usa 'doc' per riferirsi ai documenti Firestore
         const userDocSnap = await getDoc(userDocRef);  // Usa getDoc per ottenere i dati dell'utente
         const nickname = userDocSnap.exists() ? userDocSnap.data().nickname : "Sconosciuto"; // Se l'utente non ha un nickname, usa "Sconosciuto"
 
         // Aggiungi il reminder e il nickname
         reminders.push({
-          id: doc.id,
+          id: reminderDoc.id,
           text: data.text,
           time: data.time,
           days: data.days,

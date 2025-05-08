@@ -401,11 +401,8 @@
 
           if (timeout > 0) {
             setTimeout(() => {
-              showNotification(reminder.text);
-              if (reminder.timerEnabled) {
-                setTimeout(() => {
-                  showNotification(`Timer scaduto per: ${reminder.text}`);
-                }, reminder.timerDuration * 60000);
+              if (Notification.permission === 'granted') {
+                new Notification(message);
               }
             }, timeout);
           }
@@ -424,12 +421,6 @@
       }
 
       return date;
-    }
-
-    function showNotification(message) {
-      if (Notification.permission === 'granted') {
-        new Notification(message);
-      }
     }
 
     // Nuova funzione per i timer

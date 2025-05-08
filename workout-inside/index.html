@@ -455,12 +455,11 @@
     }
 
     async function loadSharedReminders() {
-      const db = getFirestore();  // Assicurati di avere l'istanza di Firestore
-      const q = query(collection(db, 'reminders'), where('shared', '==', true));
+      const q = query(collection(db, 'reminders'), where('shared', '==', true), where('question', '==', false));
       const searchInput = document.querySelector('#shared-reminders input[type="text"]');
       const sortSelect = document.querySelector('#shared-reminders select');
 
-      const remindersSnapshot = await getDocs(q);  // Usa la query che filtra per 'shared'
+      const remindersSnapshot = await getDocs(q);
       const reminders = [];
 
       for (const reminderDoc of remindersSnapshot.docs) {  // Rinomina `doc` in `reminderDoc` per evitare conflitti

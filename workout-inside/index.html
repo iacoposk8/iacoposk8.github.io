@@ -72,7 +72,7 @@
             </select>
           </div>
         </div>
-        <div id="shared-reminders-list" class="row g-4"></div>
+        <div id="reminders-list" class="row g-4"></div>
       </div>
 
       <div id="questions" class="content-section" style="display: none;">
@@ -454,8 +454,8 @@
       });
     }
 
-    async function loadSharedReminders() {
-      const q = query(collection(db, 'reminders'), where('shared', '==', true), where('question', '==', false));
+    async function loadShared(question) {
+      const q = query(collection(db, 'reminders'), where('shared', '==', true), where('question', '==', question));
       const searchInput = document.querySelector('#shared-reminders input[type="text"]');
       const sortSelect = document.querySelector('#shared-reminders select');
 
@@ -516,7 +516,10 @@
 
       // Renderizzazione
       function renderSharedReminders(filteredReminders) {
-        const container = document.getElementById('shared-reminders-list');
+        if(question)
+          const container = document.getElementById('question-list');
+        else
+          const container = document.getElementById('reminders-list');
         container.innerHTML = filteredReminders.map(reminder => `
           <div class="col-md-6">
             <div class="card reminder-card shadow-sm mb-3">
@@ -545,7 +548,8 @@
       }
     }
 
-    loadSharedReminders();
+    loadShared(false);
+    loadShared(true);
 
     // Funzione globale per i voti
     window.voteReminder = async function(id, voteType) {
@@ -626,11 +630,6 @@
           alert("Il nickname non può essere vuoto.");
         }
       });
-    }
-
-    async function loadQuestions() {
-      const q = query(collection(db, 'questions'));
-      // ... caricamento domande con voti ...
     }
 
     async function initializeUser() {

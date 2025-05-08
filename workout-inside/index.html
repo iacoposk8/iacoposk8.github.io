@@ -502,7 +502,7 @@
                             onclick="voteReminder('${reminder.id}', 'up')">
                       ↑
                     </button>
-                    <span class="badge bg-primary">${reminder.score}</span>
+                    <span id="score-badge-${reminder.id}" class="badge bg-primary">${reminder.score}</span>
                     <button class="btn btn-sm btn-outline-danger vote-btn" 
                             onclick="voteReminder('${reminder.id}', 'down')">
                       ↓
@@ -522,12 +522,23 @@
     window.voteReminder = async function(id, voteType) {
       try {
         const reminderRef = doc(db, 'reminders', id);
+        const delta = voteType === 'up' ? 1 : -1;
+
+        // Aggiorna su Firestore
         await updateDoc(reminderRef, {
-          score: increment(voteType === 'up' ? 1 : -1)
+          score: increment(delta)
         });
+
+        // Aggiorna subito il valore visualizzato
+        const badge = document.querySelector(`#score-badge-${id}`);
+        if (badge) {
+          const current = parseInt(badge.textContent);
+          badge.textContent = current + delta;
+        }
+
       } catch (err) {
         console.error("Errore nel voto:", err);
-        console.log('Si è verificato un errore durante il voto');
+        alert('Si è verificato un errore durante il voto');
       }
     };
 

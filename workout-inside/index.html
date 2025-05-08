@@ -55,7 +55,7 @@
       <!-- Content Sections -->
       <div id="my-reminders" class="content-section">
         <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#newReminderModal">
-          + Nuovo Reminder
+          + Aggiungi
         </button>
         <div id="reminders-list" class="row g-4"></div>
       </div>
@@ -97,11 +97,22 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Nuovo Reminder</h5>
+          <h5 class="modal-title">Aggiungi</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <input type="text" id="reminder-text" class="form-control mb-2" placeholder="Testo del reminder">
+          <div class="mb-3">
+            <label class="form-label">Tipo</label><br>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="reminder-type" id="type-reminder" value="reminder" checked>
+              <label class="form-check-label" for="type-reminder">Reminder</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="reminder-type" id="type-question" value="question">
+              <label class="form-check-label" for="type-question">Domanda</label>
+            </div>
+          </div>
           <input type="time" id="reminder-time" class="form-control mb-2">
           <select id="reminder-days" class="form-select mb-2" multiple>
             <option value="1">Lunedì</option>
@@ -214,6 +225,23 @@
       // Logout
       document.getElementById('btn-logout')?.addEventListener('click', () => {
         signOut(auth);
+      });
+
+      document.querySelectorAll('input[name="reminder-type"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+          const isQuestion = document.getElementById('type-question').checked;
+
+          // Disabilita o abilita gli elementi in base alla selezione
+          document.getElementById('reminder-time').disabled = isQuestion;
+          document.getElementById('reminder-days').disabled = isQuestion;
+          document.getElementById('timer-enabled').disabled = isQuestion;
+          document.getElementById('timer-duration').disabled = isQuestion || !document.getElementById('timer-enabled').checked;
+
+          // Se è domanda, attiva il checkbox "Pubblica"
+          if (isQuestion) {
+            document.getElementById('share-checkbox').checked = true;
+          }
+        });
       });
 
       // Add reminder

@@ -516,11 +516,9 @@
 
       // Renderizzazione
       function renderSharedReminders(filteredReminders) {
+        let container = document.getElementById('reminders-list-shared');
         if(question){
-          const container = document.getElementById('questions-list');
-        }
-        else{
-          const container = document.getElementById('reminders-list-shared');
+          container = document.getElementById('questions-list');
         }
         container.innerHTML = filteredReminders.map(reminder => `
           <div class="col-md-6">

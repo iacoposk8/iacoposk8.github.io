@@ -72,7 +72,7 @@
             </select>
           </div>
         </div>
-        <div id="reminders-list" class="row g-4"></div>
+        <div id="reminders-list-shared" class="row g-4"></div>
       </div>
 
       <div id="questions" class="content-section" style="display: none;">
@@ -520,7 +520,7 @@
           const container = document.getElementById('question-list');
         }
         else{
-          const container = document.getElementById('reminders-list');
+          const container = document.getElementById('reminders-list-shared');
         }
         container.innerHTML = filteredReminders.map(reminder => `
           <div class="col-md-6">

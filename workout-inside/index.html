@@ -252,7 +252,7 @@
 
         const reminder = {
           text: document.getElementById('reminder-text').value,
-          type: document.getElementById('type-question').checked,
+          question: document.getElementById('type-question').checked,
           time: document.getElementById('reminder-time').value,
           days: Array.from(document.getElementById('reminder-days').selectedOptions).map(o => o.value),
           timerEnabled: document.getElementById('timer-enabled').checked,

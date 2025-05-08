@@ -402,7 +402,7 @@
           if (timeout > 0) {
             setTimeout(() => {
               if (Notification.permission === 'granted') {
-                new Notification(message);
+                new Notification(reminder.message);
               }
             }, timeout);
           }

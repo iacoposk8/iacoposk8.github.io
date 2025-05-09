@@ -22,7 +22,7 @@
         applicationServerKey: urlBase64ToUint8Array(publicKey)
       });
     
-      await fetch('https://tuo-vercel.vercel.app/api/save-subscription', {
+      await fetch('https://server-git-main-iacoposk8s-projects.vercel.app/api/save-subscription', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(subscription)

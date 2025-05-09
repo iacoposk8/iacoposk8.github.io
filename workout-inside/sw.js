@@ -1,7 +1,13 @@
-self.addEventListener('push', e => {
-  const data = e.data.json();
-  self.registration.showNotification(data.title, {
-    body: data.body,
+self.addEventListener('push', event => {
+  const data = event.data.json(); 
+
+  const title = data.title || 'Notifica';
+  const options = {
+    body: data.body || '',
     icon: '/icon.png'
-  });
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(title, options)
+  );
 });

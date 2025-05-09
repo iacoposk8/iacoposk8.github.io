@@ -8,7 +8,7 @@
   <button id="enable">Abilita notifiche</button>
 
   <script>
-    const publicKey = 'TUA_CHIAVE_PUBBLICA_VAPID';
+    const publicKey = 'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAECrpUgxP/t2XNN94br/kGRkCoARcjL82rAod7W0Cp39/p7MQFC74Qqazm8mbQyLMTiG/ZsmKqA2oqz9ysP2Rb2w==';
 
     async function subscribeUser() {
       if (!('serviceWorker' in navigator)) return;
@@ -21,7 +21,7 @@
         applicationServerKey: urlBase64ToUint8Array(publicKey)
       });
 
-      await fetch('https://tuo-vercel.vercel.app/api/save-subscription', {
+      await fetch('https://server-git-main-iacoposk8s-projects.vercel.app/save-subscription', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(subscription)

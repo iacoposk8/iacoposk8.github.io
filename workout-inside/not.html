@@ -23,13 +23,21 @@
         applicationServerKey: urlBase64ToUint8Array(publicKey)
       });
     
-      await fetch('https://server-git-main-iacoposk8s-projects.vercel.app/api/save-subscription', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(subscription)
-      });
-    
-      alert('Notifiche abilitate!');
+      try {
+        const response = await fetch('https://server-git-main-iacoposk8s-projects.vercel.app/api/save-subscription', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(subscription)
+        });
+      
+        if (!response.ok) {
+          throw new Error(`Errore server: ${response.status}`);
+        }
+      
+        alert('Notifiche abilitate!');
+      } catch (error) {
+        alert('Si è verificato un errore durante la registrazione delle notifiche: ' + error.message);
+      }
     }
     
     function urlBase64ToUint8Array(base64) {

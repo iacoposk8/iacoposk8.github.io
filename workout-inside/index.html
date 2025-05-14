@@ -143,7 +143,7 @@
           <input type="number" id="timer-duration" class="form-control mb-2" placeholder="Durata timer (minuti)" disabled>
           <div class="form-check mb-2">
             <input type="checkbox" id="share-checkbox" class="form-check-input">
-            <label class="form-check-label">Pubblica</label>
+            <label class="form-check-label">Rendi pubblica</label>
           </div>
           <button id="btn-add-reminder" class="btn btn-primary">Aggiungi Reminder</button>
         </div>
@@ -245,7 +245,9 @@
           const isQuestion = document.getElementById('type-question').checked;
 
           // Disabilita o abilita gli elementi in base alla selezione
-          document.getElementById('reminder-time').disabled = isQuestion;
+          document.getElementById('reminder-time-from').disabled = isQuestion;
+          document.getElementById('reminder-time-to').disabled = isQuestion;
+          document.getElementById('reminder-times').disabled = isQuestion;
           document.getElementById('reminder-days').disabled = isQuestion;
           document.getElementById('timer-enabled').disabled = isQuestion;
           document.getElementById('share-checkbox').disabled = isQuestion;
@@ -266,7 +268,9 @@
         const reminder = {
           text: document.getElementById('reminder-text').value,
           question: document.getElementById('type-question').checked,
-          time: document.getElementById('reminder-time').value,
+          timeFrom: document.getElementById('reminder-time-from').value,
+          timeTo: document.getElementById('reminder-time-to').value,
+          times: document.getElementById('reminder-times').value,
           days: Array.from(document.getElementById('reminder-days').selectedOptions).map(o => o.value),
           timerEnabled: document.getElementById('timer-enabled').checked,
           timerDuration: document.getElementById('timer-duration').value,
@@ -379,7 +383,9 @@
         
         // Riempi i campi con i dati del reminder
         document.getElementById('reminder-text').value = reminder.text;
-        document.getElementById('reminder-time').value = reminder.time;
+        document.getElementById('reminder-time-from').value = reminder.timeFrom;
+        document.getElementById('reminder-time-to').value = reminder.timeTo;
+        document.getElementById('reminder-times').value = reminder.times;
         document.getElementById('reminder-days').value = reminder.days.join(',');  // Puoi usare un'implementazione migliore per le opzioni multiple
         document.getElementById('timer-enabled').checked = reminder.timerEnabled;
         document.getElementById('timer-duration').value = reminder.timerDuration;

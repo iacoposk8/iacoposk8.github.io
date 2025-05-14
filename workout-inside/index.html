@@ -714,7 +714,8 @@
         }
 
         alert('Notifiche abilitate!');
-        btn.style.display = 'none';
+        document.getElementById('not-container').style.display = 'none';
+        document.getElementById('app-container').style.display = 'block';
       } catch (error) {
         alert('Errore durante l’abilitazione delle notifiche: ' + error.message);
         btn.disabled = false;

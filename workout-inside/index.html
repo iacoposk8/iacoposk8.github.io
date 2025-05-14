@@ -327,13 +327,11 @@
       // Listener autenticazione
       onAuthStateChanged(auth, (user) => {
         document.getElementById('auth-container').style.display = user ? 'none' : 'block';
-        document.getElementById('not-container').style.display = user ? 'block' : 'none';
 
-        // Mostra l'app solo se l'utente ha abilitato le notifiche
-        const subscribed = await isUserSubscribed();
-        if (subscribed) {
-          document.getElementById('not-container').style.display = 'none';
+        if(subscribed){
           document.getElementById('app-container').style.display = 'block';
+        } else {
+          document.getElementById('not-container').style.display = 'block';
         }
 
         if (user) {
@@ -730,6 +728,12 @@
       const raw = atob(base64Clean);
       return new Uint8Array([...raw].map(c => c.charCodeAt(0)));
     }
+
+    // Mostra il pulsante solo se l'utente non è già iscritto
+    let subscribed = null;
+    window.addEventListener('load', async () => {
+      subscribed = await isUserSubscribed();
+    });
 
     document.getElementById('enable_not').addEventListener('click', subscribeUser);
   </script>

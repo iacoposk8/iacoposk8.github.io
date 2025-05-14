@@ -731,7 +731,7 @@
     }
 
     // Mostra il pulsante solo se l'utente non è già iscritto
-    let subscribed = null;
+    let subscribed = false;
     window.addEventListener('load', async () => {
       subscribed = await isUserSubscribed();
     });

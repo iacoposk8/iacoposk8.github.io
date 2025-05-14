@@ -727,8 +727,7 @@
     // Mostra il pulsante solo se l'utente non è già iscritto
     window.addEventListener('load', async () => {
       const subscribed = await isUserSubscribed();
-      if (!subscribed) {
-        //document.getElementById('enable_not').style.display = 'inline-block';
+      if (subscribed) {
         document.getElementById('not-container').style.display = user ? 'none' : 'block';
         document.getElementById('app-container').style.display = user ? 'block' : 'none';
       }

@@ -328,13 +328,13 @@
       onAuthStateChanged(auth, (user) => {
         document.getElementById('auth-container').style.display = user ? 'none' : 'block';
 
-        if(subscribed){
-          document.getElementById('app-container').style.display = 'block';
-        } else {
-          document.getElementById('not-container').style.display = 'block';
-        }
-
         if (user) {
+          if(subscribed){
+            document.getElementById('app-container').style.display = 'block';
+          } else {
+            document.getElementById('not-container').style.display = 'block';
+          }
+
           initializeUser();
           loadReminders(user.uid);
         } else {

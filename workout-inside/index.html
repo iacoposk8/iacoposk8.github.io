@@ -51,13 +51,17 @@
     </div>
 
     <!-- App Container -->
+    <div id="not-container" style="display: none;">
+      <button id="enable_not" class="btn btn-primary mb-3">Abilita notifiche</button>
+    </div>
+
+    <!-- App Container -->
     <div id="app-container" style="display: none;">
       <!-- Content Sections -->
       <div id="my-reminders" class="content-section">
         <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#newReminderModal">
           + Aggiungi
         </button>
-        <button id="enable">Abilita notifiche</button>
         <div id="reminders-list" class="row g-4"></div>
       </div>
 
@@ -323,7 +327,7 @@
       // Listener autenticazione
       onAuthStateChanged(auth, (user) => {
         document.getElementById('auth-container').style.display = user ? 'none' : 'block';
-        document.getElementById('app-container').style.display = user ? 'block' : 'none';
+        document.getElementById('not-container').style.display = user ? 'block' : 'none';
 
         if (user) {
           initializeUser();
@@ -675,7 +679,7 @@
     }
 
     async function subscribeUser() {
-      const btn = document.getElementById('enable');
+      const btn = document.getElementById('enable_not');
       btn.disabled = true;
       btn.textContent = 'Caricamento...';
 
@@ -724,11 +728,13 @@
     window.addEventListener('load', async () => {
       const subscribed = await isUserSubscribed();
       if (!subscribed) {
-        document.getElementById('enable').style.display = 'inline-block';
+        //document.getElementById('enable_not').style.display = 'inline-block';
+        document.getElementById('not-container').style.display = user ? 'none' : 'block';
+        document.getElementById('app-container').style.display = user ? 'block' : 'none';
       }
     });
 
-    document.getElementById('enable').addEventListener('click', subscribeUser);
+    document.getElementById('enable_not').addEventListener('click', subscribeUser);
   </script>
 </body>
 </html>

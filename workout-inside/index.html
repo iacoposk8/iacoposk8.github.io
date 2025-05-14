@@ -359,7 +359,7 @@
           <div class="card reminder-card shadow-sm">
             <div class="card-body">
               <h5 class="card-title">${reminder.text}</h5>
-              <p class="card-text">Ora: ${reminder.time}</p>
+              <p class="card-text">Ora: ${reminder.timeFrom} - ${reminder.timeTo}</p>
               ${reminder.timerEnabled ? `
                 <div class="timer-container">
                   ${document.getElementById('timer-template').innerHTML}

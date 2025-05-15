@@ -713,6 +713,9 @@
           throw new Error(`Errore server: ${response.status}`);
         }
 
+        console.log("*****");
+        console.log(response);
+
         alert('Notifiche abilitate!');
         document.getElementById('not-container').style.display = 'none';
         document.getElementById('app-container').style.display = 'block';

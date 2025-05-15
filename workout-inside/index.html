@@ -713,8 +713,9 @@
           throw new Error(`Errore server: ${response.status}`);
         }
 
-        console.log("*****");
-        console.log(response);
+        console.log("****");
+        const responseData = await response.json();
+        console.log('Risposta JSON:', responseData);
 
         alert('Notifiche abilitate!');
         document.getElementById('not-container').style.display = 'none';

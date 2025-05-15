@@ -713,9 +713,10 @@
           throw new Error(`Errore server: ${response.status}`);
         }
 
-        console.log("****");
         const responseData = await response.json();
-        console.log('Risposta JSON:', responseData);
+        await updateDoc(doc(db, 'users', auth.currentUser.uid), {
+          subscription: responseData.id
+        });
 
         alert('Notifiche abilitate!');
         document.getElementById('not-container').style.display = 'none';

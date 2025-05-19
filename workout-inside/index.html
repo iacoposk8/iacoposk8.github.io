@@ -715,7 +715,7 @@
 
         const responseData = await response.json();
         await updateDoc(doc(db, 'users', auth.currentUser.uid), {
-          subscription: responseData.id
+          subscription: arrayUnion(responseData.id)
         });
 
         alert('Notifiche abilitate!');

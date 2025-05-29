@@ -8,15 +8,36 @@
 It's still a work in progress, slowly taking shape.<br />
 It's a collection of notes and ideas — ranging from happiness, to environmental issues, to justice, and more.<br />
 If I happen to die before it's finished, I'd like it to be published as-is.<br />
-You can find it on <a href="https://github.com/iacoposk8/ViaDiMezzo" target="_blank">GitHub</a>
+You can find it on <a href="https://github.com/iacoposk8/ViaDiMezzo" target="_blank">GitHub</a><br /><br /><br />
                     
-                    <!--The last update was X days ago, so:
-                    
-                    If it's recent, I'm (probably) still alive 🫀
-                    
-                    If it's been a while... who knows. Maybe it's time to publish it.-->
+                    The last update was <span id="book_days">(loading...)</span> days ago, so: <span id="book_actions">(loading...)</span>
                 </p>
             </div>
         </div>
     </div>
+
+    <script>
+        const owner = "iacoposk8";
+        const repo = "ViaDiMezzo";
+        
+        fetch(`https://api.github.com/repos/${owner}/${repo}/commits`)
+          .then(response => response.json())
+          .then(commits => {
+            const latestCommit = commits[0];
+            const commitDate = new Date(latestCommit.commit.author.date);
+            const now = new Date();
+        
+            const diffInMs = now - commitDate;
+            const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+            document.getElementById("book_days").textContent = diffInDays;
+
+            if(diffInDays > 60 * 6){
+                document.getElementById("book_days").textContent = "who knows. Maybe it's time to publish it";
+            } else {
+                document.getElementById("book_days").textContent = "I'm (probably) still alive";
+            }
+          })
+          .catch(error => console.error("Errore:", error));
+    </script>
 </section>

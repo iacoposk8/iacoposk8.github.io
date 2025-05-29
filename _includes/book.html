@@ -33,9 +33,9 @@ You can find it on <a href="https://github.com/iacoposk8/ViaDiMezzo" target="_bl
             document.getElementById("book_days").textContent = diffInDays;
 
             if(diffInDays > 60 * 6){
-                document.getElementById("book_days").textContent = "who knows. Maybe it's time to publish it";
+                document.getElementById("book_actions").textContent = "who knows. Maybe it's time to publish it";
             } else {
-                document.getElementById("book_days").textContent = "I'm (probably) still alive";
+                document.getElementById("book_actions").textContent = "I'm (probably) still alive";
             }
           })
           .catch(error => console.error("Errore:", error));

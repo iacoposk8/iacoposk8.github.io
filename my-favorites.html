@@ -237,25 +237,42 @@ title: My Favorites
         const favoriteList = document.getElementById(id + '-list');
         
         favorites.forEach((favorite, index) => {
-            // Crea la struttura della card
             const colDiv = document.createElement("div");
             colDiv.classList.add("col");
 
             const favoriteCardDiv = document.createElement("div");
             favoriteCardDiv.classList.add("favorite-card");
 
-            const img = document.createElement("img");
-            img.src = favorite.image;
-            img.alt = favorite.title;
-            img.classList.add("card-img-top", "favorite-img");
+            let mediaElement;
+            if (favorite.image.includes("youtube.com")) {
+                // Estrai l'ID del video da un URL tipo: https://www.youtube.com/watch?v=bXHexdY3jz8
+                const url = new URL(favorite.image);
+                const videoId = url.searchParams.get("v");
+                const embedUrl = `https://www.youtube.com/embed/${videoId}`;
+
+                mediaElement = document.createElement("iframe");
+                mediaElement.width = "560";
+                mediaElement.height = "315";
+                mediaElement.src = embedUrl;
+                mediaElement.title = "YouTube video player";
+                mediaElement.frameBorder = "0";
+                mediaElement.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+                mediaElement.referrerPolicy = "strict-origin-when-cross-origin";
+                mediaElement.allowFullscreen = true;
+            } else {
+                mediaElement = document.createElement("img");
+                mediaElement.src = favorite.image;
+                mediaElement.alt = favorite.title;
+                mediaElement.classList.add("card-img-top", "favorite-img");
+            }
 
             const cardBodyDiv = document.createElement("div");
             cardBodyDiv.classList.add("p-3");
 
             if ("english_title" in favorite)
-                favorite.title = favorite.title + " - "+favorite.author+" (English title: "+favorite.english_title+")"
+                favorite.title = favorite.title + " - " + favorite.author + " (English title: " + favorite.english_title + ")";
             else if ("author" in favorite)
-                favorite.title = favorite.title + " - "+favorite.author
+                favorite.title = favorite.title + " - " + favorite.author;
 
             const favoriteTitle = document.createElement("div");
             favoriteTitle.classList.add("favorite-title");
@@ -265,14 +282,11 @@ title: My Favorites
             favoriteGenre.classList.add("favorite-genre");
             favoriteGenre.textContent = favorite.genre;
 
-            // Aggiungi gli elementi alla card
             cardBodyDiv.appendChild(favoriteTitle);
             cardBodyDiv.appendChild(favoriteGenre);
-            favoriteCardDiv.appendChild(img);
+            favoriteCardDiv.appendChild(mediaElement);
             favoriteCardDiv.appendChild(cardBodyDiv);
             colDiv.appendChild(favoriteCardDiv);
-
-            // Aggiungi la card alla lista
             favoriteList.appendChild(colDiv);
         });
     }

@@ -251,6 +251,7 @@ title: My Favorites
                 const embedUrl = `https://www.youtube.com/embed/${videoId}`;
 
                 mediaElement = document.createElement("iframe");
+                mediaElement.width = "100%";
                 mediaElement.height = "315";
                 mediaElement.src = embedUrl;
                 mediaElement.title = "YouTube video player";

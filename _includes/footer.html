@@ -18,16 +18,16 @@
   window.addEventListener("load", function(){
     window.cookieconsent.initialise({
       palette: {
-        popup: { background: "#222" },
-        button: { background: "#f1d600" }
+        popup: { background: "#222", text: "#fff" },
+        button: { background: "#f1d600", text: "#000" }
       },
       theme: "classic",
-      position: "bottom-right",
+      position: "bottom",
+      type: "opt-in", // Mostra "Accetta" e "Rifiuta"
       content: {
-        message: "Questo sito utilizza cookie per migliorare l’esperienza.",
-        dismiss: "Accetta",
-        link: "Leggi di più",
-        href: "/cookie-policy"  // Cambia questo con il link alla tua pagina cookie/policy
+        message: "Utilizziamo cookie tecnici e di analisi.",
+        allow: "Accetta",
+        deny: "Rifiuta"
       }
     });
   });

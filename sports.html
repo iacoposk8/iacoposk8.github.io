@@ -15,6 +15,7 @@ title: Best Sports Moments
           <canvas id="radarChart"></canvas>
           <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
           <script>
+            document.addEventListener('DOMContentLoaded', function () {
               var ctx = document.getElementById('radarChart').getContext('2d');
               var radarChart = new Chart(ctx, {
                   type: 'radar',
@@ -51,6 +52,7 @@ title: Best Sports Moments
                       }
                   }
               });
+            });
           </script>
       </div>
 </div>

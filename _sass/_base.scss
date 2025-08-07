@@ -481,11 +481,29 @@ body {
 }
 
 .favorite-card .card-media {
-  display: flex;
-  flex-direction: row;
-  gap: 1rem;
-  flex-wrap: wrap; 
-  align-items: flex-start; 
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    flex-wrap: wrap; /* consente di andare a capo */
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+/* Limita a 3 colonne al massimo */
+.favorite-card .card-media > * {
+    flex: 1 1 calc(33.33% - 1rem); /* max 3 colonne con gap */
+    box-sizing: border-box;
+}
+
+/* Versione mobile: elementi uno sotto l'altro */
+@media (max-width: 768px) {
+    .favorite-card .card-media {
+        flex-direction: column;
+    }
+
+    .favorite-card .card-media > * {
+        flex: 1 1 100%;
+    }
 }
 
 /*****************************************/

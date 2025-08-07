@@ -480,4 +480,12 @@ body {
     padding:10px;
 }
 
+.favorite-card .card-media {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem; /* spazio tra gli elementi, opzionale */
+  flex-wrap: nowrap; /* oppure `wrap` se vuoi che vadano a capo su schermi piccoli */
+  align-items: flex-start; /* oppure center, stretch, etc., a seconda delle tue esigenze */
+}
+
 /*****************************************/

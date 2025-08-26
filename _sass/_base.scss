@@ -481,3 +481,44 @@ body {
 }
 
 /*****************************************/
+
+/* Stile base per gli elementi (opzionale, per estetica) */
+.grid-item {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+/* Stile per il contenitore della griglia */
+.grid-container {
+  display: grid;
+  gap: 1rem; /* Spazio tra gli elementi */
+
+  /* --- MOBILE FIRST (default): 1 colonna --- */
+  grid-template-columns: 1fr; 
+}
+
+/* --- TABLET (breakpoint piccolo): 2 colonne --- */
+/* Si applica da 576px in su */
+@media (min-width: 576px) {
+  .grid-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* --- TABLET/DESKTOP PICCOLI: 3 colonne --- */
+/* Si applica da 768px in su */
+@media (min-width: 768px) {
+  .grid-container {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* --- DESKTOP GRANDI: 4 colonne --- */
+/* Si applica da 992px in su */
+@media (min-width: 992px) {
+  .grid-container {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

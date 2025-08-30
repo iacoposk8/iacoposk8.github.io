@@ -3,6 +3,13 @@ layout: default
 title: Projects
 ---
 
+## CNC calculator
+I'm developing a web-based tool for calculating CNC milling parameters. The project aims to provide an accessible and user-friendly platform for machinists and hobbyists to determine optimal cutting speeds, feed rates, and other essential values for various materials and tools.
+
+<a href="/projects/cnc-calculator" class="btn btn-primary btn-xl">Calculate it!</a>
+
+---
+
 ## Langchain - Semantic Search
 I developed a small piece of code that uses LangChain to perform semantic searches within a file. This enables the extraction of relevant information based on the meaning of words, rather than simple text matches, improving the efficiency of finding specific content.
 

@@ -1,0 +1,495 @@
+---
+layout: default
+title: CNC calculator
+---
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcolatore CNC</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f4f8;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 500px;
+            width: 100%;
+            padding: 25px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #1e3a8a;
+            margin-top: 0;
+            font-weight: 600;
+        }
+        p {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: 600;
+            color: #4b5563;
+        }
+        select, input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: all 0.2s ease-in-out;
+        }
+        select:focus, input[type="number"]:focus {
+            border-color: #3b82f6;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 25px;
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #2563eb;
+        }
+        .risultato-container {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #eef2ff;
+            border: 1px solid #c7d2fe;
+            border-radius: 8px;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .risultato-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .risultato-label {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+        .risultato-valore {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1f2937;
+        }
+        .risultato-description {
+            font-size: 12px;
+            color: #9ca3af;
+            line-height: 1.4;
+            margin-top: 5px;
+        }
+        .error {
+            color: #ef4444;
+            font-weight: normal;
+        }
+        .radio-group {
+            margin-top: 15px;
+        }
+        .radio-option {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: flex-start;
+            border: 1px solid #e5e7eb;
+            padding: 12px;
+            border-radius: 8px;
+            background-color: #f9fafb;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .radio-option:hover {
+            background-color: #f3f4f6;
+            border-color: #93c5fd;
+        }
+        .radio-option input[type="radio"] {
+            margin-right: 12px;
+            margin-top: 2px;
+        }
+        .radio-option-content {
+            flex: 1;
+        }
+        .radio-option-title {
+            font-weight: bold;
+            color: #1f2937;
+        }
+        .radio-option-description {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+        /* Slider specifico */
+        .slider-container {
+            margin-top: 20px;
+        }
+        .slider-label-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 5px;
+        }
+        #risk-slider {
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            background: #e5e7eb;
+            outline: none;
+            border-radius: 5px;
+            transition: background 0.2s ease;
+        }
+        #risk-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #3b82f6;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        #risk-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #3b82f6;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        #slider-description {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #4b5563;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Calcolatore CNC</h2>
+
+        <p>Inserisci i dati per calcolare i parametri di taglio principali.</p>
+
+        <label for="materiale">Scegli il Materiale:</label>
+        <select id="materiale" onchange="calcolaParametri()">
+            <option value="150">Alluminio (leghe)</option>
+            <option value="80">Acciaio Dolce</option>
+            <option value="25">Acciaio Inox</option>
+            <option value="150">Ottone</option>
+            <option value="100">Plastica (PVC, Acrilico)</option>
+            <option value="60">Legno Duro (Rovere, Noce)</option>
+            <option value="90" selected>Legno Morbido (Pino, Abete)</option>
+        </select>
+
+        <label for="diametro">Diametro Fresa (mm):</label>
+        <input type="number" id="diametro" value="3.3" min="0.1" step="0.1" placeholder="Es. 10" oninput="calcolaParametri()">
+
+        <label for="numeroDenti">Numero di taglienti (denti):</label>
+        <input type="number" id="numeroDenti" value="2" min="1" step="1" oninput="calcolaParametri()">
+
+        <!-- Nuovo input per il tipo di utensile -->
+        <label for="toolMaterial">Tipo di Utensile:</label>
+        <select id="toolMaterial" onchange="calcolaParametri()">
+            <option value="hss" selected>HSS (acciaio rapido)</option>
+            <option value="carbide">Carburo di tungsteno</option>
+            <option value="diamond">Rivestito in diamante</option>
+        </select>
+
+        <!-- Slider per le configurazioni estreme -->
+        <div class="slider-container">
+            <label for="risk-slider">Ottimizzazione Velocità/Rischio</label>
+            <input type="range" id="risk-slider" min="0" max="100" value="0" oninput="calcolaParametri()">
+            <div id="slider-description">Standard (minima usura, massima qualità)</div>
+        </div>
+
+        <label>Tipo di Lavorazione:</label>
+        <div class="radio-group" onchange="calcolaParametri()">
+            <label class="radio-option">
+                <input type="radio" name="lavorazione" value="rough" checked>
+                <div class="radio-option-content">
+                    <span class="radio-option-title">Sgrossatura (Rough)</span>
+                    <p class="radio-option-description">Rimozione di grandi volumi di materiale per avvicinarsi rapidamente alla forma finale.</p>
+                </div>
+            </label>
+            <label class="radio-option">
+                <input type="radio" name="lavorazione" value="finish">
+                <div class="radio-option-content">
+                    <span class="radio-option-title">Finitura (Level)</span>
+                    <p class="radio-option-description">Livellamento e finitura di superfici piane per ottenere un'elevata planarità e precisione.</p>
+                </div>
+            </label>
+            <label class="radio-option">
+                <input type="radio" name="lavorazione" value="trace">
+                <div class="radio-option-content">
+                    <span class="radio-option-title">Tracciatura (Trace)</span>
+                    <p class="radio-option-description">Operazione di precisione per creare incisioni, scritte o tracciare contorni specifici.</p>
+                </div>
+            </label>
+            <label class="radio-option">
+                <input type="radio" name="lavorazione" value="drill">
+                <div class="radio-option-content">
+                    <span class="radio-option-title">Foratura (Drill)</span>
+                    <p class="radio-option-description">Creazione di fori cilindrici utilizzando utensili rotanti.</p>
+                </div>
+            </label>
+            <label class="radio-option">
+                <input type="radio" name="lavorazione" value="contour">
+                <div class="radio-option-content">
+                    <span class="radio-option-title">Contornatura (Contour)</span>
+                    <p class="radio-option-description">Taglio della forma esterna o interna di un pezzo seguendo un contorno definito.</p>
+                </div>
+            </label>
+            <label class="radio-option">
+                <input type="radio" name="lavorazione" value="outline">
+                <div class="radio-option-content">
+                    <span class="radio-option-title">Sagomatura (Outline)</span>
+                    <p class="radio-option-description">Definizione del profilo esterno del pezzo, ritagliandolo dal materiale grezzo.</p>
+                </div>
+            </label>
+        </div>
+
+        <button onclick="calcolaParametri()">Calcola Parametri</button>
+
+        <div id="risultato-container" class="risultato-container">
+            <p style="text-align: center; color: #1e3a8a; font-weight: 600; margin-bottom: 10px;">Risultati del calcolo</p>
+            <div id="risultato-rpm" class="risultato-item">
+                <div class="risultato-label">Spindle RPM</div>
+                <div class="risultato-valore"></div>
+                <div class="risultato-description">
+                    <p>Velocità di rotazione del mandrino. Determina la velocità superficiale di taglio. Valori più elevati sono generalmente utilizzati per materiali più morbidi e utensili di diametro minore, mentre valori più bassi sono preferibili per materiali duri e utensili di grande diametro. Una velocità corretta garantisce una buona finitura superficiale e prolunga la vita dell'utensile.</p>
+                    <p><strong>Calcolo:</strong> RPM = (Velocità di Taglio * Moltiplicatore Utensile * 1000) / (π * Diametro Fresa)</p>
+                </div>
+            </div>
+            <div id="risultato-feedrate" class="risultato-item">
+                <div class="risultato-label">Feed Rate</div>
+                <div class="risultato-valore"></div>
+                <div class="risultato-description">
+                    <p>Velocità di avanzamento durante il taglio. Determina quanto materiale viene rimosso per unità di tempo. Deve essere ottimizzato in base al materiale, all'utensile e alla rigidità della macchina per bilanciare produttività e qualità. Un avanzamento troppo elevato può causare usura precoce dell'utensile, mentre uno troppo basso riduce l'efficienza.</p>
+                    <p><strong>Calcolo:</strong> Feed Rate = RPM * Chiploade * Numero di taglienti</p>
+                </div>
+            </div>
+            <div id="risultato-plungerate" class="risultato-item">
+                <div class="risultato-label">Plunge Rate</div>
+                <div class="risultato-valore"></div>
+                <div class="risultato-description">
+                    <p>Velocità di avanzamento durante l'immersione dell'utensile nel materiale. Di solito è inferiore al feed rate per ridurre lo stress sull'utensile durante l'ingresso nel materiale, specialmente quando si lavora materiali duri o con utensili fragili. Una corretta velocità di immersione previene la rottura dell'utensile durante le operazioni di penetrazione.</p>
+                    <p><strong>Calcolo:</strong> Plunge Rate = 30% del Feed Rate</p>
+                </div>
+            </div>
+            <!-- Nuovo output per Max Angle -->
+            <div id="risultato-maxangle" class="risultato-item">
+                <div class="risultato-label">Max Angle</div>
+                <div class="risultato-valore"></div>
+                <div class="risultato-description">
+                    <p>Angolo massimo che definisce una superficie come orizzontale o verticale per le operazioni di finitura. Superfici con angoli inferiori a questo valore sono considerate orizzontali, mentre angoli maggiori definiscono superfici verticali. Questo parametro influenza la strategia di finitura scelta dal CAM e la selezione degli utensili appropriati per ogni superficie.</p>
+                    <p><strong>Calcolo:</strong> Valore predefinito in base al tipo di lavorazione.</p>
+                </div>
+            </div>
+            <div id="risultato-stepdown" class="risultato-item">
+                <div class="risultato-label">Step Down</div>
+                <div class="risultato-valore"></div>
+                <div class="risultato-description">
+                    <p>Profondità di passata per ogni passaggio in direzione Z. Influisce sull'usura dell'utensile e sulla finitura superficiale. Valori elevati rimuovono materiale più rapidamente ma aumentano lo stress sull'utensile e sulla macchina. Valori più bassi producono una migliore finitura superficiale ma richiedono più tempo per completare la lavorazione.</p>
+                    <p><strong>Calcolo:</strong> Per la sgrossatura, è calcolato al 50% del diametro della fresa. Per la finitura, è calcolato al 10% del diametro (con un minimo di 0.1 mm).</p>
+                </div>
+            </div>
+            <div id="risultato-stepover" class="risultato-item">
+                <div class="risultato-label">Step Over</div>
+                <div class="risultato-valore"></div>
+                <div class="risultato-description">
+                    <p>Distanza tra due passate consecutive in direzione XY. Determina la sovrapposizione tra i passaggi di fresatura. Valori più alti riducono il tempo di lavorazione ma possono compromettere la finitura superficiale, mentre valori più bassi producono superfici più lisce ma aumentano i tempi di lavorazione. Una corretta impostazione è cruciale per l'efficienza del processo.</p>
+                    <p><strong>Calcolo:</strong> Calcolato al 40% del diametro della fresa.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calcolaParametri() {
+            // Recupera i valori inseriti dall'utente
+            const materialeSelect = document.getElementById('materiale');
+            const diametroInput = document.getElementById('diametro');
+            const numeroDentiInput = document.getElementById('numeroDenti');
+            const toolMaterialSelect = document.getElementById('toolMaterial');
+            const lavorazioneRadio = document.querySelector('input[name="lavorazione"]:checked');
+            const riskSlider = document.getElementById('risk-slider');
+            const sliderDescription = document.getElementById('slider-description');
+
+            const risultatoContainer = document.getElementById('risultato-container');
+            const risultatoRPMValore = document.getElementById('risultato-rpm').querySelector('.risultato-valore');
+            const risultatoFeedRateValore = document.getElementById('risultato-feedrate').querySelector('.risultato-valore');
+            const risultatoPlungeRateValore = document.getElementById('risultato-plungerate').querySelector('.risultato-valore');
+            const risultatoMaxAngleValore = document.getElementById('risultato-maxangle').querySelector('.risultato-valore');
+            const risultatoStepDownValore = document.getElementById('risultato-stepdown').querySelector('.risultato-valore');
+            const risultatoStepOverValore = document.getElementById('risultato-stepover').querySelector('.risultato-valore');
+
+            // Converte i valori in numeri e stringhe
+            const vcBase = parseFloat(materialeSelect.value);
+            const diametro = parseFloat(diametroInput.value);
+            const numeroDenti = parseFloat(numeroDentiInput.value);
+            const toolMaterial = toolMaterialSelect.value;
+            const lavorazione = lavorazioneRadio ? lavorazioneRadio.value : '';
+            const pi = Math.PI;
+            const riskValue = parseInt(riskSlider.value, 10);
+            
+            // Definisce il moltiplicatore in base allo slider
+            let speedMultiplier = 1 + (riskValue / 100);
+
+            // Variabile per il moltiplicatore dell'utensile
+            let toolMultiplier = 1;
+            if (toolMaterial === 'carbide') {
+                toolMultiplier = 2.5; // Esempio: il carburo può tagliare 2.5x più velocemente
+            } else if (toolMaterial === 'diamond') {
+                toolMultiplier = 5; // Esempio: il diamante 5x più velocemente
+            }
+            
+            // Calcola la velocità di taglio effettiva
+            const vc = vcBase * toolMultiplier;
+
+            // Ripristina lo stile del contenitore
+            risultatoContainer.classList.remove('error');
+
+            // Esegue i controlli di validazione
+            if (isNaN(diametro) || diametro <= 0) {
+                risultatoRPMValore.innerHTML = '<span class="error">Inserisci un diametro valido.</span>';
+                risultatoFeedRateValore.textContent = '';
+                risultatoPlungeRateValore.textContent = '';
+                risultatoMaxAngleValore.textContent = '';
+                risultatoStepDownValore.textContent = '';
+                risultatoStepOverValore.textContent = '';
+                return;
+            }
+            if (isNaN(numeroDenti) || numeroDenti <= 0) {
+                risultatoRPMValore.innerHTML = '<span class="error">Inserisci un numero di denti valido.</span>';
+                risultatoFeedRateValore.textContent = '';
+                risultatoPlungeRateValore.textContent = '';
+                risultatoMaxAngleValore.textContent = '';
+                risultatoStepDownValore.textContent = '';
+                risultatoStepOverValore.textContent = '';
+                return;
+            }
+
+            // Calcola gli RPM e il Feed Rate con il moltiplicatore dello slider
+            const rpm = (vc * 1000) / (pi * diametro);
+            const adjustedRpm = rpm * speedMultiplier;
+            const rpmArrotondato = Math.round(adjustedRpm);
+            
+            let stepDown;
+            let stepOver;
+            let chiploade;
+            let maxAngle = 'N/A'; // Valore di default
+
+            // Logica per calcolare lo Step Down, Step Over e Max Angle in base al tipo di lavorazione
+            switch (lavorazione) {
+                case 'rough':
+                case 'outline':
+                case 'contour':
+                    stepDown = diametro * 0.5;
+                    stepOver = diametro * 0.4;
+                    chiploade = 0.05;
+                    break;
+                case 'finish':
+                case 'level':
+                    stepDown = diametro * 0.1;
+                    if (stepDown < 0.1) {
+                        stepDown = 0.1;
+                    }
+                    stepOver = diametro * 0.4;
+                    chiploade = 0.02;
+                    maxAngle = '45°';
+                    break;
+                case 'trace':
+                    stepDown = Math.min(diametro * 0.1, 1);
+                    stepOver = diametro * 0.2;
+                    chiploade = 0.02;
+                    maxAngle = '90°';
+                    break;
+                case 'drill':
+                    stepDown = diametro;
+                    stepOver = 0;
+                    chiploade = 0.05;
+                    break;
+                default:
+                    stepDown = 0;
+                    stepOver = 0;
+                    chiploade = 0;
+            }
+
+            // Calcola il Feed Rate
+            const feedRate = rpm * chiploade * numeroDenti;
+            const adjustedFeedRate = feedRate * speedMultiplier;
+            const feedRateArrotondato = Math.round(adjustedFeedRate);
+            
+            // Calcola il Plunge Rate (30% del Feed Rate)
+            const plungeRate = adjustedFeedRate * 0.3;
+            const plungeRateArrotondato = Math.round(plungeRate);
+
+            // Aggiorna la descrizione dello slider in base al valore
+            if (riskValue === 0) {
+                sliderDescription.textContent = 'Standard (minima usura, massima qualità)';
+            } else if (riskValue <= 25) {
+                sliderDescription.textContent = 'Aumento lieve: Lavorazione più veloce, minimo rischio.';
+            } else if (riskValue <= 50) {
+                sliderDescription.textContent = 'Aumento moderato: Maggiore velocità, potenziale rischio di usura e surriscaldamento.';
+            } else if (riskValue <= 75) {
+                sliderDescription.textContent = 'Configurazione aggressiva: Tempi ridotti, rischio elevato di rottura dell\'utensile o scarsa finitura.';
+            } else {
+                sliderDescription.textContent = 'Configurazione estrema: Massima velocità, rischio molto elevato di danni all\'utensile e al materiale.';
+            }
+
+            // Aggiorna il testo dei risultati
+            risultatoRPMValore.textContent = `${rpmArrotondato} giri/min`;
+            risultatoFeedRateValore.textContent = `${feedRateArrotondato} mm/min`;
+            risultatoPlungeRateValore.textContent = `${plungeRateArrotondato} mm/min`;
+            risultatoMaxAngleValore.textContent = maxAngle;
+            risultatoStepDownValore.textContent = `${stepDown.toFixed(1)} mm`;
+            risultatoStepOverValore.textContent = `${stepOver.toFixed(1)} mm`;
+        }
+
+        // Calcola i parametri iniziali al caricamento della pagina
+        document.addEventListener('DOMContentLoaded', calcolaParametri);
+    </script>
+
+</body>
+</html>

@@ -3,19 +3,8 @@ layout: default
 title: CNC calculator
 ---
 
-<!--<style>
-    body {
-        font-family: 'Inter', sans-serif;
-        margin: 0;
-        padding: 20px;
-        background-color: #f0f4f8;
-        color: #333;
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        min-height: 100vh;
-    }
-    .container {
+<style>
+    .container-cnc {
         max-width: 500px;
         width: 100%;
         padding: 25px;
@@ -23,24 +12,24 @@ title: CNC calculator
         border-radius: 12px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-    h2 {
+    .container-cnc h2 {
         text-align: center;
         color: #1e3a8a;
         margin-top: 0;
         font-weight: 600;
     }
-    p {
+    .container-cnc p {
         text-align: center;
         color: #6b7280;
         margin-bottom: 20px;
     }
-    label {
+    .container-cnc label {
         display: block;
         margin-top: 15px;
         font-weight: 600;
         color: #4b5563;
     }
-    select, input[type="number"] {
+    .container-cnc select, .container-cnc input[type="number"] {
         width: 100%;
         padding: 10px;
         margin-top: 8px;
@@ -50,12 +39,12 @@ title: CNC calculator
         font-size: 16px;
         transition: all 0.2s ease-in-out;
     }
-    select:focus, input[type="number"]:focus {
+    .container-cnc select:focus, .container-cnc input[type="number"]:focus {
         border-color: #3b82f6;
         outline: none;
         box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
     }
-    button {
+    .container-cnc button {
         width: 100%;
         padding: 12px;
         margin-top: 25px;
@@ -68,7 +57,7 @@ title: CNC calculator
         cursor: pointer;
         transition: background-color 0.3s ease;
     }
-    button:hover {
+    .container-cnc button:hover {
         background-color: #2563eb;
     }
     .risultato-container {
@@ -102,7 +91,7 @@ title: CNC calculator
         line-height: 1.4;
         margin-top: 5px;
     }
-    .error {
+    .container-cnc .error {
         color: #ef4444;
         font-weight: normal;
     }
@@ -189,16 +178,13 @@ title: CNC calculator
         color: #4b5563;
     }
     @media (max-width: 600px) {
-        body {
-            padding: 10px;
-        }
-        .container {
+        .container-cnc{
             padding: 15px;
         }
     }
 </style>
 
-<div class="container">
+<div class="container-cnc">
     <h2>Calcolatore CNC</h2>
 
     <p>Inserisci i dati per calcolare i parametri di taglio principali.</p>
@@ -221,7 +207,7 @@ title: CNC calculator
     <input type="number" id="numeroDenti" value="2" min="1" step="1" oninput="calcolaParametri()">
 
     <!-- Nuovo input per il tipo di utensile -->
-    <!--<label for="toolMaterial">Tipo di Utensile:</label>
+    <label for="toolMaterial">Tipo di Utensile:</label>
     <select id="toolMaterial" onchange="calcolaParametri()">
         <option value="hss" selected>HSS (acciaio rapido)</option>
         <option value="carbide">Carburo di tungsteno</option>
@@ -229,7 +215,7 @@ title: CNC calculator
     </select>
 
     <!-- Slider per le configurazioni estreme -->
-    <!--<div class="slider-container">
+    <div class="slider-container">
         <label for="risk-slider">Ottimizzazione Velocità/Rischio</label>
         <input type="range" id="risk-slider" min="0" max="100" value="0" oninput="calcolaParametri()">
         <div id="slider-description">Standard (minima usura, massima qualità)</div>
@@ -310,7 +296,7 @@ title: CNC calculator
             </div>
         </div>
         <!-- Nuovo output per Max Angle -->
-        <!--<div id="risultato-maxangle" class="risultato-item">
+        <div id="risultato-maxangle" class="risultato-item">
             <div class="risultato-label">Max Angle</div>
             <div class="risultato-valore"></div>
             <div class="risultato-description">
@@ -481,5 +467,5 @@ title: CNC calculator
 
     // Calcola i parametri iniziali al caricamento della pagina
     document.addEventListener('DOMContentLoaded', calcolaParametri);
-</script>-->
+</script>
 

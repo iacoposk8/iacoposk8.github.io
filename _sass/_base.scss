@@ -460,6 +460,7 @@ body {
     background-color: #fff;
 }
 .favorite-img {
+    width:100%;
     height: 300px;
     object-fit: cover;
 }
@@ -484,10 +485,8 @@ body {
 
 /* Stile base per gli elementi (opzionale, per estetica) */
 .grid-item {
-  background-color: #f8f9fa;
-  border: 1px solid #dee2e6;
-  padding: 1.5rem;
-  text-align: center;
+    background-color: transparent;
+    text-align: center;
 }
 
 /* Stile per il contenitore della griglia */

@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Gioco del Labirinto - Modalità Schermo Spento</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+            background-color: #1a1a1a;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            touch-action: manipulation;
+            transition: background-color 0.5s;
+        }
+        
+        body.screen-off {
+            background-color: #000;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #fff;
+            width: 100%;
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            width: 100%;
+        }
+        
+        button {
+            padding: 10px 15px;
+            font-size: 0.9rem;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(to bottom, #4CAF50, #3e8e41);
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.3);
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+        
+        button:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        #screenOffButton {
+            background: linear-gradient(to bottom, #ff9800, #f57c00);
+        }
+        
+        .game-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        
+        canvas {
+            border: 2px solid #333;
+            background-color: #222;
+            margin: 5px;
+            max-width: 100%;
+            transition: opacity 0.5s;
+        }
+        
+        body.screen-off canvas, body.screen-off .controls, body.screen-off .instructions  {
+            opacity: 0;
+        }
+        
+        #mazeCanvas {
+            width: 95vmin;
+            height: 95vmin;
+        }
+        
+        #currentCellCanvas {
+            width: 60vmin;
+            height: 60vmin;
+        }
+        
+        .instructions {
+            text-align: center;
+            padding-top: 40px;
+            color: #ccc;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            max-width: 90%;
+        }
+        
+        .screen-off-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #333;
+            font-size: 1.2rem;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
+            z-index: 100;
+        }
+        
+        body.screen-off .screen-off-message {
+            opacity: 1;
+        }
+        
+        @media (max-height: 700px) {
+            #mazeCanvas {
+                width: 70vmin;
+                height: 70vmin;
+            }
+            
+            #currentCellCanvas {
+                width: 50vmin;
+                height: 50vmin;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="instructions">
+        <p>Swipa su/giù per muoverti avanti/indietro. Swipa sinistra/destra per ruotare.</p>
+        <p>Tocca i bordi dello schermo per sentire se c'è un muro (vibrazione).</p>
+        <p class="screen-off-instruction">Long press per riaccendere lo schermo</p>
+    </div>
+    
+    <div class="controls">
+        <button id="toggleMazeButton">Nascondi Labirinto</button>
+        <button id="screenOffButton">Spegni Schermo</button>
+    </div>
+    
+    <div class="game-container">
+        <canvas id="mazeCanvas"></canvas>
+        <canvas id="currentCellCanvas"></canvas>
+    </div>
+    
+    <div class="screen-off-message">
+        Schermo spento<br>
+        Long press per riaccendere
+    </div>
+
+    <script>
+        // Genera il labirinto
+        function generateMaze(size) {
+            const maze = Array.from({ length: size }, () => Array(size).fill(1));
+
+            function carvePath(x, y) {
+                const directions = shuffle([
+                    [1, 0], // down
+                    [0, 1], // right
+                    [-1, 0], // up
+                    [0, -1]  // left
+                ]);
+
+                for (let [dx, dy] of directions) {
+                    const nx = x + dx * 2;
+                    const ny = y + dy * 2;
+
+                    if (nx > 0 && nx < size - 1 && ny > 0 && ny < size - 1 && maze[nx][ny] === 1) {
+                        maze[x + dx][y + dy] = 0;
+                        maze[nx][ny] = 0;
+                        carvePath(nx, ny);
+                    }
+                }
+            }
+
+            function shuffle(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
+
+            // Start carving from (1,1)
+            maze[1][1] = 0;
+            carvePath(1, 1);
+
+            // Set the entrance and exit
+            maze[1][1] = 0;
+            maze[size - 3][size - 3] = 2;
+
+            return maze;
+        }
+
+        // Variabili globali
+        const size = 20; // Dimensione del labirinto (deve essere un numero dispari)
+        const maze = generateMaze(size);
+        let screenOff = false;
+        let longPressTimer = null;
+        
+        const canvas = document.getElementById('mazeCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        const currentCellCanvas = document.getElementById('currentCellCanvas');
+        const ctxCell = currentCellCanvas.getContext('2d');
+        
+        // Adatta le dimensioni dei canvas
+        function resizeCanvases() {
+            const containerWidth = Math.min(window.innerWidth - 20, 700);
+            const containerHeight = Math.min(window.innerHeight - 200, 700);
+            
+            canvas.width = containerWidth;
+            canvas.height = containerWidth; // Manteniamo un rapporto quadrato
+            
+            currentCellCanvas.width = Math.min(containerWidth, 300);
+            currentCellCanvas.height = Math.min(containerWidth, 300);
+            
+            tileSize = Math.floor(canvas.width / size);
+            drawMaze();
+        }
+        
+        let tileSize;
+        let playerPosition = { x: 1, y: 1 };
+        let direction = 0; // 0 = Nord, 1 = Est, 2 = Sud, 3 = Ovest
+        
+        // Funzione per ottenere il delta di movimento in base alla direzione
+        function getForwardDelta() {
+            switch (direction) {
+                case 0: return { dx: 0, dy: -1 }; // Nord
+                case 1: return { dx: 1, dy: 0 };  // Est
+                case 2: return { dx: 0, dy: 1 };  // Sud
+                case 3: return { dx: -1, dy: 0 }; // Ovest
+            }
+        }
+
+        // Disegna il labirinto completo
+        function drawMaze() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            for (let y = 0; y < maze.length; y++) {
+                for (let x = 0; x < maze[y].length; x++) {
+                    if (maze[y][x] === 1) {
+                        ctx.fillStyle = '#000';
+                    } else if (maze[y][x] === 2) {
+                        ctx.fillStyle = '#0f0';
+                    } else {
+                        ctx.fillStyle = '#fff';
+                    }
+                    ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+                }
+            }
+
+            // Disegna il giocatore
+            ctx.fillStyle = '#00f';
+            ctx.fillRect(playerPosition.x * tileSize, playerPosition.y * tileSize, tileSize, tileSize);
+
+            // Disegna la cella corrente nel secondo canvas
+            drawCurrentCell();
+        }
+
+        // Disegna la vista della cella corrente con orientamento
+        function drawCurrentCell() {
+            const cellSize = currentCellCanvas.width;
+            ctxCell.clearRect(0, 0, cellSize, cellSize);
+
+            // Salva il contesto prima di trasformarlo
+            ctxCell.save();
+
+            // Trasla l'origine al centro e ruota
+            ctxCell.translate(cellSize / 2, cellSize / 2);
+            ctxCell.rotate((-direction * Math.PI) / 2); // rotazione in senso antiorario
+            ctxCell.translate(-cellSize / 2, -cellSize / 2); // ritorna a origine per disegnare normalmente
+
+            // Informazioni sui muri relativi alla posizione attuale
+            const walls = {
+                top: maze[playerPosition.y - 1]?.[playerPosition.x] === 1,
+                bottom: maze[playerPosition.y + 1]?.[playerPosition.x] === 1,
+                left: maze[playerPosition.y]?.[playerPosition.x - 1] === 1,
+                right: maze[playerPosition.y]?.[playerPosition.x + 1] === 1,
+            };
+
+            // Sfondo
+            ctxCell.fillStyle = screenOff ? '#111' : '#fff';
+            ctxCell.fillRect(0, 0, cellSize, cellSize);
+
+            // Muri
+            ctxCell.fillStyle = screenOff ? '#333' : '#000';
+            if (walls.top) ctxCell.fillRect(0, 0, cellSize, cellSize * 0.2);
+            if (walls.bottom) ctxCell.fillRect(0, cellSize * 0.8, cellSize, cellSize * 0.2);
+            if (walls.left) ctxCell.fillRect(0, 0, cellSize * 0.2, cellSize);
+            if (walls.right) ctxCell.fillRect(cellSize * 0.8, 0, cellSize * 0.2, cellSize);
+
+            // Ripristina rotazione
+            ctxCell.restore();
+
+            // Disegna la freccia che indica la direzione
+            ctxCell.fillStyle = screenOff ? '#555' : '#00f';
+            ctxCell.beginPath();
+            const center = cellSize / 2;
+            const arrowSize = cellSize * 0.15;
+            ctxCell.moveTo(center, center - arrowSize);
+            ctxCell.lineTo(center - arrowSize, center + arrowSize);
+            ctxCell.lineTo(center + arrowSize, center + arrowSize);
+            ctxCell.closePath();
+            ctxCell.fill();
+        }
+
+        // Funzione per muovere il giocatore
+        function movePlayer(dx, dy) {
+            const newX = playerPosition.x + dx;
+            const newY = playerPosition.y + dy;
+
+            if (maze[newY][newX] !== 1) {
+                playerPosition.x = newX;
+                playerPosition.y = newY;
+                
+                // Controlla se il giocatore ha raggiunto l'uscita
+                if (maze[playerPosition.y][playerPosition.x] === 2) {
+                    setTimeout(() => {
+                        vibrate([100, 30, 100, 30, 100, 30, 200, 30, 200, 30, 200, 30, 100, 30, 100, 30, 100,])
+                        //alert('Hai vinto!');
+                        // Reset posizione giocatore
+                        playerPosition = { x: 1, y: 1 };
+                        drawMaze();
+                    }, 100);
+                }
+                
+                drawMaze();
+                return true; // Movimento riuscito
+            }
+            return false; // Movimento bloccato da un muro
+        }
+
+        // Funzione per vibrare (se supportata)
+        function vibrate(pattern) {
+            if (navigator.vibrate) {
+                navigator.vibrate(pattern);
+            }
+        }
+
+        // Gestione degli eventi touch per il movimento
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchEndX = 0;
+        let touchEndY = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+            
+            // Inizia il timer per il long press (solo se lo schermo è spento)
+            if (screenOff) {
+                longPressTimer = setTimeout(() => {
+                    turnScreenOn();
+                }, 1000); // 1 secondo per il long press
+            }
+        });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            touchEndY = e.changedTouches[0].screenY;
+            
+            // Cancella il timer del long press
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+            
+            handleSwipe();
+        });
+
+        // Gestisce lo swipe e determina la direzione
+        function handleSwipe() {
+            const diffX = touchEndX - touchStartX;
+            const diffY = touchEndY - touchStartY;
+            const minSwipeDistance = 30; // Distanza minima per considerare uno swipe
+
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                // Swipe orizzontale
+                if (Math.abs(diffX) > minSwipeDistance) {
+                    if (diffX > 0) {
+                        // Swipe a destra
+                        direction = (direction + 1) % 4;
+                    } else {
+                        // Swipe a sinistra
+                        direction = (direction + 3) % 4;
+                    }
+                    drawMaze();
+                }
+            } else {
+                // Swipe verticale
+                if (Math.abs(diffY) > minSwipeDistance) {
+                    const { dx, dy } = getForwardDelta();
+                    if (diffY > 0) {
+                        // Swipe in giù - movimento all'indietro
+                        if (!movePlayer(-dx, -dy)) {
+                            vibrate(100); // Vibra se c'è un muro
+                        }
+                    } else {
+                        // Swipe in su - movimento in avanti
+                        if (!movePlayer(dx, dy)) {
+                            vibrate(100); // Vibra se c'è un muro
+                        }
+                    }
+                }
+            }
+        }
+
+        // Gestione dei tocchi sui bordi per sentire i muri
+        document.addEventListener('touchstart', (e) => {
+            if (e.target === currentCellCanvas) {
+                const rect = currentCellCanvas.getBoundingClientRect();
+                const touchX = e.changedTouches[0].clientX - rect.left;
+                const touchY = e.changedTouches[0].clientY - rect.top;
+                
+                const cellWidth = currentCellCanvas.width;
+                const cellHeight = currentCellCanvas.height;
+                const edgeThreshold = 0.2; // 20% del bordo
+                
+                // Determina quale bordo è stato toccato
+                let edge = null;
+                if (touchY < cellHeight * edgeThreshold) {
+                    edge = 'top';
+                } else if (touchY > cellHeight * (1 - edgeThreshold)) {
+                    edge = 'bottom';
+                } else if (touchX < cellWidth * edgeThreshold) {
+                    edge = 'left';
+                } else if (touchX > cellWidth * (1 - edgeThreshold)) {
+                    edge = 'right';
+                }
+                
+                // Se è stato toccato un bordo, controlla se c'è un muro
+                if (edge) {
+                    let wallExists = false;
+                    
+                    // Determina la direzione in base al bordo toccato e all'orientamento
+                    switch (edge) {
+                        case 'top':
+                            wallExists = maze[playerPosition.y - 1]?.[playerPosition.x] === 1;
+                            break;
+                        case 'bottom':
+                            wallExists = maze[playerPosition.y + 1]?.[playerPosition.x] === 1;
+                            break;
+                        case 'left':
+                            wallExists = maze[playerPosition.y]?.[playerPosition.x - 1] === 1;
+                            break;
+                        case 'right':
+                            wallExists = maze[playerPosition.y]?.[playerPosition.x + 1] === 1;
+                            break;
+                    }
+                    
+                    // Se c'è un muro, vibra
+                    if (wallExists) {
+                        vibrate(50); // Vibrazione breve per il feedback
+                    }
+                }
+            }
+        });
+
+        // Funzioni per spegnere/accendere lo schermo
+        function turnScreenOff() {
+            screenOff = true;
+            document.body.classList.add('screen-off');
+            drawMaze(); // Ridisegna con colori scuri
+        }
+        
+        function turnScreenOn() {
+            screenOff = false;
+            document.body.classList.remove('screen-off');
+            drawMaze(); // Ridisegna con colori normali
+        }
+
+        // Gestione del pulsante per spegnere lo schermo
+        document.getElementById('screenOffButton').addEventListener('click', turnScreenOff);
+
+        // Gestione del pulsante per mostrare/nascondere il labirinto completo
+        document.getElementById('toggleMazeButton').addEventListener('click', () => {
+            const mazeCanvas = document.getElementById('mazeCanvas');
+            if (mazeCanvas.style.display === 'none') {
+                mazeCanvas.style.display = 'block';
+                document.getElementById('toggleMazeButton').textContent = 'Nascondi Labirinto';
+            } else {
+                mazeCanvas.style.display = 'none';
+                document.getElementById('toggleMazeButton').textContent = 'Mostra Labirinto';
+            }
+        });
+
+        // Gestione del ridimensionamento della finestra
+        window.addEventListener('resize', resizeCanvases);
+
+        // Inizializzazione
+        resizeCanvases();
+    </script>
+</body>
+</html>

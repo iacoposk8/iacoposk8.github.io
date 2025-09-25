@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Gioco del Labirinto - Modalità Schermo Spento</title>
+    <title>Maze Game - Screen Off Mode</title>
     <style>
         * {
             margin: 0;
@@ -74,17 +74,18 @@
         }
         
         .game-container {
-            position: relative;
             display: flex;
-            flex-direction: column;
+            flex-direction: row; /* Modifica per affiancare i canvas */
+            justify-content: center; /* Centra i canvas */
             align-items: center;
+            flex-wrap: wrap; /* Permette di andare a capo su schermi piccoli */
             width: 100%;
+            gap: 20px; /* Aggiunge spazio tra i canvas */
         }
         
         canvas {
             border: 2px solid #333;
             background-color: #222;
-            margin: 5px;
             max-width: 100%;
             transition: opacity 0.5s;
         }
@@ -94,18 +95,18 @@
         }
         
         #mazeCanvas {
-            width: 95vmin;
-            height: 95vmin;
+            width: 45vmin; /* Adattato per stare affiancato */
+            height: 45vmin;
         }
         
         #currentCellCanvas {
-            width: 60vmin;
-            height: 60vmin;
+            width: 45vmin; /* Adattato per stare affiancato */
+            height: 45vmin;
         }
         
         .instructions {
             text-align: center;
-            padding-top: 40px;
+            padding: 20px 0;
             color: #ccc;
             font-size: 0.9rem;
             line-height: 1.4;
@@ -130,29 +131,30 @@
             opacity: 1;
         }
         
-        @media (max-height: 700px) {
+        /* Media query per schermi più grandi */
+        @media (min-width: 768px) {
             #mazeCanvas {
-                width: 70vmin;
-                height: 70vmin;
+                width: 400px;
+                height: 400px;
             }
-            
             #currentCellCanvas {
-                width: 50vmin;
-                height: 50vmin;
+                width: 300px;
+                height: 300px;
             }
         }
+
     </style>
 </head>
 <body>
     <div class="instructions">
-        <p>Swipa su/giù per muoverti avanti/indietro. Swipa sinistra/destra per ruotare.</p>
-        <p>Tocca i bordi dello schermo per sentire se c'è un muro (vibrazione).</p>
-        <p class="screen-off-instruction">Long press per riaccendere lo schermo</p>
+        <p>Use arrow keys or swipe up/down to move forward/backward. Swipe left/right to rotate.</p>
+        <p>Touch the edges of the view screen to feel for walls (vibration).</p>
+        <p class="screen-off-instruction">Long press to turn the screen back on.</p>
     </div>
     
     <div class="controls">
-        <button id="toggleMazeButton">Nascondi Labirinto</button>
-        <button id="screenOffButton">Spegni Schermo</button>
+        <button id="toggleMazeButton">Hide Maze</button>
+        <button id="screenOffButton">Turn Screen Off</button>
     </div>
     
     <div class="game-container">
@@ -161,12 +163,12 @@
     </div>
     
     <div class="screen-off-message">
-        Schermo spento<br>
-        Long press per riaccendere
+        Screen is off<br>
+        Long press to turn on
     </div>
 
     <script>
-        // Genera il labirinto
+        // Generate the maze
         function generateMaze(size) {
             const maze = Array.from({ length: size }, () => Array(size).fill(1));
 
@@ -204,13 +206,13 @@
 
             // Set the entrance and exit
             maze[1][1] = 0;
-            maze[size - 3][size - 3] = 2;
+            maze[size - 2][size - 2] = 2; // Adjusted exit to be reachable
 
             return maze;
         }
 
-        // Variabili globali
-        const size = 20; // Dimensione del labirinto (deve essere un numero dispari)
+        // Global variables
+        const size = 21; // Maze size (must be an odd number)
         const maze = generateMaze(size);
         let screenOff = false;
         let longPressTimer = null;
@@ -221,16 +223,16 @@
         const currentCellCanvas = document.getElementById('currentCellCanvas');
         const ctxCell = currentCellCanvas.getContext('2d');
         
-        // Adatta le dimensioni dei canvas
         function resizeCanvases() {
-            const containerWidth = Math.min(window.innerWidth - 20, 700);
-            const containerHeight = Math.min(window.innerHeight - 200, 700);
+            // Use fixed or responsive sizes from CSS
+            const mazeSize = parseFloat(getComputedStyle(canvas).width);
+            const cellSize = parseFloat(getComputedStyle(currentCellCanvas).width);
+
+            canvas.width = mazeSize;
+            canvas.height = mazeSize;
             
-            canvas.width = containerWidth;
-            canvas.height = containerWidth; // Manteniamo un rapporto quadrato
-            
-            currentCellCanvas.width = Math.min(containerWidth, 300);
-            currentCellCanvas.height = Math.min(containerWidth, 300);
+            currentCellCanvas.width = cellSize;
+            currentCellCanvas.height = cellSize;
             
             tileSize = Math.floor(canvas.width / size);
             drawMaze();
@@ -238,20 +240,19 @@
         
         let tileSize;
         let playerPosition = { x: 1, y: 1 };
-        let direction = 0; // 0 = Nord, 1 = Est, 2 = Sud, 3 = Ovest
+        let direction = 0; // 0 = North, 1 = East, 2 = South, 3 = West
         
-        // Funzione per ottenere il delta di movimento in base alla direzione
         function getForwardDelta() {
             switch (direction) {
-                case 0: return { dx: 0, dy: -1 }; // Nord
-                case 1: return { dx: 1, dy: 0 };  // Est
-                case 2: return { dx: 0, dy: 1 };  // Sud
-                case 3: return { dx: -1, dy: 0 }; // Ovest
+                case 0: return { dx: 0, dy: -1 }; // North
+                case 1: return { dx: 1, dy: 0 };  // East
+                case 2: return { dx: 0, dy: 1 };  // South
+                case 3: return { dx: -1, dy: 0 }; // West
             }
         }
 
-        // Disegna il labirinto completo
         function drawMaze() {
+            if (!ctx) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
             for (let y = 0; y < maze.length; y++) {
@@ -259,58 +260,50 @@
                     if (maze[y][x] === 1) {
                         ctx.fillStyle = '#000';
                     } else if (maze[y][x] === 2) {
-                        ctx.fillStyle = '#0f0';
+                        ctx.fillStyle = '#0f0'; // Exit
                     } else {
-                        ctx.fillStyle = '#fff';
+                        ctx.fillStyle = '#fff'; // Path
                     }
                     ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
                 }
             }
 
-            // Disegna il giocatore
+            // Draw player
             ctx.fillStyle = '#00f';
             ctx.fillRect(playerPosition.x * tileSize, playerPosition.y * tileSize, tileSize, tileSize);
 
-            // Disegna la cella corrente nel secondo canvas
             drawCurrentCell();
         }
 
-        // Disegna la vista della cella corrente con orientamento
         function drawCurrentCell() {
+            if (!ctxCell) return;
             const cellSize = currentCellCanvas.width;
             ctxCell.clearRect(0, 0, cellSize, cellSize);
 
-            // Salva il contesto prima di trasformarlo
             ctxCell.save();
-
-            // Trasla l'origine al centro e ruota
             ctxCell.translate(cellSize / 2, cellSize / 2);
-            ctxCell.rotate((-direction * Math.PI) / 2); // rotazione in senso antiorario
-            ctxCell.translate(-cellSize / 2, -cellSize / 2); // ritorna a origine per disegnare normalmente
+            ctxCell.rotate((-direction * Math.PI) / 2);
+            ctxCell.translate(-cellSize / 2, -cellSize / 2);
 
-            // Informazioni sui muri relativi alla posizione attuale
+            const { x, y } = playerPosition;
             const walls = {
-                top: maze[playerPosition.y - 1]?.[playerPosition.x] === 1,
-                bottom: maze[playerPosition.y + 1]?.[playerPosition.x] === 1,
-                left: maze[playerPosition.y]?.[playerPosition.x - 1] === 1,
-                right: maze[playerPosition.y]?.[playerPosition.x + 1] === 1,
+                top: maze[y - 1]?.[x] === 1,
+                bottom: maze[y + 1]?.[x] === 1,
+                left: maze[y]?.[x - 1] === 1,
+                right: maze[y]?.[x + 1] === 1,
             };
 
-            // Sfondo
             ctxCell.fillStyle = screenOff ? '#111' : '#fff';
             ctxCell.fillRect(0, 0, cellSize, cellSize);
 
-            // Muri
             ctxCell.fillStyle = screenOff ? '#333' : '#000';
             if (walls.top) ctxCell.fillRect(0, 0, cellSize, cellSize * 0.2);
             if (walls.bottom) ctxCell.fillRect(0, cellSize * 0.8, cellSize, cellSize * 0.2);
             if (walls.left) ctxCell.fillRect(0, 0, cellSize * 0.2, cellSize);
             if (walls.right) ctxCell.fillRect(cellSize * 0.8, 0, cellSize * 0.2, cellSize);
 
-            // Ripristina rotazione
             ctxCell.restore();
 
-            // Disegna la freccia che indica la direzione
             ctxCell.fillStyle = screenOff ? '#555' : '#00f';
             ctxCell.beginPath();
             const center = cellSize / 2;
@@ -322,191 +315,154 @@
             ctxCell.fill();
         }
 
-        // Funzione per muovere il giocatore
         function movePlayer(dx, dy) {
             const newX = playerPosition.x + dx;
             const newY = playerPosition.y + dy;
 
-            if (maze[newY][newX] !== 1) {
+            if (maze[newY] && maze[newY][newX] !== 1) {
                 playerPosition.x = newX;
                 playerPosition.y = newY;
                 
-                // Controlla se il giocatore ha raggiunto l'uscita
-                if (maze[playerPosition.y][playerPosition.x] === 2) {
+                if (maze[newY][newX] === 2) {
                     setTimeout(() => {
-                        vibrate([100, 30, 100, 30, 100, 30, 200, 30, 200, 30, 200, 30, 100, 30, 100, 30, 100,])
-                        //alert('Hai vinto!');
-                        // Reset posizione giocatore
+                        vibrate([100, 30, 100, 30, 100, 30, 200, 30, 200]);
+                        alert('You won!');
                         playerPosition = { x: 1, y: 1 };
                         drawMaze();
                     }, 100);
                 }
                 
                 drawMaze();
-                return true; // Movimento riuscito
+                return true;
             }
-            return false; // Movimento bloccato da un muro
+            vibrate(100);
+            return false;
         }
 
-        // Funzione per vibrare (se supportata)
         function vibrate(pattern) {
             if (navigator.vibrate) {
                 navigator.vibrate(pattern);
             }
         }
 
-        // Gestione degli eventi touch per il movimento
         let touchStartX = 0;
         let touchStartY = 0;
-        let touchEndX = 0;
-        let touchEndY = 0;
 
         document.addEventListener('touchstart', (e) => {
             touchStartX = e.changedTouches[0].screenX;
             touchStartY = e.changedTouches[0].screenY;
             
-            // Inizia il timer per il long press (solo se lo schermo è spento)
             if (screenOff) {
-                longPressTimer = setTimeout(() => {
-                    turnScreenOn();
-                }, 1000); // 1 secondo per il long press
+                longPressTimer = setTimeout(turnScreenOn, 1000);
             }
-        });
+        }, { passive: true });
 
         document.addEventListener('touchend', (e) => {
-            touchEndX = e.changedTouches[0].screenX;
-            touchEndY = e.changedTouches[0].screenY;
-            
-            // Cancella il timer del long press
             if (longPressTimer) {
                 clearTimeout(longPressTimer);
                 longPressTimer = null;
             }
             
-            handleSwipe();
+            const touchEndX = e.changedTouches[0].screenX;
+            const touchEndY = e.changedTouches[0].screenY;
+            handleSwipe(touchEndX - touchStartX, touchEndY - touchStartY);
         });
 
-        // Gestisce lo swipe e determina la direzione
-        function handleSwipe() {
-            const diffX = touchEndX - touchStartX;
-            const diffY = touchEndY - touchStartY;
-            const minSwipeDistance = 30; // Distanza minima per considerare uno swipe
+        function handleSwipe(diffX, diffY) {
+            const minSwipeDistance = 30;
 
             if (Math.abs(diffX) > Math.abs(diffY)) {
-                // Swipe orizzontale
                 if (Math.abs(diffX) > minSwipeDistance) {
-                    if (diffX > 0) {
-                        // Swipe a destra
-                        direction = (direction + 1) % 4;
-                    } else {
-                        // Swipe a sinistra
-                        direction = (direction + 3) % 4;
-                    }
+                    direction = (diffX > 0) ? (direction + 1) % 4 : (direction + 3) % 4;
                     drawMaze();
                 }
             } else {
-                // Swipe verticale
                 if (Math.abs(diffY) > minSwipeDistance) {
                     const { dx, dy } = getForwardDelta();
                     if (diffY > 0) {
-                        // Swipe in giù - movimento all'indietro
-                        if (!movePlayer(-dx, -dy)) {
-                            vibrate(100); // Vibra se c'è un muro
-                        }
+                        movePlayer(-dx, -dy); // Backward
                     } else {
-                        // Swipe in su - movimento in avanti
-                        if (!movePlayer(dx, dy)) {
-                            vibrate(100); // Vibra se c'è un muro
-                        }
+                        movePlayer(dx, dy);  // Forward
                     }
                 }
             }
         }
-
-        // Gestione dei tocchi sui bordi per sentire i muri
-        document.addEventListener('touchstart', (e) => {
-            if (e.target === currentCellCanvas) {
-                const rect = currentCellCanvas.getBoundingClientRect();
-                const touchX = e.changedTouches[0].clientX - rect.left;
-                const touchY = e.changedTouches[0].clientY - rect.top;
-                
-                const cellWidth = currentCellCanvas.width;
-                const cellHeight = currentCellCanvas.height;
-                const edgeThreshold = 0.2; // 20% del bordo
-                
-                // Determina quale bordo è stato toccato
-                let edge = null;
-                if (touchY < cellHeight * edgeThreshold) {
-                    edge = 'top';
-                } else if (touchY > cellHeight * (1 - edgeThreshold)) {
-                    edge = 'bottom';
-                } else if (touchX < cellWidth * edgeThreshold) {
-                    edge = 'left';
-                } else if (touchX > cellWidth * (1 - edgeThreshold)) {
-                    edge = 'right';
-                }
-                
-                // Se è stato toccato un bordo, controlla se c'è un muro
-                if (edge) {
-                    let wallExists = false;
-                    
-                    // Determina la direzione in base al bordo toccato e all'orientamento
-                    switch (edge) {
-                        case 'top':
-                            wallExists = maze[playerPosition.y - 1]?.[playerPosition.x] === 1;
-                            break;
-                        case 'bottom':
-                            wallExists = maze[playerPosition.y + 1]?.[playerPosition.x] === 1;
-                            break;
-                        case 'left':
-                            wallExists = maze[playerPosition.y]?.[playerPosition.x - 1] === 1;
-                            break;
-                        case 'right':
-                            wallExists = maze[playerPosition.y]?.[playerPosition.x + 1] === 1;
-                            break;
-                    }
-                    
-                    // Se c'è un muro, vibra
-                    if (wallExists) {
-                        vibrate(50); // Vibrazione breve per il feedback
-                    }
-                }
+        
+        // --- KEYBOARD CONTROLS ---
+        document.addEventListener('keydown', (e) => {
+            const { dx, dy } = getForwardDelta();
+            switch (e.key) {
+                case 'ArrowUp':
+                    movePlayer(dx, dy); // Move forward
+                    break;
+                case 'ArrowDown':
+                    movePlayer(-dx, -dy); // Move backward
+                    break;
+                case 'ArrowLeft':
+                    direction = (direction + 3) % 4; // Rotate left
+                    drawMaze();
+                    break;
+                case 'ArrowRight':
+                    direction = (direction + 1) % 4; // Rotate right
+                    drawMaze();
+                    break;
             }
         });
 
-        // Funzioni per spegnere/accendere lo schermo
+
+        currentCellCanvas.addEventListener('touchstart', (e) => {
+            const rect = currentCellCanvas.getBoundingClientRect();
+            const touchX = e.changedTouches[0].clientX - rect.left;
+            const touchY = e.changedTouches[0].clientY - rect.top;
+            
+            const edgeThreshold = 0.2;
+            let edge = null;
+            if (touchY < rect.height * edgeThreshold) edge = 'top';
+            else if (touchY > rect.height * (1 - edgeThreshold)) edge = 'bottom';
+            else if (touchX < rect.width * edgeThreshold) edge = 'left';
+            else if (touchX > rect.width * (1 - edgeThreshold)) edge = 'right';
+            
+            if (edge) {
+                let wallExists = false;
+                const {x, y} = playerPosition;
+                switch (edge) {
+                    case 'top': wallExists = maze[y - 1]?.[x] === 1; break;
+                    case 'bottom': wallExists = maze[y + 1]?.[x] === 1; break;
+                    case 'left': wallExists = maze[y]?.[x - 1] === 1; break;
+                    case 'right': wallExists = maze[y]?.[x + 1] === 1; break;
+                }
+                if (wallExists) vibrate(50);
+            }
+        }, { passive: true });
+
         function turnScreenOff() {
             screenOff = true;
             document.body.classList.add('screen-off');
-            drawMaze(); // Ridisegna con colori scuri
+            drawMaze();
         }
         
         function turnScreenOn() {
             screenOff = false;
             document.body.classList.remove('screen-off');
-            drawMaze(); // Ridisegna con colori normali
+            drawMaze();
         }
 
-        // Gestione del pulsante per spegnere lo schermo
         document.getElementById('screenOffButton').addEventListener('click', turnScreenOff);
-
-        // Gestione del pulsante per mostrare/nascondere il labirinto completo
         document.getElementById('toggleMazeButton').addEventListener('click', () => {
             const mazeCanvas = document.getElementById('mazeCanvas');
             if (mazeCanvas.style.display === 'none') {
                 mazeCanvas.style.display = 'block';
-                document.getElementById('toggleMazeButton').textContent = 'Nascondi Labirinto';
+                document.getElementById('toggleMazeButton').textContent = 'Hide Maze';
             } else {
                 mazeCanvas.style.display = 'none';
-                document.getElementById('toggleMazeButton').textContent = 'Mostra Labirinto';
+                document.getElementById('toggleMazeButton').textContent = 'Show Maze';
             }
         });
 
-        // Gestione del ridimensionamento della finestra
         window.addEventListener('resize', resizeCanvases);
-
-        // Inizializzazione
+        
+        // Initialization
         resizeCanvases();
     </script>
 </body>
-</html>
+</html>```

@@ -147,8 +147,9 @@
 </head>
 <body>
     <div class="instructions">
-        <p>Use arrow keys or swipe up/down to move forward/backward. Swipe left/right to rotate.</p>
-        <p>Touch the edges of the view screen to feel for walls (vibration).</p>
+        Use arrow keys or swipe up/down to move forward/backward. Swipe left/right to rotate.<br />
+You won't be able to see the entire labyrinth at once. The view is limited to the single tile you are currently on and any surrounding walls.<br />
+Your character is a triangle. The point of the triangle indicates the direction you are facing. If you try to move "forward" and the point of the triangle is facing a wall, your character will hit the wall, and you will feel a vibration to signal the obstacle.
         <p class="screen-off-instruction">Long press to turn the screen back on.</p>
     </div>
     
@@ -158,7 +159,7 @@
     </div>
     
     <div class="game-container">
-        <canvas id="mazeCanvas"></canvas>
+        <canvas id="mazeCanvas" style="display:none;"></canvas>
         <canvas id="currentCellCanvas"></canvas>
     </div>
     
@@ -410,7 +411,7 @@
         });
 
 
-        currentCellCanvas.addEventListener('touchstart', (e) => {
+        /*currentCellCanvas.addEventListener('touchstart', (e) => {
             const rect = currentCellCanvas.getBoundingClientRect();
             const touchX = e.changedTouches[0].clientX - rect.left;
             const touchY = e.changedTouches[0].clientY - rect.top;
@@ -433,7 +434,7 @@
                 }
                 if (wallExists) vibrate(50);
             }
-        }, { passive: true });
+        }, { passive: true });*/
 
         function turnScreenOff() {
             screenOff = true;
@@ -466,3 +467,4 @@
     </script>
 </body>
 </html>```
+

@@ -329,9 +329,8 @@
         document.getElementById('auth-container').style.display = user ? 'none' : 'block';
 
         if (user) {
-          if(subscribed){
-            document.getElementById('app-container').style.display = 'block';
-          } else {
+          document.getElementById('app-container').style.display = 'block';
+          if(!subscribed){ 
             document.getElementById('not-container').style.display = 'block';
           }
 
@@ -745,3 +744,4 @@
   </script>
 </body>
 </html>
+

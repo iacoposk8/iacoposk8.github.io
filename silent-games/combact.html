@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Combat Arena</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            cursor: crosshair;
+        }
+
+        .game-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .arena {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%);
+        }
+
+        .character {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            transition: transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .player {
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            left: 20%;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+        }
+
+        .enemy {
+            background: linear-gradient(45deg, #ff4444, #cc0000);
+            right: 20%;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+        }
+
+        .character.attacking {
+            animation: attack 0.5s ease-in-out;
+        }
+
+        .character.heavy-attacking {
+            animation: heavyAttack 0.8s ease-in-out;
+        }
+
+        .character.dodging {
+            animation: dodge 0.3s ease-in-out;
+        }
+
+        .character.hit {
+            animation: hit 0.5s ease-in-out;
+        }
+
+        @keyframes attack {
+            0% { transform: translateY(-50%) scale(1); }
+            50% { transform: translateY(-50%) scale(1.2) translateX(50px); }
+            100% { transform: translateY(-50%) scale(1); }
+        }
+
+        @keyframes heavyAttack {
+            0% { transform: translateY(-50%) scale(1); }
+            20% { transform: translateY(-50%) scale(1.5) translateX(20px); }
+            50% { transform: translateY(-50%) scale(1.8) translateX(80px); }
+            80% { transform: translateY(-50%) scale(1.3) translateX(60px); }
+            100% { transform: translateY(-50%) scale(1); }
+        }
+
+        @keyframes dodge {
+            0% { transform: translateY(-50%) scale(1); }
+            50% { transform: translateY(-50%) scale(0.8) translateY(-20px); }
+            100% { transform: translateY(-50%) scale(1); }
+        }
+
+        @keyframes hit {
+            0% { transform: translateY(-50%) scale(1); }
+            25% { transform: translateY(-50%) scale(0.8) translateX(-20px); }
+            50% { transform: translateY(-50%) scale(1.1) translateX(20px); }
+            75% { transform: translateY(-50%) scale(0.9) translateX(-10px); }
+            100% { transform: translateY(-50%) scale(1); }
+        }
+
+        .health-bar {
+            position: absolute;
+            top: 50px;
+            width: 200px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .player-health {
+            left: 50px;
+        }
+
+        .enemy-health {
+            right: 50px;
+        }
+
+        .health-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .player-health .health-fill {
+            background: linear-gradient(90deg, #00ff88, #00cc66);
+        }
+
+        .enemy-health .health-fill {
+            background: linear-gradient(90deg, #ff4444, #cc0000);
+        }
+
+        .warning {
+            position: absolute;
+            top: 50%;
+            right: 15%;
+            transform: translateY(-50%);
+            background: rgba(255, 69, 0, 0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            animation: pulse 0.5s infinite alternate;
+            display: none;
+        }
+
+        @keyframes pulse {
+            from { opacity: 0.7; transform: translateY(-50%) scale(0.9); }
+            to { opacity: 1; transform: translateY(-50%) scale(1.1); }
+        }
+
+        .ui {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            text-align: center;
+            z-index: 100;
+        }
+
+        .score {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .instructions {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            display: none;
+            z-index: 200;
+        }
+
+        .restart-btn {
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-size: 16px;
+        }
+
+        .restart-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .charge-bar-container {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            display: none;
+        }
+
+        .charge-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ffff00, #ff6600, #ff0000);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        .stamina-bar {
+            position: absolute;
+            top: 80px;
+            left: 50px;
+            width: 150px;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .stamina-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00aaff, #0088cc);
+            border-radius: 6px;
+            transition: width 0.3s ease;
+        }
+
+        .stamina-label {
+            position: absolute;
+            top: 95px;
+            left: 50px;
+            color: white;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        .low-stamina {
+            background: linear-gradient(90deg, #ff4444, #cc0000) !important;
+            animation: lowStaminaPulse 0.5s infinite alternate;
+        }
+        
+        @keyframes lowStaminaPulse {
+            from { opacity: 0.7; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="arena">
+            <div class="ui">
+                <div class="score">Punteggio: <span id="score">0</span></div>
+                <div class="instructions">
+                    Clicca per attaccare • Tieni premuto per attacco pesante • Muovi il mouse velocemente per schivare!
+                </div>
+                <div class="charge-bar-container" id="chargeBarContainer">
+                    <div class="charge-bar" id="chargeBar"></div>
+                </div>
+            </div>
+
+            <div class="health-bar player-health">
+                <div class="health-fill" id="playerHealth" style="width: 100%"></div>
+            </div>
+
+            <div class="health-bar enemy-health">
+                <div class="health-fill" id="enemyHealth" style="width: 100%"></div>
+            </div>
+
+            <div class="stamina-bar">
+                <div class="stamina-fill" id="staminaBar" style="width: 100%"></div>
+            </div>
+            <div class="stamina-label">Stamina</div>
+
+            <div class="character player" id="player">⚔️</div>
+            <div class="character enemy" id="enemy">👹</div>
+            
+            <div class="warning" id="warning">ATTACCO IN ARRIVO! Muovi il mouse!</div>
+        </div>
+
+        <div class="game-over" id="gameOver">
+            <h2 id="gameOverText">Game Over!</h2>
+            <p>Punteggio finale: <span id="finalScore">0</span></p>
+            <button class="restart-btn" onclick="restartGame()">Rigioca</button>
+        </div>
+    </div>
+
+    <script>
+        class CombatGame {
+            constructor() {
+                this.player = document.getElementById('player');
+                this.enemy = document.getElementById('enemy');
+                this.warning = document.getElementById('warning');
+                this.playerHealthBar = document.getElementById('playerHealth');
+                this.enemyHealthBar = document.getElementById('enemyHealth');
+                this.scoreElement = document.getElementById('score');
+                this.gameOverScreen = document.getElementById('gameOver');
+                this.chargeBarContainer = document.getElementById('chargeBarContainer');
+                this.chargeBar = document.getElementById('chargeBar');
+                this.staminaBar = document.getElementById('staminaBar');
+                
+                this.playerHealth = 100;
+                this.enemyHealth = 100;
+                this.score = 0;
+                this.isGameRunning = true;
+                
+                this.mouseX = 0;
+                this.lastMouseX = 0;
+                this.dodgeThreshold = 100;
+                this.dodgeWindow = false;
+                this.canAttack = true;
+                
+                // Configurazioni nemico
+                this.enemyMoveset = [2000, 3000, 1500, 4000, 2500]; // Sequenza di attacchi in ms
+                this.currentMoveIndex = 0;
+                this.enemyWarningTime = 1200; // Tempo di preavviso attacco nemico in ms
+                
+                // Sistema attacco pesante
+                this.isCharging = false;
+                this.chargeStartTime = 0;
+                this.chargeThreshold = 800; // ms minimi per attacco pesante
+                this.maxChargeTime = 2000; // ms massimi per carica completa
+                
+                // SISTEMA STAMINA - VARIABILI CON COMMENTI
+                this.maxStamina = 100; // Quantità massima di stamina disponibile
+                this.currentStamina = this.maxStamina; // Stamina corrente del giocatore
+                this.staminaRecoveryRate = 15; // Quanto velocemente la stamina si ricarica (punti al secondo)
+                this.staminaRecoveryDelay = 1.5; // Quanti secondi di attesa dopo un'azione prima che la stamina inizi a ricaricarsi
+                this.lightAttackCost = 10; // Quanta stamina consuma un attacco leggero
+                this.heavyAttackCost = 30; // Quanta stamina consuma un attacco pesante
+                this.dodgeCost = 20; // Quanta stamina consuma una schivata
+                this.lastActionTime = 0; // Timestamp dell'ultima azione eseguita
+                this.isRecoveringStamina = false; // Flag per controllare se la stamina si sta ricaricando
+                
+                this.init();
+            }
+
+            init() {
+                document.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+                document.addEventListener('mousedown', (e) => this.handleMouseDown(e));
+                document.addEventListener('mouseup', (e) => this.handleMouseUp(e));
+                
+                // Avvia il loop degli attacchi nemici
+                this.scheduleEnemyAttack();
+                
+                // Avvia il loop di recupero stamina
+                this.staminaRecoveryLoop();
+            }
+
+            // Loop di recupero stamina
+            staminaRecoveryLoop() {
+                if (!this.isGameRunning) return;
+                
+                const now = Date.now();
+                const timeSinceLastAction = (now - this.lastActionTime) / 1000; // Converti in secondi
+                
+                // Se è passato abbastanza tempo dall'ultima azione, inizia a recuperare stamina
+                if (timeSinceLastAction >= this.staminaRecoveryDelay && this.currentStamina < this.maxStamina) {
+                    const recoveryAmount = (this.staminaRecoveryRate / 60); // Dividi per 60 per avere un recupero fluido a 60fps
+                    this.currentStamina = Math.min(this.maxStamina, this.currentStamina + recoveryAmount);
+                    this.updateStaminaBar();
+                    this.isRecoveringStamina = true;
+                } else {
+                    this.isRecoveringStamina = false;
+                }
+                
+                // Continua il loop
+                requestAnimationFrame(() => this.staminaRecoveryLoop());
+            }
+
+            // Aggiorna la barra della stamina
+            updateStaminaBar() {
+                const percentage = (this.currentStamina / this.maxStamina) * 100;
+                this.staminaBar.style.width = percentage + '%';
+                
+                // Cambia colore quando la stamina è bassa
+                if (this.currentStamina < 20) {
+                    this.staminaBar.classList.add('low-stamina');
+                } else {
+                    this.staminaBar.classList.remove('low-stamina');
+                }
+            }
+
+            // Consuma stamina per un'azione
+            consumeStamina(amount) {
+                if (this.currentStamina >= amount) {
+                    this.currentStamina -= amount;
+                    this.lastActionTime = Date.now(); // Registra il momento dell'azione
+                    this.updateStaminaBar();
+                    return true; // Azione possibile
+                }
+                return false; // Stamina insufficiente
+            }
+
+            handleMouseMove(e) {
+                this.lastMouseX = this.mouseX;
+                this.mouseX = e.clientX;
+                
+                // Calcola la velocità del movimento del mouse
+                const mouseSpeed = Math.abs(this.mouseX - this.lastMouseX);
+                
+                // Se siamo nella finestra di schivata e il mouse si muove velocemente
+                if (this.dodgeWindow && mouseSpeed > this.dodgeThreshold) {
+                    this.dodgeAttack();
+                }
+            }
+
+            handleMouseDown(e) {
+                if (!this.canAttack || !this.isGameRunning) return;
+                
+                this.isCharging = true;
+                this.chargeStartTime = Date.now();
+                this.chargeBarContainer.style.display = 'block';
+                this.updateChargeBar();
+            }
+
+            handleMouseUp(e) {
+                if (!this.isCharging || !this.isGameRunning) return;
+                
+                this.isCharging = false;
+                this.chargeBarContainer.style.display = 'none';
+                
+                const chargeDuration = Date.now() - this.chargeStartTime;
+                
+                if (chargeDuration >= this.chargeThreshold) {
+                    this.playerHeavyAttack(chargeDuration);
+                } else {
+                    this.playerLightAttack();
+                }
+            }
+
+            updateChargeBar() {
+                if (!this.isCharging) return;
+                
+                const currentTime = Date.now();
+                const chargeDuration = currentTime - this.chargeStartTime;
+                const chargeProgress = Math.min(chargeDuration / this.maxChargeTime, 1) * 100;
+                
+                this.chargeBar.style.width = chargeProgress + '%';
+                
+                if (this.isCharging) {
+                    requestAnimationFrame(() => this.updateChargeBar());
+                }
+            }
+
+            playerLightAttack() {
+                // Controlla se c'è abbastanza stamina per l'attacco leggero
+                if (!this.consumeStamina(this.lightAttackCost)) {
+                    this.showStaminaWarning();
+                    return;
+                }
+                
+                this.canAttack = false;
+                this.player.classList.add('attacking');
+                
+                setTimeout(() => {
+                    this.enemyHealth -= 15;
+                    this.enemy.classList.add('hit');
+                    this.updateHealthBars();
+                    this.score += 8;
+                    this.scoreElement.textContent = this.score;
+                    
+                    if (this.enemyHealth <= 0) {
+                        this.endGame(true);
+                    }
+                    
+                    setTimeout(() => {
+                        this.enemy.classList.remove('hit');
+                    }, 500);
+                }, 250);
+                
+                setTimeout(() => {
+                    this.player.classList.remove('attacking');
+                    this.canAttack = true;
+                }, 500);
+            }
+
+            playerHeavyAttack(chargeDuration) {
+                // Controlla se c'è abbastanza stamina per l'attacco pesante
+                if (!this.consumeStamina(this.heavyAttackCost)) {
+                    this.showStaminaWarning();
+                    return;
+                }
+                
+                this.canAttack = false;
+                this.player.classList.add('heavy-attacking');
+                
+                // Calcola il danno in base al tempo di carica
+                const chargeRatio = Math.min(chargeDuration / this.maxChargeTime, 1);
+                const baseDamage = 25;
+                const bonusDamage = Math.floor(chargeRatio * 20); // Fino a +20 danni
+                const totalDamage = baseDamage + bonusDamage;
+                
+                setTimeout(() => {
+                    this.enemyHealth -= totalDamage;
+                    this.enemy.classList.add('hit');
+                    this.updateHealthBars();
+                    this.score += 15 + bonusDamage;
+                    this.scoreElement.textContent = this.score;
+                    
+                    // Effetto visivo per attacco pesante
+                    this.createHeavyAttackEffect(totalDamage);
+                    
+                    if (this.enemyHealth <= 0) {
+                        this.endGame(true);
+                    }
+                    
+                    setTimeout(() => {
+                        this.enemy.classList.remove('hit');
+                    }, 500);
+                }, 400);
+                
+                setTimeout(() => {
+                    this.player.classList.remove('heavy-attacking');
+                    this.canAttack = true;
+                }, 800);
+            }
+
+            dodgeAttack() {
+                // Controlla se c'è abbastanza stamina per la schivata
+                if (!this.consumeStamina(this.dodgeCost)) {
+                    return;
+                }
+                
+                if (!this.dodgeWindow) return;
+                
+                this.dodgeWindow = false;
+                this.player.classList.add('dodging');
+                this.score += 5; // Bonus per schivata
+                this.scoreElement.textContent = this.score;
+                
+                // Nascondi l'avviso
+                this.warning.style.display = 'none';
+                
+                setTimeout(() => {
+                    this.player.classList.remove('dodging');
+                }, 300);
+                
+                // Crea un effetto visivo per la schivata riuscita
+                this.createDodgeEffect();
+            }
+
+            showStaminaWarning() {
+                // Crea un effetto visivo per stamina insufficiente
+                const effect = document.createElement('div');
+                effect.textContent = 'STAMINA ESAURITA!';
+                effect.style.cssText = `
+                    position: absolute;
+                    left: 50%;
+                    top: 40%;
+                    transform: translateX(-50%);
+                    color: #ff4444;
+                    font-weight: bold;
+                    font-size: 18px;
+                    pointer-events: none;
+                    animation: floatUp 1s ease-out forwards;
+                    z-index: 100;
+                    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+                `;
+                
+                document.body.appendChild(effect);
+                
+                setTimeout(() => {
+                    document.body.removeChild(effect);
+                }, 1000);
+            }
+
+            createHeavyAttackEffect(damage) {
+                const effect = document.createElement('div');
+                effect.textContent = `CRITICO! +${damage}`;
+                effect.style.cssText = `
+                    position: absolute;
+                    right: 25%;
+                    top: 35%;
+                    color: #ff6600;
+                    font-weight: bold;
+                    font-size: 20px;
+                    pointer-events: none;
+                    animation: floatUp 1.5s ease-out forwards;
+                    z-index: 100;
+                    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+                `;
+                
+                document.body.appendChild(effect);
+                
+                setTimeout(() => {
+                    document.body.removeChild(effect);
+                }, 1500);
+            }
+
+            scheduleEnemyAttack() {
+                if (!this.isGameRunning) return;
+                
+                // Usa il moveset per determinare il prossimo attacco
+                const delay = this.enemyMoveset[this.currentMoveIndex];
+                this.currentMoveIndex = (this.currentMoveIndex + 1) % this.enemyMoveset.length;
+                
+                setTimeout(() => {
+                    this.enemyAttackWarning();
+                }, delay);
+            }
+
+            enemyAttackWarning() {
+                if (!this.isGameRunning) return;
+                
+                // Mostra avviso di attacco
+                this.warning.style.display = 'block';
+                this.dodgeWindow = true;
+                
+                setTimeout(() => {
+                    this.executeEnemyAttack();
+                }, this.enemyWarningTime);
+            }
+
+            executeEnemyAttack() {
+                if (!this.isGameRunning) return;
+                
+                this.warning.style.display = 'none';
+                this.enemy.classList.add('attacking');
+                
+                // Se il giocatore non ha schivato
+                if (this.dodgeWindow) {
+                    setTimeout(() => {
+                        this.playerHealth -= 25;
+                        this.player.classList.add('hit');
+                        this.updateHealthBars();
+                        
+                        if (this.playerHealth <= 0) {
+                            this.endGame(false);
+                        }
+                        
+                        setTimeout(() => {
+                            this.player.classList.remove('hit');
+                        }, 500);
+                    }, 250);
+                }
+                
+                setTimeout(() => {
+                    this.enemy.classList.remove('attacking');
+                    this.dodgeWindow = false;
+                    this.scheduleEnemyAttack(); // Programma il prossimo attacco
+                }, 500);
+            }
+
+            createDodgeEffect() {
+                const effect = document.createElement('div');
+                effect.textContent = '+5 SCHIVATA!';
+                effect.style.cssText = `
+                    position: absolute;
+                    left: 25%;
+                    top: 40%;
+                    color: #00ff88;
+                    font-weight: bold;
+                    pointer-events: none;
+                    animation: floatUp 1s ease-out forwards;
+                    z-index: 100;
+                `;
+                
+                document.body.appendChild(effect);
+                
+                setTimeout(() => {
+                    document.body.removeChild(effect);
+                }, 1000);
+                
+                // Aggiungi CSS per l'animazione se non esiste
+                if (!document.getElementById('floatUpStyle')) {
+                    const style = document.createElement('style');
+                    style.id = 'floatUpStyle';
+                    style.textContent = `
+                        @keyframes floatUp {
+                            0% { opacity: 1; transform: translateY(0); }
+                            100% { opacity: 0; transform: translateY(-50px); }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+            }
+
+            updateHealthBars() {
+                this.playerHealthBar.style.width = Math.max(0, this.playerHealth) + '%';
+                this.enemyHealthBar.style.width = Math.max(0, this.enemyHealth) + '%';
+            }
+
+            endGame(playerWon) {
+                this.isGameRunning = false;
+                this.warning.style.display = 'none';
+                
+                const gameOverText = document.getElementById('gameOverText');
+                const finalScore = document.getElementById('finalScore');
+                
+                gameOverText.textContent = playerWon ? '🏆 Vittoria!' : '💀 Sconfitta!';
+                finalScore.textContent = this.score;
+                
+                this.gameOverScreen.style.display = 'block';
+            }
+        }
+
+        // Avvia il gioco
+        let game = new CombatGame();
+
+        function restartGame() {
+            document.getElementById('gameOver').style.display = 'none';
+            document.getElementById('playerHealth').style.width = '100%';
+            document.getElementById('enemyHealth').style.width = '100%';
+            document.getElementById('score').textContent = '0';
+            document.getElementById('chargeBarContainer').style.display = 'none';
+            document.getElementById('staminaBar').style.width = '100%';
+            document.getElementById('staminaBar').classList.remove('low-stamina');
+            
+            // Rimuovi tutte le classi di animazione
+            document.getElementById('player').className = 'character player';
+            document.getElementById('enemy').className = 'character enemy';
+            document.getElementById('warning').style.display = 'none';
+            
+            // Crea una nuova istanza del gioco
+            game = new CombatGame();
+        }
+    </script>
+</body>
+</html>

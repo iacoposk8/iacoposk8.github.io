@@ -10,13 +10,10 @@
     }
     .reminder-card {
       transition: transform 0.2s;
-      margin:10px;
+      margin:10px 0;
     }
     .reminder-card:hover {
       transform: translateY(-2px);
-    }
-    .cards > div{
-      float:left;
     }
   </style>
 </head>
@@ -358,7 +355,7 @@
     function renderReminders(reminders) {
       const container = document.getElementById('reminders-list');
       container.innerHTML = reminders.map(reminder => `
-        <div class="col-md-6">
+        <div>
           <div class="card reminder-card shadow-sm">
             <div class="card-body">
               <h5 class="card-title">${reminder.text}</h5>
@@ -523,7 +520,7 @@
           container = document.getElementById('questions-list');
         }
         container.innerHTML = filteredReminders.map(reminder => `
-          <div class="col-md-6">
+          <div>
             <div class="card reminder-card shadow-sm mb-3">
               <div class="card-body">
                 <div class="d-flex justify-content-between align-items-start">
@@ -748,6 +745,7 @@
   </script>
 </body>
 </html>
+
 
 
 

@@ -3,6 +3,13 @@ layout: default
 title: Projects
 ---
 
+## HaptiPlay
+I'm developing a suite of web games that rely entirely on mobile device tactile feedback (vibration) for interaction and conveying information. This design makes them highly accessible for blind and low-vision users and ideal for silent play in any environment. Enjoy games discreetly, anytime, anywhere, without bothering others!
+
+<a href="/projects/silent-games/" class="btn btn-primary btn-xl">Play it!</a>
+
+---
+
 ## CNC calculator
 I'm developing a web-based tool for calculating CNC milling parameters. The project aims to provide an accessible and user-friendly platform for machinists and hobbyists to determine optimal cutting speeds, feed rates, and other essential values for various materials and tools.
 

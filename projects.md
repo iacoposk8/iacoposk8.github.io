@@ -6,7 +6,7 @@ title: Projects
 ## HaptiPlay
 I'm developing a suite of web games that rely entirely on mobile device tactile feedback (vibration) for interaction and conveying information. This design makes them highly accessible for blind and low-vision users and ideal for silent play in any environment. Enjoy games discreetly, anytime, anywhere, without bothering others!
 
-<a href="/projects/silent-games/" class="btn btn-primary btn-xl">Play it!</a>
+<a href="/silent-games/" class="btn btn-primary btn-xl">Play it!</a>
 
 ---
 

@@ -295,6 +295,7 @@
           timeTo: document.getElementById('reminder-time-to').value,
           times: document.getElementById('reminder-times').value,
           days: Array.from(document.getElementById('reminder-days').selectedOptions).map(o => o.value),
+          icon: Array.from(document.getElementById('icon').selectedOptions).map(o => o.value),
           timerEnabled: document.getElementById('timer-enabled').checked,
           timerDuration: document.getElementById('timer-duration').value,
           userId: user.uid,
@@ -409,7 +410,8 @@
         document.getElementById('reminder-time-from').value = reminder.timeFrom;
         document.getElementById('reminder-time-to').value = reminder.timeTo;
         document.getElementById('reminder-times').value = reminder.times;
-        document.getElementById('reminder-days').value = reminder.days.join(',');  // Puoi usare un'implementazione migliore per le opzioni multiple
+        document.getElementById('reminder-days').value = reminder.days.join(',');
+        document.getElementById('icon').value = reminder.icon;
         document.getElementById('timer-enabled').checked = reminder.timerEnabled;
         document.getElementById('timer-duration').value = reminder.timerDuration;
         document.getElementById('share-checkbox').checked = reminder.shared;

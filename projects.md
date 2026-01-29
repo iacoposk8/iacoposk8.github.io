@@ -38,6 +38,13 @@ This tool creates seamless normal maps from black and white images, converting t
 
 ---
 
+## Workout inside
+A streamlined web interface designed to help you build lasting habits and manage timely notifications with ease. Empower your daily routine by organizing your goals and staying on track with personalized alerts.
+
+<a href="/workout-inside/" class="btn btn-primary btn-xl">Work it!</a>
+
+---
+
 ## Public spending in Italy
 See how Italian public spending changes with the government in power. The interactive graph highlights differences in categories such as defense and healthcare as a percentage of GDP.
 

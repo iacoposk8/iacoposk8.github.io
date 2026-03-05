@@ -161,7 +161,7 @@ aside {
     }
 
     @media (min-width: 940px) {
-        background-color: #0077bb;
+        background-color: $theme-blue;
         border-color: rgba(white, .3);
         
         .navbar-header .navbar-brand {
@@ -207,7 +207,7 @@ aside {
 
 header {
     position: relative;
-    background-color: #0077bb;
+    background-color: $theme-blue;
     text-align: center;
     color: white;
     height:100%;

@@ -2,14 +2,14 @@
   /* --- CONTENITORE DELLO SFONDO --- */
   #viking-background {
     width: 100vw;
-    height: 400px; /* Occupa sempre e solo il 100% dello schermo */
+    height: 800px; /* Occupa sempre e solo il 100% dello schermo */
     
     /* Crea la griglia perfettamente divisa a metà */
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr 1fr;
 
-    background-image: url('goldbg.svg'); 
+    background-image: url('img/goldbg.svg'); 
     background-size:cover;
   }
 
@@ -17,7 +17,7 @@
   .tile {
     width: 100%;
     height: 100%;
-    background-image: url('vikingbg.svg'); 
+    background-image: url('img/vikingbg.svg'); 
     
     /* MAGIA 1: Ogni quarto fa da cover alla sua porzione di schermo. 
        Taglierà automaticamente in orizzontale su mobile e in verticale su PC */

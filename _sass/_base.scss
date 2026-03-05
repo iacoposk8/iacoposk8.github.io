@@ -58,10 +58,6 @@ p {
     height:40px;
 }
 
-.navbar-brand{
-    padding: 5px 15px !important;
-}
-
 main#content{
     max-width: 940px;
     margin: 150px auto 0px auto;
@@ -125,7 +121,8 @@ aside {
     @include transition-all;
 
     .navbar-header .navbar-brand {
-        color: $theme-primary;
+        padding: 5px 15px !important;
+        color: #fff;
         @include sans-serif-font;
         font-weight: 700;
         text-transform: uppercase;

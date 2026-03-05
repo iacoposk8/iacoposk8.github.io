@@ -216,6 +216,10 @@ header {
         text-align: center;
         width: 100%;
         .header-content-inner {
+            width: 100%;
+            position:absolute;
+            top:50px;
+            left:0px;
             h1 {
                 font-weight: 700;
                 text-transform: uppercase;
@@ -237,10 +241,6 @@ header {
          min-height: 100%;
         .header-content {
             .header-content-inner {
-                width: 100%;
-                position:absolute;
-                top:50px;
-                left:0px;
                 p {
                     font-size: 18px;
                     max-width: 80%;

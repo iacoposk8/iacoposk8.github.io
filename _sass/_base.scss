@@ -101,12 +101,6 @@ aside {
     color: rgba(white, 1);
 }
 
-@media (max-width: 940px) {
-    .navbar.affix-top .nav-link{
-        color: var(--bs-secondary-color);
-    }
-}
-
 .navbar-default {
     background: $theme-blue;
     border-color: rgba($theme-dark, .5);

@@ -100,9 +100,7 @@ aside {
 .navbar.affix-top .nav-link{
     color: rgba(white, 1);
 }
-.navbar.affix .nav-link{
-    color: var(--bs-secondary-color);
-}
+
 @media (max-width: 940px) {
     .navbar.affix-top .nav-link{
         color: var(--bs-secondary-color);

@@ -1,5 +1,62 @@
+<style>
+  /* --- CONTENITORE DELLO SFONDO --- */
+  #viking-background {
+    width: 100vw;
+    height: 400px; /* Occupa sempre e solo il 100% dello schermo */
+    
+    /* Crea la griglia perfettamente divisa a metà */
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+
+    background-image: url('goldbg.svg'); 
+    background-size:cover;
+  }
+
+  /* --- LE 4 PIASTRELLE --- */
+  .tile {
+    width: 100%;
+    height: 100%;
+    background-image: url('vikingbg.svg'); 
+    
+    /* MAGIA 1: Ogni quarto fa da cover alla sua porzione di schermo. 
+       Taglierà automaticamente in orizzontale su mobile e in verticale su PC */
+    background-size: cover; 
+    
+    /* MAGIA 2: Blocchiamo il punto focale sull'angolo in basso a destra (il centro del disegno) per TUTTE le piastrelle. */
+    background-position: bottom right; 
+    background-repeat: no-repeat;
+  }
+
+  /* --- LE TRASFORMAZIONI A SPECCHIO --- */
+  
+  /* Nota: uso 1.01 invece di 1. Questo crea una microscopica sovrapposizione invisibile 
+     che impedisce ai browser di creare una fastidiosa riga bianca di 1 pixel in mezzo allo schermo */
+
+  .top-left {
+    transform: scale(1.01, 1.01); 
+  }
+
+  .top-right {
+    transform: scale(-1.01, 1.01); 
+  }
+
+  .bottom-left {
+    transform: scale(1.01, -1.01); 
+  }
+
+  .bottom-right {
+    transform: scale(-1.01, -1.01); 
+  }
+</style>
 <header>
     <div class="header-content">
+        <div id="viking-background">
+            <div class="tile top-left"></div>
+            <div class="tile top-right"></div>
+            <div class="tile bottom-left"></div>
+            <div class="tile bottom-right"></div>
+        </div>
         <div class="header-content-inner">
             <img src="/img/pirateflag_compress.svg" fetchpriority="high" width="920" height="511" alt="Pirate Flag" loading="eager" decoding="async">
         </div>

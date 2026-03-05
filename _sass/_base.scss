@@ -215,6 +215,7 @@ header {
         position: relative;
         text-align: center;
         width: 100%;
+        height: 100%;
         .header-content-inner {
             width: 100%;
             position:absolute;
@@ -479,7 +480,7 @@ body {
 
 #viking-background {
     width: 100vw;
-    height: 600px;
+    height: 100%;
     margin-top:55px;
     
     /* Crea la griglia perfettamente divisa a metà */

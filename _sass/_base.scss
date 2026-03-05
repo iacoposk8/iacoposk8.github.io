@@ -488,7 +488,7 @@ body {
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr 1fr;
 
-    background-image: url('img/goldbg.svg'); 
+    background-image: url('/img/goldbg.svg'); 
     background-size:cover;
   }
 
@@ -496,7 +496,7 @@ body {
   .viking-tile {
     width: 100%;
     height: 100%;
-    background-image: url('img/vikingbg.svg'); 
+    background-image: url('/img/vikingbg.svg'); 
     
     background-size: cover; 
 

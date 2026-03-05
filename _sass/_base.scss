@@ -114,7 +114,7 @@ aside {
 }
 
 .navbar-default {
-    background: #fff;
+    background: $theme-blue;
     border-color: rgba($theme-dark, .5);
     position:fixed;
     top:0;
@@ -142,7 +142,7 @@ aside {
                 text-transform: uppercase;
                 font-weight: 700; // Link in grassetto
                 font-size: 13px;
-                color: $theme-dark;
+                color: #fff;
                 &:hover {
                     color: $theme-primary;
                 }

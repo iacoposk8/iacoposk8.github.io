@@ -477,6 +477,51 @@ body {
 
 /*****************************************/
 
+  /* --- CONTENITORE DELLO SFONDO --- */
+  #viking-background {
+    width: 100vw;
+    height: 100%;
+    margin-top:55px;
+    
+    /* Crea la griglia perfettamente divisa a metà */
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+
+    background-image: url('img/goldbg.svg'); 
+    background-size:cover;
+  }
+
+  /* --- LE 4 PIASTRELLE --- */
+  .viking-tile {
+    width: 100%;
+    height: 100%;
+    background-image: url('img/vikingbg.svg'); 
+    
+    background-size: cover; 
+
+    background-position: bottom right; 
+    background-repeat: no-repeat;
+  }
+
+  .viking-top-left {
+    transform: scale(1.01, 1.01); 
+  }
+
+  .viking-top-right {
+    transform: scale(-1.01, 1.01); 
+  }
+
+  .viking-bottom-left {
+    transform: scale(1.01, -1.01); 
+  }
+
+  .viking-bottom-right {
+    transform: scale(-1.01, -1.01); 
+  }
+
+/***************************************************/
+
 /* Stile base per gli elementi (opzionale, per estetica) */
 .grid-item {
     background-color: transparent;

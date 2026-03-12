@@ -111,6 +111,10 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
+          <div class="form-check mb-2">
+            <input type="checkbox" id="reminder-enabled" class="form-check-input">
+            <label class="form-check-label">Abilita</label>
+          </div>
           <textarea id="reminder-text" class="form-control mb-2" placeholder="Testo del reminder. Se vuoi mostrare a random un messaggio di una lista usa questa formattazione: testo 1|||testo 2|||testo 3" rows="3"></textarea>
           <div class="mb-3">
             <label class="form-label">Tipo</label><br>
@@ -289,6 +293,7 @@
         if (!user) return;
 
         const reminder = {
+          reminderEnabled: document.getElementById('reminder-enabled').checked,
           text: document.getElementById('reminder-text').value,
           question: document.getElementById('type-question').checked,
           timeFrom: document.getElementById('reminder-time-from').value,
@@ -406,6 +411,7 @@
         const reminder = docSnap.data();
         
         // Riempi i campi con i dati del reminder
+        document.getElementById('reminder-enabled').checked = reminder.reminderEnabled;
         document.getElementById('reminder-text').value = reminder.text;
         document.getElementById('reminder-time-from').value = reminder.timeFrom;
         document.getElementById('reminder-time-to').value = reminder.timeTo;
@@ -764,3 +770,4 @@
   </script>
 </body>
 </html>
+

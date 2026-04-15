@@ -3,6 +3,13 @@ layout: default
 title: Projects
 ---
 
+## AI Music video
+I designed an AI-powered music video for a track I love. The band liked it so much they shared it on their official Instagram! Watch the full video here.
+
+<a href="https://www.instagram.com/p/DWlXjStDSRf" target="_blank" class="btn btn-primary btn-xl">Watch it!</a>
+
+---
+
 ## HaptiPlay
 I'm developing a suite of web games that rely entirely on mobile device tactile feedback (vibration) for interaction and conveying information. This design makes them highly accessible for blind and low-vision users and ideal for silent play in any environment. Enjoy games discreetly, anytime, anywhere, without bothering others!
 

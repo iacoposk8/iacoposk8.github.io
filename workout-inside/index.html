@@ -307,6 +307,7 @@
           times: document.getElementById('reminder-times').value,
           days: Array.from(document.getElementById('reminder-days').selectedOptions).map(o => o.value),
           icon: Array.from(document.getElementById('icon').selectedOptions).map(o => o.value),
+          sound: Array.from(document.getElementById('sound').selectedOptions).map(o => o.value),
           timerEnabled: document.getElementById('timer-enabled').checked,
           timerDuration: document.getElementById('timer-duration').value,
           userId: user.uid,

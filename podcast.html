@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale = 1.0, maximum-scale = 1.0, user-scalable=no">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<script src="https://www.youtube.com/iframe_api"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="static/js/textlayerbuilder.js"></script>
+
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+	*{ color:#e6e6e6; }
+	body{ padding-bottom: 60px; background: #121212; }
+	.podcast-page { max-width: 800px; margin: 0 auto; padding: 20px; }
+	h2 { font-size: 24px; margin-bottom: 20px; }
+	#episode-list { list-style: none; padding: 0; }
+	.episode-item { display: flex; margin-bottom: 20px; }
+	.episode-thumbnail img { width: 80px; height: 80px; border-radius: 5px; object-fit: cover; margin-right: 10px; }
+	.channel-title { font-size: 14px; }
+	.episode-title { font-size: 18px; margin: 0; }
+	.popup-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); }
+	.popup-content { background-color: #fff; width: 300px; max-width: 80%; margin: 100px auto; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); }
+	.popup-content * { color:#000; }
+	.popup-content h3 { margin-top: 0; }
+	.popup-content input[type="text"], .popup-content select { width: 100%; padding: 10px; margin-bottom: 10px; }
+	.popup-content button { background-color: #333; border: none; color: #fff; padding: 8px 16px; border-radius: 5px; cursor: pointer; margin-right: 10px; }
+	#closePopupBtn { background-color: #ccc; color: #333; }
+	.container { display: flex; }
+	.hamburger { display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; margin: 6px; position:fixed; z-index:9999; font-size:30px; }
+	.hamburger.is-active{ width:170px; }
+	.modal-content{ background-color: #1a1a1a; }
+	.sidebar { width: 200px; background-color: #1a1a1a; display: none; position:fixed; z-index:999; padding-top: 40px; height:100%; overflow:auto; padding-bottom:60px; }
+	.menu ul { display: none; }
+	.menu { list-style-type: none; padding: 0; }
+	.menu li { padding: 10px; cursor: pointer; }
+	.content { display: none; }
+	#home{ display:block; }
+	.modal-dialog{ margin-top:50px; }
+	.episode-thumbnail { display: flex; }
+	.episode-thumbnail h5 { flex-grow: 1; margin: 0; }
+	.episode-thumbnail i { font-size: 24px; cursor: pointer; width: 60px; margin: 50px 0; text-align: center; }
+	#collapseBtn{ right:10px; margin-top: 10px; position:absolute; z-index:999; }
+	.playback-speed button{ padding: .375rem 0.55rem; }
+	.progress-bar{ position: relative; overflow: visible; }
+	#currentTime{ position: absolute; color: #000; width: 100%; text-align: center; top: 0px; }
+	#btnGroup { margin: 10px auto 10px auto !important; display: block; width: 285px; text-align: center; }
+	#audioDescription img{ width:100%; }
+	#playerBar{ padding-top:0px !important; background: #121212; }
+	#speedGroup{ margin-top:0px !important; }
+	#pdf-canvas { border: 1px solid rgba(0,0,0,0.2); box-sizing: border-box; }
+	#pdf-text-layer { position: absolute; left: 0; top: 0; right: 0; bottom: 0; overflow: hidden; opacity: 0.2; line-height: 1.0; }
+	#pdf-text-layer > span { position: absolute; color: transparent; white-space: pre; cursor: text; transform-origin: 0% 0%; }
+	#pdf-contents{ position:relative; }
+	#popup-player .modal-content, .modal-dialog{ max-width: 515px !important; width: 100% !important; }
+	.menu li { cursor: pointer; transition: background-color 0.3s ease; }
+	.menu li:active, .menu li:focus { background-color: #007bff; }
+	.open_bookmark{ cursor: pointer; }
+	.audioChannelTitle{ padding: 1rem 1rem; }
+	#audio-player-tts::-webkit-media-controls-play-button { display: none; }
+	#audio-player-tts{ margin:20px 0; }
+	#text-input-tts{ width:100%; color:#000; }
+	#text-input-tts::placeholder { color: #999999; }
+	.audioImage{ max-width:100%; }
+</style>
+
+<div class="hamburger"><i class="fa-solid fa-bars"></i></div>
+<div class="sidebar"><ul class="menu"></ul></div>
+
+<div class="container">
+	<div id="home" class="content podcast-page">
+		<select id="order">
+			<option value="pubdate DESC">Dal più nuovo al più vecchio</option>
+			<option value="pubdate ASC">Dal più vecchio al più nuovo</option>
+			<option value="duration DESC">Dal più lungo al più corto</option>
+			<option value="duration ASC">Dal più corto al più lungo</option>
+		</select>
+		<button id="refresh">Refresh</button>
+		<br />
+		<button id="flashcards">Flashcards</button>
+		<br />
+		<input type="checkbox" id="viewed" /> Viewed
+		<ul id="episode-list"></ul>
+	</div>
+</div>
+
+<!-- popup tts -->
+<div class="modal" id="tts_modal">
+	<div class="modal-dialog"><div class="modal-content">
+		<div class="modal-header">
+			<h4 class="modal-title">TTS</h4>
+			<button type="button" class="close" data-dismiss="modal">&times;</button>
+		</div>
+		<div class="modal-body" id="tts_modal_content">
+			<textarea id="text-input-tts" placeholder="Inserisci il testo da convertire..."></textarea><br>
+			<button class="btn btn-primary" onclick="tts()">Converti in Audio</button>
+			<button class="btn btn-primary" onclick="stopTts()">Stop</button>
+			<div id="tts-status" style="margin-top:10px;color:#aaa;font-size:13px;"></div>
+			<div class="btn-group mt-2">
+				<button class="btn btn-secondary" onclick="changeTtsSpeed(1)">1x</button>
+				<button class="btn btn-secondary" onclick="changeTtsSpeed(1.25)">1.25x</button>
+				<button class="btn btn-secondary" onclick="changeTtsSpeed(1.5)">1.5x</button>
+				<button class="btn btn-secondary" onclick="changeTtsSpeed(1.75)">1.75x</button>
+				<button class="btn btn-secondary" onclick="changeTtsSpeed(2)">2x</button>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+		</div>
+	</div></div>
+</div>
+
+<!-- popup aggiungi podcast -->
+<div class="popup-overlay" id="popupOverlayAddPodcast">
+	<div class="popup-content">
+		<h3>Aggiungi un nuovo podcast</h3><br />
+		<p>Cerca su podtail.com e inserisci il link di un canale youtube</p>
+		<input type="text" id="podcastNameInput" placeholder="Nome del podcast">
+		Url canale youtube o url podcast o static/xml/nomerss.xml<br />
+		<input type="text" id="podcastUrlInput" placeholder="Url canale youtube o url podcast">
+		<select id="add_pdc_cat"></select>
+		<button id="addPodcastBtn">Aggiungi</button> <button id="closePopupBtn">Chiudi</button>
+	</div>
+</div>
+
+<!-- popup bookmark -->
+<div class="modal" id="bookmark_modal">
+	<div class="modal-dialog"><div class="modal-content">
+		<div class="modal-header">
+			<h4 class="modal-title">Bookmark</h4>
+			<button type="button" class="close" data-dismiss="modal">&times;</button>
+		</div>
+		<div class="modal-body" id="bookmark_modal_content">Loading...</div>
+		<div class="modal-footer"><button type="button" class="btn btn-danger" data-dismiss="modal">Close</button></div>
+	</div></div>
+</div>
+
+<!-- popup online_channels -->
+<div class="modal" id="online_channels_modal">
+	<div class="modal-dialog"><div class="modal-content">
+		<div class="modal-header">
+			<h4 class="modal-title">Offline Channels</h4>
+			<button type="button" class="close" data-dismiss="modal">&times;</button>
+		</div>
+		<div class="modal-body" id="online_channels_modal_content">Loading...</div>
+		<div class="modal-footer"><button type="button" class="btn btn-danger" data-dismiss="modal">Close</button></div>
+	</div></div>
+</div>
+
+<!-- popup player -->
+<div id="popup-player" class="modal fade">
+	<div class="modal-dialog"><div class="modal-content" style="position: relative;">
+		<button type="button" class="close" data-dismiss="modal" aria-label="Close" style="position: absolute; right: 15px; top: 10px; z-index: 10;"><span aria-hidden="true">&times;</span></button>
+		<i class="fa-solid fa-filter" id="filter_button" style="position: absolute; right: 45px; top: 13px; z-index: 10; cursor:pointer;"></i>
+		<h6 class="audioChannelTitle" style="padding: 15px 15px 0;"></h6>
+		<div class="modal-header" style="display: block;">
+			<div class="episode-thumbnail" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+				<i class="fas fa-chevron-left change-episode" id="prev-episode" style="cursor:pointer;"></i>
+				<div style="text-align: center; flex-grow: 1; padding: 0 10px;">
+					<h5 class="modal-title audioTitle" style="margin: 0;">Titolo dell'episodio</h5>
+				</div>
+				<i class="fas fa-chevron-right change-episode" id="next-episode" style="cursor:pointer;"></i>
+			</div>
+		</div>
+		<div class="modal-body">
+			<div>
+				<div class="container-cats"></div>
+				<button type="button" class="playPauseBtn btn btn-primary">Play</button>
+				<img class="audioImage">
+				<p id="audioDescription">Descrizione dell'episodio</p>
+			</div>
+		</div>
+	</div></div>
+</div>
+
+<!-- popup filtro -->
+<div class="modal" id="filter_modal">
+	<div class="modal-dialog"><div class="modal-content">
+		<div class="modal-header"><button type="button" class="close" data-dismiss="modal">&times;</button></div>
+		<div class="modal-body" id="filter_modal_content">
+			<div class="form-group">
+				<label for="filter-word-input">Parola da filtrare:</label>
+				<input type="text" id="filter-word-input" class="form-control" placeholder="Es. spam, mela, ecc...">
+			</div>
+		</div>
+		<div class="modal-footer">
+			<button type="button" class="btn btn-secondary" data-dismiss="modal">Annulla</button>
+			<button type="button" class="btn btn-success" onclick="applyFilter()">Conferma Filtro</button>
+		</div>
+	</div></div>
+</div>
+
+<!-- Player fisso in basso -->
+<div id="playerBar" class="fixed-bottom rounded-top border-top shadow-sm p-3">
+	<button id="collapseBtn" type="button" class="btn btn-secondary"><i class="fas fa-arrow-down"></i></button>
+	<div class="row">
+		<div class="col-sm-2"><div class="episode-thumbnail"><img class="audioImagePlayer" src="immagine.jpg" alt="" class="mr-3"></div></div>
+		<div class="col-sm-8">
+			<h5 class="modal-title audioTitlePlayer"></h5>
+			<span class="modal-title wordsused"></span>
+		</div>
+		<div class="col-sm-2">
+			<div id="btnGroup" class="btn-group mt-3" role="group">
+				<button id="pdf-prev" type="button" class="btn btn-secondary" style="display:none;"><i class="fa-solid fa-backward"></i></button>
+				<button id="backwardsFastBtn" type="button" class="changeTime btn btn-secondary"><i class="fa-solid fa-backward-fast"></i></button>
+				<button id="backwardsBtn" type="button" class="changeTime btn btn-secondary"><i class="fa-solid fa-backward-step"></i></button>
+				<button type="button" class="playPauseBtn btn btn-primary"><i class="playPauseIcon fas fa-play"></i></button>
+				<button id="forwardsBtn" type="button" class="changeTime btn btn-secondary"><i class="fa-solid fa-forward-step"></i></button>
+				<button id="forwardsFastBtn" type="button" class="changeTime btn btn-secondary"><i class="fa-solid fa-forward-fast"></i></button>
+				<button id="pdf-next" type="button" class="btn btn-secondary" style="display:none;"><i class="fa-solid fa-forward"></i></button>
+				<button id="add_bookmark" type="button" class="btn btn-secondary"><i class="fa-solid fa-bookmark"></i></button>
+			</div>
+		</div>
+	</div>
+	<div id="player_container"></div>
+	<div id="pdf_container" style="display:none">
+		<div id="pdf-contents">
+			<canvas id="pdf-canvas"></canvas>
+			<div id="pdf-text-layer"></div>
+		</div>
+	</div>
+	<div class="progress">
+		<div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+			<div id="currentTime" class="mt-2">00:00:00</div>
+		</div>
+	</div>
+	<div id="currentStatus" class="mt-2"></div>
+	<div id="speedGroup" class="btn-group mt-3 playback-speed" role="group">
+		<button id="currentSpeedDisplay" class="speed-btn btn btn-light" disabled>1.0x</button>
+		<button class="speed-btn btn btn-light" data-speed="-">-</button>
+		<button class="speed-btn btn btn-light" data-speed="1.0">1.0x</button>
+		<button class="speed-btn btn btn-light" data-speed="1.2">1.2x</button>
+		<button class="speed-btn btn btn-light" data-speed="1.5">1.5x</button>
+		<button class="speed-btn btn btn-light" data-speed="1.7">1.7x</button>
+		<button class="speed-btn btn btn-light" data-speed="2.0">2.0x</button>
+		<button class="speed-btn btn btn-light" data-speed="+">+</button>
+	</div>
+</div>
+
+<!-- popup categorie -->
+<div id="categoryPopup" class="modal fade">
+	<div class="modal-dialog"><div class="modal-content">
+		<div class="modal-header">
+			<h5 class="modal-title">Categorie</h5>
+			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+		</div>
+		<div class="modal-body"></div>
+		<div class="modal-footer"><button type="button" id="addIcon" class="btn btn-secondary"><i class="fas fa-plus"></i></button></div>
+	</div></div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// CONFIGURAZIONE SUPABASE
+// Sostituisci con i tuoi valori dal Dashboard Supabase
+// Settings → API → Project URL e anon public key
+// ══════════════════════════════════════════════════════════
+const SUPABASE_URL      = 'https://qfuyvbpvlhnpyzmzsicv.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmdXl2YnB2bGhucHl6bXpzaWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0NzU1NTcsImV4cCI6MjA5NjA1MTU1N30.Msn522Fb2_n--4qJmrojHCHHUM5JuGcb2odUBeQhJQ8';
+const APP_PASSWORD      = '752832';
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ── Auth (solo UI, non sicurezza reale) ──────────────────
+if (!localStorage.getItem('podcast_auth')) {
+	const pwd = prompt('Password:');
+	if (pwd !== APP_PASSWORD) {
+		alert('Password errata.');
+		location.reload();
+	} else {
+		localStorage.setItem('podcast_auth', '1');
+	}
+}
+
+// ══════════════════════════════════════════════════════════
+// COSTANTI
+// ══════════════════════════════════════════════════════════
+const BAD_IA_CATS = [
+	'Arte','Bellezza','Cinema','Urbanistica','Spazio-Universo','Calcio',
+	'Complottismo','Cronaca','Cucina','Elettrodomestici','Eventi e Spettacolo',
+	'Fotografia','Giardino','Guerra','Inquinamento','Intrattenimento',
+	'Letteratura','Motori','Musica','Natura','Paranormale','Politica estera',
+	'Privacy','Trasporti','Viaggi'
+];
+
+const complete_template = '<span class="episode-complete d-flex justify-content-center align-items-center bg-success rounded-circle" style="width:30px;height:30px;display:inline-flex !important;"><i class="fa-solid fa-check" style="color:#fff;"></i></span> ';
+
+var current_category = { start: 0, category: 0, input: 0, order: "pubdate DESC", view: 0 };
+var items = [], categories = [], channels = [], settings = {};
+var channelMap = {};       // id → channel object (per join client-side)
+var activeChannelIds = []; // IDs canali con disable=0
+var player = { speed: 1.0 };
+var index_array_episode = 0;
+var item;
+
+// ══════════════════════════════════════════════════════════
+// SUPABASE QUERIES
+// ══════════════════════════════════════════════════════════
+async function fetchEpisodes(params) {
+	if (!activeChannelIds.length) return []; // canali non ancora caricati
+
+	const cat       = String(params.category);
+	const isStorico = cat === 'storico';
+	const orderCol  = params.order.split(' ')[0];
+	const orderAsc  = params.order.includes('ASC');
+
+	// Quote ogni valore per PostgREST (gestisce spazi e trattini)
+	const badTuple = '(' + BAD_IA_CATS.map(c => `"${c}"`).join(',') + ')';
+
+	let q = sb.from('episodes')
+		.select('*')
+		.in('id_channel', activeChannelIds)          // sostituisce channels!inner(disable=0)
+		.or(`ia_cat.is.null,ia_cat.not.in.${badTuple}`)
+		.order(orderCol, { ascending: orderAsc })
+		.range(Number(params.start), Number(params.start) + 19);
+
+	if (isStorico) {
+		q = q.eq('complete', 1);
+	} else if (cat.includes(',')) {
+		q = q.in('id_channel', cat.split(',').map(Number)).eq('view', Number(params.view));
+	} else if (params.input == 1) {
+		q = q.eq('id_channel', Number(cat)).eq('view', Number(params.view));
+	} else if (cat === '0') {
+		q = q.eq('category', 0).eq('complete', 0).eq('view', Number(params.view));
+	} else {
+		q = q.eq('category', Number(cat)).eq('complete', 0);
+	}
+
+	const { data, error } = await q;
+	if (error) { console.error('fetchEpisodes:', error); return []; }
+	return (data || []).map(ep => ({
+		...ep,
+		channel_title: channelMap[ep.id_channel]?.title || ''
+	}));
+}
+
+async function fetchCategories() {
+	const { data, error } = await sb.rpc('get_categories_with_unread');
+	if (error) { console.error('fetchCategories:', error); return []; }
+	return data || [];
+}
+
+async function fetchChannels() {
+	const { data, error } = await sb.from('channels').select('*').eq('disable', 0);
+	if (error) { console.error('fetchChannels:', error); return []; }
+	const chans = data || [];
+	// Popola le mappe globali usate da fetchEpisodes
+	channelMap = Object.fromEntries(chans.map(c => [c.id, c]));
+	activeChannelIds = chans.map(c => c.id);
+	return chans;
+}
+
+async function fetchSettings() {
+	const { data, error } = await sb.from('settings').select('*');
+	if (error) { console.error('fetchSettings:', error); return {}; }
+	const s = {};
+	(data || []).forEach(r => s[r.setting] = r.value);
+	return s;
+}
+
+async function saveSetting(k, v) {
+	await sb.from('settings').update({ value: String(v) }).eq('setting', k);
+}
+
+async function updateEpisode(id, k, v) {
+	const upd = { [k]: v };
+	if (k === 'complete' && v == 1) upd.complete_at = new Date().toISOString();
+	await sb.from('episodes').update(upd).eq('id', id);
+}
+
+// ══════════════════════════════════════════════════════════
+// INIT (async)
+// ══════════════════════════════════════════════════════════
+(async function init() {
+	// Canali prima: fetchEpisodes ne ha bisogno (activeChannelIds)
+	channels = await fetchChannels();
+	[items, categories, settings] = await Promise.all([
+		fetchEpisodes(current_category),
+		fetchCategories(),
+		fetchSettings()
+	]);
+
+	player.speed = parseFloat(settings['speed'] || 1.0);
+	$("#currentSpeedDisplay").html(player.speed + "x");
+
+	add_menu_items();
+	update_items();
+
+	setTimeout(function() {
+		if (settings['last_episode']) popupPLayer(parseInt(settings['last_episode']));
+	}, 1000);
+})();
+
+// ══════════════════════════════════════════════════════════
+// UI — MENU
+// ══════════════════════════════════════════════════════════
+function add_menu_items() {
+	var input1 = categories.filter(c => c.input == 1).sort((a,b) => a.title.localeCompare(b.title));
+	var input0 = categories.filter(c => c.input == 0).sort((a,b) => a.title.localeCompare(b.title));
+	var input1Ids = input1.map(c => c.id);
+	var unassigned = channels.filter(c => !input1Ids.includes(c.category));
+
+	var $menu = $('.sidebar .menu');
+	var $catSel = $("#popupOverlayAddPodcast select#add_pdc_cat");
+
+	function addGroup(cat) {
+		var matching = channels.filter(c => c.category === cat.id).sort((a,b) => a.title.localeCompare(b.title));
+		var $ul = $('<ul>');
+		matching.forEach(ch => $ul.append($('<li>').attr({'data-content':'page_cat_'+ch.id,'data-input':cat.input}).text(ch.title)));
+		var $li = cat.input == 1
+			? $('<li>').attr('data-content','page_group_'+cat.id).text(cat.title + ' ('+cat.unread+')')
+			: $('<li>').attr({'data-content':'page_cat_'+cat.id,'data-input':cat.input}).text(cat.title);
+		$li.append($ul);
+		$menu.append($li);
+		$catSel.append($('<option>').val(cat.id).text(cat.title));
+	}
+
+	$menu.append(`<li data-content="page_cat_0">Home</li><li data-content="page_cat_storico" data-order="complete_at DESC">Storico</li><li><hr style="border-color:#fff;"></li>`);
+	$menu.append('<li data-noclick="1"><strong>Liste</strong></li>');
+	input0.forEach(addGroup);
+	$menu.append('<li><hr style="border-color:#fff;"></li><li data-noclick="1"><strong>Channels</strong></li>');
+	input1.forEach(addGroup);
+	unassigned.forEach(ch => $menu.append($('<li>').attr({'data-content':'page_cat_'+ch.id,'data-input':'1'}).text(ch.title)));
+	$menu.append(`<li><hr style="border-color:#fff;"></li><li id="popupButton">Gestione Categorie</li><li id="add-podcast-btn">Aggiungi</li><li id="view_online_channels">Offline channels</li><li id="view_bookmark">Bookmark</li><li id="view_tts">TTS</li>`);
+}
+
+// ══════════════════════════════════════════════════════════
+// UI — EPISODE LIST
+// ══════════════════════════════════════════════════════════
+function update_items() {
+	$("#episode-list").html("");
+	for (var i = 0; i < items.length; i++) {
+		var it = items[i];
+		if ($("#episode_" + it.id).length) continue;
+		if (current_category.category != 0 && current_category.category != it.category && current_category.input == 0) continue;
+		if (current_category.category != 0 && current_category.category != it.id_channel && current_category.input == 1) continue;
+
+		var comp = it.complete == "1" ? complete_template : '';
+		var dur  = formatTime(it.duration);
+		if (it.audio_time != 0) dur = "Rimanente: " + formatTime(it.duration - it.audio_time);
+
+		$("#episode-list").append(`
+		<li class="episode-item" id="episode_${it.id}">
+			<div class="episode-thumbnail view-btn" attr-idx="${it.id}">
+				<img src="${it.image}" alt="${it.title}">
+			</div>
+			<div class="episode-info col-sm-8">
+				<h4 class="channel-title">${it.channel_title}</h4>
+				<h3 class="episode-title view-btn" attr-idx="${it.id}">${comp} ${it.title} (${it.ia_cat})</h3>
+				<p class="episode-duration">${dur}</p>
+			</div>
+		</li>`);
+	}
+}
+
+function formatTime(time) {
+	const h = Math.floor(time / 3600), m = Math.floor((time % 3600) / 60), s = Math.floor(time % 60);
+	return [h,m,s].map(n => String(n).padStart(2,'0')).join(':');
+}
+
+// ══════════════════════════════════════════════════════════
+// PLAYER
+// ══════════════════════════════════════════════════════════
+function popupPLayer(id, params) {
+	for (var i in items) {
+		if (items[i].id == id) { index_array_episode = parseInt(i); item = items[i]; break; }
+	}
+	if (typeof item === "undefined") return false;
+
+	// Mark viewed
+	if (item.view != 1) {
+		item.view = 1;
+		items[index_array_episode].view = 1;
+		updateEpisode(id, 'view', 1);
+		if (current_category.view == 0) $("#episode_" + id).css('opacity', '0.4');
+	}
+
+	var cats = "";
+	for (var j in categories) {
+		if (categories[j].input == 1) continue;
+		var cls = categories[j].id == item.category ? 'btn-primary' : '';
+		cats += `<button title="${categories[j].title}" class="btn ${cls}" data-id-episode="${item.id}" data-cat="${categories[j].id}">`;
+		cats += categories[j].icon ? `<i class="fa-solid fa-${categories[j].icon}"></i>` : categories[j].title.substr(0,1).toUpperCase();
+		cats += '</button>';
+	}
+	$(".container-cats").html('<div class="row">' + cats + '</div>');
+	$("#popup-player .playPauseBtn").data("id", id);
+	$(".audioTitle").html(`<a href="${item.url}" target="_blank">${item.title} (${item.ia_cat})</a>`);
+	$(".audioChannelTitle").html(item.channel_title);
+	$(".audioImage").attr("src", (item.image || '').replaceAll('&amp;','&'));
+
+	if (item.url.indexOf("http") == -1 && item.url.indexOf("static/") == -1)
+		item.description += `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${item.url}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
+
+	$("#audioDescription").html('Pubblicazione: ' + item.pubdate + '<br />' + item.description);
+	if (params && params.open == 1) $("#popup-player").modal("show");
+}
+
+function togglePlay(id, bookmark) {
+	if (player.id != id || typeof bookmark !== "undefined") {
+		player.id = id;
+		$("#playerBar .playPauseBtn").data("id", id);
+		$(".audioTitlePlayer").text(item.title).css('display','block');
+		if (item.image) $(".audioImagePlayer").attr("src", item.image);
+		$("#player_container").html('<div id="player_yt"></div>');
+		$("#pdf_container").css('display','none');
+		$("#pdf-prev, #pdf-next").css('display','none');
+
+		if (item.url.indexOf("http") == -1 && item.url.indexOf("static/") == -1) {
+			player.type = "youtube";
+			player.obj = new YT.Player('player_yt', {
+				width: '100%', videoId: item.url,
+				playerVars: { controls: 0, showinfo: 0, rel: 0, modestbranding: 0 },
+				events: {
+					'onReady': function(e) {
+						e.target.setPlaybackRate(parseFloat(player.speed));
+						e.target.seekTo(typeof bookmark !== "undefined" ? parseInt(bookmark) : item.audio_time);
+					},
+					'onStateChange': function(e) {
+						player.status = e.data;
+						$("#currentStatus").html(yotubeStatus(player.status));
+						updateProgressBar();
+						if (e.data == YT.PlayerState.ENDED) episode_end();
+					}
+				}
+			});
+			player.status = 2;
+		} else {
+			player.type = "audio";
+			if (item.url.indexOf(".mp4") != -1) {
+				player.obj = document.createElement("video");
+				player.obj.style.width = "100%"; player.obj.style.maxHeight = "70vh";
+			} else {
+				player.obj = document.createElement("audio");
+			}
+
+			if (item.id_channel == -1) {
+				$("#pdf_container").css('display','block');
+				$(".audioImagePlayer, .audioTitlePlayer").css('display','none');
+				$("#pdf-prev, #pdf-next").css('display','inline');
+				var pdfViewer = new showPdf(item.url, function() {
+					if (item.audio_time == "0") item.audio_time = "1";
+					pdfViewer.currentPage = parseInt(item.audio_time);
+					pdfViewer.getTextPage(parseInt(item.audio_time), function() {
+						player.obj.pdfViewer = pdfViewer;
+						if (typeof bookmark !== "undefined") pdfViewer.showPage(parseInt(bookmark.split("-")[0]));
+						else pdfViewer.showPage(pdfViewer.currentPage);
+					});
+				});
+				player.obj.src = "static/tts/" + item.title + "/" + (item.audio_time - 1) + ".mp3";
+			} else if (item.url2 != null) {
+				player.obj.src = item.url2;
+			} else {
+				player.obj.src = item.url;
+			}
+
+			player.obj.playbackRate = parseFloat(player.speed);
+			if (item.id_channel == -1) {
+				player.obj.currentTime = typeof bookmark !== "undefined" ? parseInt(bookmark.split("-")[1]) : 0;
+			} else {
+				player.obj.currentTime = typeof bookmark !== "undefined" ? parseInt(bookmark) : parseInt(item.audio_time);
+			}
+			$("#player_container").html(player.obj);
+			player.obj.addEventListener('ended', function() {
+				if (player.obj.pdfViewer) $("#pdf-next").click();
+				else episode_end();
+			});
+		}
+
+		saveSetting('last_episode', player.id);
+	}
+
+	const icon = $(".playPauseIcon");
+	try {
+		if (icon.hasClass("fa-play")) {
+			icon.removeClass("fa-play").addClass("fa-pause");
+			player.type === "youtube" ? player.obj.playVideo() : player.obj.play();
+		} else {
+			icon.removeClass("fa-pause").addClass("fa-play");
+			player.type === "youtube" ? player.obj.pauseVideo() : player.obj.pause();
+		}
+	} catch(e) { console.log("Play/Pause error:", e); }
+
+	if ($("#popup-player").hasClass("show")) {
+		$("#popup-player").modal("hide");
+		isCollapsed = true;
+		collapseBtn.click();
+	}
+}
+
+function episode_end() {
+	items[index_array_episode].audio_time = 0;
+	items[index_array_episode].complete = 1;
+
+	updateEpisode(player.id, 'complete', 1).then(async function() {
+		if ($("#episode_" + player.id + " .episode-title .episode-complete").length == 0)
+			$("#episode_" + player.id + " .episode-title").prepend(complete_template);
+
+		// Suono casuale da Flashcards/Reminder
+		const { data } = await sb.from('settings').select('value').eq('setting', 'flashcard_urls').single();
+		if (data && data.value) {
+			try {
+				const urls = JSON.parse(data.value);
+				if (urls.length) {
+					const rand = new Audio(urls[Math.floor(Math.random() * urls.length)]);
+					rand.playbackRate = 1.75;
+					rand.play();
+				}
+			} catch(e) {}
+		}
+	});
+
+	updateEpisode(player.id, 'audio_time', 0);
+}
+
+// ══════════════════════════════════════════════════════════
+// PROGRESS BAR + AUTO-SAVE
+// ══════════════════════════════════════════════════════════
+function updateProgressBar() {
+	try {
+		var cur, dur;
+		if (player.type === "youtube") { cur = player.obj.getCurrentTime(); dur = player.obj.getDuration(); }
+		if (player.type === "audio") {
+			if (player.obj.pdfViewer) { cur = player.obj.pdfViewer.currentPage; dur = player.obj.pdfViewer.numPages; }
+			else { cur = player.obj.currentTime; dur = player.obj.duration; }
+		}
+		const pct = (cur / dur) * 100;
+		if (pct > 0) {
+			$(".progress-bar").css("width", pct + "%");
+			if (player.obj && player.obj.pdfViewer)
+				cur = cur + "/" + dur + " (" + formatTime(cur*110) + "/" + formatTime(dur*110) + ")";
+			else cur = formatTime(cur);
+			$("#currentTime").text(cur);
+		}
+	} catch(e) {}
+}
+setInterval(updateProgressBar, 100);
+
+var last_currentTime = 0;
+setInterval(function() {
+	var ct;
+	try {
+		if (player.type === "youtube") ct = player.obj.getCurrentTime();
+		if (player.type === "audio") {
+			if (player.obj && player.obj.pdfViewer) ct = player.obj.pdfViewer.currentPage;
+			else ct = player.obj.currentTime;
+		}
+	} catch(e) { return; }
+	if (ct == last_currentTime) return;
+	last_currentTime = ct;
+	if (player.id) updateEpisode(player.id, 'audio_time', Math.floor(ct));
+	analizzaFrequenzaParole(ct);
+}, 5000);
+
+// ══════════════════════════════════════════════════════════
+// TTS — Web Speech API
+// ══════════════════════════════════════════════════════════
+var ttsUtterance = null;
+var ttsSpeed = 1.5;
+
+function tts() {
+	const text = document.getElementById('text-input-tts').value.trim();
+	if (!text) { alert("Inserisci un testo!"); return; }
+	stopTts();
+	ttsUtterance = new SpeechSynthesisUtterance(text);
+	ttsUtterance.lang = 'it-IT';
+	ttsUtterance.rate = ttsSpeed;
+	ttsUtterance.onend = function() { document.getElementById('tts-status').textContent = ''; };
+	ttsUtterance.onerror = function(e) { document.getElementById('tts-status').textContent = 'Errore: ' + e.error; };
+	document.getElementById('tts-status').textContent = 'In riproduzione...';
+	speechSynthesis.speak(ttsUtterance);
+}
+function stopTts() {
+	speechSynthesis.cancel();
+	document.getElementById('tts-status').textContent = '';
+}
+function changeTtsSpeed(s) {
+	ttsSpeed = s;
+	if (ttsUtterance) {
+		const text = ttsUtterance.text;
+		stopTts();
+		ttsUtterance = new SpeechSynthesisUtterance(text);
+		ttsUtterance.lang = 'it-IT';
+		ttsUtterance.rate = s;
+		speechSynthesis.speak(ttsUtterance);
+	}
+}
+
+// ══════════════════════════════════════════════════════════
+// ANALISI PAROLE (invariata)
+// ══════════════════════════════════════════════════════════
+function timeToSeconds(timeStr) {
+	const [h, m, s] = timeStr.split(':');
+	return parseInt(h)*3600 + parseInt(m)*60 + parseFloat(s.replace(',','.'));
+}
+
+function analizzaFrequenzaParole() {
+	if (!item || !item.description) return;
+	var testo = item.description;
+	var inizioSecondi;
+	try {
+		if (player.type === "youtube") inizioSecondi = player.obj.getCurrentTime();
+		else inizioSecondi = player.obj.currentTime;
+	} catch(e) { return; }
+	const fineSecondi = inizioSecondi + 300;
+	const stopWords = new Set(['il','lo','la','i','gli','le','un','uno','una','di','a','da','in','con','su','per','tra','fra','e','ed','o','ma','se','che','chi','cui','non','del','al','dal','nel','col','sul','dei','ai','dai','nei','tutti','anche','io','sono','adesso','però','questo','sia','quindi','bisogna','prima','più','iniziamo','questa','so','come','fare','puoi','ce','perché','capito','così','qui','tutto','guarda','buonasera','solo','vai','hanno','chiamata','loro','stata','insomma','sempre','alla','prossima','essere','della','secondo','facciamo','poi','no','eccoci','intro','tu','sai','vedo','c','è','ho','visto','puntata','si','notizie','live','abbiamo','tante','me','mentre','ti','sanno','sapete','parte','momento','questo','fate','sapere','sapete','ci','porta','può','cioè','cosa','ha','nulla','fatto','davvero','punto','vista','credo','nessuno','sta','probabilmente','discorso','viene','tanti','hai','buono','fatta','fosse','mio','caso','trovo','molto','recente','assolutamente','proprio','ora','muove','interessa','facendo','amor','grande','dopo','all','ovviamente','quello','dell','stessa','noi','ad','sappiamo','forte','quando','dovrebbe','quale','siamo','sarà','degli','delle','siamo','avrà','esatto','nemmeno','stanno','volta','possono','principali','dice','vuole','quanto','fanno','lì','penso','cose','bene','dire','frega','magari','prendere','sua','sa','sì','vi','comunque','situazione','saranno','sceglie','niente','we','idea','cambio','due','altro','conseguenze','fa','roba','ragionevole','mi','estremamente','auspichiamo','dicendo','automaticamente','meno','passaggio','qua','avere','nella','ogni','eh','ehm','vedere','mesi','diceva','pochi','venduti','totale','senso','inizia','diventare','stiamo','veramente','po','persona','tematica','eccetera','tema','nostre','troppo','queste','parlando','già','andare','ne','mia','arrivano','poche','ok','grazie','pochino','succederà','lui','lei','detto','uomo','tanto','quelli','settimane','benissimo','significa','devono','vanno','sei','nostro','negli','faccio','pensare','ricordo','detta','ragazzi','molte','quelle','chiaro','era','importante','possibile','tantissimi','media','ancora','azione','primo','importante','fenomeno','sicuro','questi','va','voglio','qualcuno','quella','spero','alle','dico','ve','questione','dimmi','siano','qualche']);
+	const blocchi = testo.trim().split(/\n\s*\n/);
+	const diz = {}, frasiViste = new Set();
+	blocchi.forEach(blocco => {
+		const righe = blocco.split('\n');
+		const idx = righe.findIndex(r => r.includes('-->'));
+		if (idx === -1) return;
+		const m = righe[idx].match(/(\d{2}:\d{2}:\d{2}[.,]\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2}[.,]\d{3})/);
+		if (!m) return;
+		const t = timeToSeconds(m[1].replace('.',','));
+		if (t < inizioSecondi || t >= fineSecondi) return;
+		let txt = righe.slice(idx+1).join(' ').toLowerCase()
+			.replace(/<[^>]+>/g,' ').replace(/'/g,' ').replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g,'')
+			.replace(/\s{2,}/g,' ').trim();
+		if (!txt || frasiViste.has(txt)) return;
+		frasiViste.add(txt);
+		txt.split(/\s+/).forEach(p => { if (p.length > 1 && !stopWords.has(p)) diz[p] = (diz[p]||0)+1; });
+	});
+	let top = Object.entries(diz).sort((a,b)=>b[1]-a[1]).slice(0,10);
+	$(".wordsused").html(top.map(([p])=>p).join(', '));
+}
+
+// ══════════════════════════════════════════════════════════
+// EVENT HANDLERS
+// ══════════════════════════════════════════════════════════
+
+// Menu click
+$(document).delegate('.menu li', 'click', async function(event) {
+	event.stopPropagation();
+	if ($(this).data('noclick') == "1") return false;
+	var contentId = $(this).data('content');
+	if (!$(this).attr('data-noclick')) {
+		$('.menu > li').not(this).children('ul').slideUp();
+		$(this).children('ul').slideToggle();
+	}
+	if (contentId !== undefined && (contentId.includes("page_cat_") || contentId.includes("page_group_"))) {
+		current_category.start = 0;
+		if (contentId.includes("page_cat_")) {
+			current_category.category = contentId.replace("page_cat_","");
+		} else {
+			var gp = contentId.replace("page_group_","");
+			current_category.category = channels.filter(c => c.category == gp).map(c => c.id).join(",");
+		}
+		current_category.input = $(this).data('input') || 0;
+		if ($(this).data('order')) current_category.order = $(this).data('order');
+		contentId = "home";
+		items = await fetchEpisodes(current_category);
+		update_items();
+	}
+	$('.content').hide(); $('#' + contentId).show(); $('.hamburger').click();
+});
+
+// Refresh
+$("#refresh").click(async function() {
+	items = await fetchEpisodes(current_category);
+	update_items();
+});
+
+// Viewed checkbox
+$("#viewed").change(async function() {
+	current_category.view = $(this).prop("checked") ? 1 : 0;
+	items = await fetchEpisodes(current_category);
+	update_items();
+});
+
+// Order
+$("#order").change(async function() {
+	current_category.start = 0;
+	current_category.order = $(this).val();
+	items = await fetchEpisodes(current_category);
+	update_items();
+});
+
+// Episode click
+$(document).delegate(".view-btn", "click", function() {
+	popupPLayer(parseInt($(this).attr("attr-idx")), { open: 1 });
+});
+
+// Play/Pause buttons
+$(".playPauseBtn").click(function() { togglePlay($(this).data("id")); });
+
+// Prev/Next episode
+$(".change-episode").click(function() {
+	if ($(this).attr("id") === "next-episode") index_array_episode++;
+	else index_array_episode--;
+	popupPLayer(items[index_array_episode].id);
+});
+
+$(document).keydown(function(e) {
+	if (e.which === 37) { index_array_episode--; e.preventDefault(); popupPLayer(items[index_array_episode].id); }
+	if (e.which === 39) { index_array_episode++; e.preventDefault(); popupPLayer(items[index_array_episode].id); }
+});
+
+// Speed
+$(".speed-btn").click(function() {
+	var s = $(this).data("speed");
+	if (s === "+") player.speed = Math.round((parseFloat(player.speed)+0.1)*10)/10;
+	else if (s === "-") player.speed = Math.round((parseFloat(player.speed)-0.1)*10)/10;
+	else player.speed = parseFloat(s);
+	if (player.type === "youtube") player.obj.setPlaybackRate(player.speed);
+	else if (player.obj) player.obj.playbackRate = player.speed;
+	$("#currentSpeedDisplay").text(player.speed.toFixed(1) + "x");
+	saveSetting('speed', player.speed.toFixed(1));
+});
+
+// Seek
+$(".progress").click(function(e) {
+	const pct = (e.offsetX / $(this).width()) * 100;
+	if (player.type === "youtube") player.obj.seekTo((pct/100)*player.obj.getDuration());
+	else if (player.obj) player.obj.currentTime = (pct/100)*player.obj.duration;
+	updateProgressBar();
+});
+
+// Change time buttons
+$(".changeTime").click(function() {
+	var step = { forwardsBtn:10, backwardsBtn:-10, forwardsFastBtn:60, backwardsFastBtn:-60 }[$(this).attr("id")] || 0;
+	if (player.type === "youtube") player.obj.seekTo(player.obj.getCurrentTime() + step);
+	else if (player.obj) {
+		if (player.obj.pdfViewer) { step > 0 ? $("#pdf-next").click() : $("#pdf-prev").click(); }
+		else player.obj.currentTime += step;
+	}
+	updateProgressBar();
+});
+
+// Collapse player
+var playerBar = $("#playerBar"), collapseBtn = $("#collapseBtn"), isCollapsed = false;
+collapseBtn.on("click", function() {
+	if (isCollapsed) { playerBar.css("height","auto"); collapseBtn.html('<i class="fas fa-arrow-down"></i>'); }
+	else { playerBar.css("height","60px"); collapseBtn.html('<i class="fas fa-arrow-up"></i>'); }
+	isCollapsed = !isCollapsed;
+});
+$(document).ready(function() { collapseBtn.click(); });
+
+// Hamburger
+$('.hamburger').click(function() { $('.sidebar').toggle(); $(this).toggleClass('is-active'); });
+
+// Infinite scroll
+$(window).scroll(async function() {
+	if ($(window).scrollTop() + $(window).height() >= $(document).height() - 500) {
+		current_category.start = items.length;
+		var more = await fetchEpisodes(current_category);
+		items = items.concat(more);
+		update_items();
+	}
+});
+
+// ── Category management ───────────────────────────────────
+$('#popupButton').click(function() {
+	var html = categories.map(c =>
+		`<div class="category-item"><span class="category-name">${c.title}</span><span class="edit-icon" data-category-id="${c.id}" data-category-icon="${c.icon}" data-category-input="${c.input}"><i class="fas fa-edit"></i></span><span class="delete-icon" data-category-id="${c.id}"><i class="fas fa-trash-alt"></i></span></div>`
+	).join('');
+	$('#categoryPopup .modal-body').html(html);
+	$('#categoryPopup').modal('show');
+});
+
+function editTemplateForm(id, txt, icon, input) {
+	var checked = input == "1" ? 'checked' : '';
+	return `<input id="ct_${id}" type="text" value="${txt}" placeholder="Nome categoria"><br/><input id="ci_${id}" type="text" value="${icon}" placeholder="classe icona, es: book"><br/>Canale input <input id="ci2_${id}" type="checkbox" ${checked}/><br/><button data-category-id="${id}" class="edit-btn"><i class="fa-solid fa-check"></i></button>`;
+}
+$(document).on('click', '.edit-icon', function() {
+	var item = $(this).closest('.category-item');
+	item.find('.category-name').html(editTemplateForm($(this).data('category-id'), item.find('.category-name').text().trim(), $(this).data('category-icon'), $(this).data('category-input')));
+});
+$(document).delegate('.edit-btn', 'click', async function() {
+	var id = $(this).data('category-id');
+	var title = $("#ct_"+id).val(), icon = $("#ci_"+id).val(), input = $("#ci2_"+id).is(':checked') ? 1 : 0;
+	await sb.from('categories').upsert({ id: parseInt(id) || undefined, title, icon, input });
+	location.reload();
+});
+$(document).on('click', '.delete-icon', async function() {
+	await sb.from('categories').delete().eq('id', $(this).data('category-id'));
+	location.reload();
+});
+$('#addIcon').click(function() {
+	$('#categoryPopup .modal-body').append(`<div class="category-item"><span class="category-name">${editTemplateForm(-1,'','',0)}</span></div>`);
+});
+
+// ── Add podcast ───────────────────────────────────────────
+$("#add-podcast-btn").click(function() { $("#popupOverlayAddPodcast").css("display","block"); });
+$("#closePopupBtn").click(function() { $("#popupOverlayAddPodcast").css("display","none"); });
+$("#addPodcastBtn").click(async function() {
+	await sb.from('channels').insert({
+		title: $("#podcastNameInput").val(),
+		url:   $("#podcastUrlInput").val(),
+		category: parseInt($("#add_pdc_cat").val()) || 0,
+		disable: 0, sleep: 0, auto_save: 0
+	});
+	$("#popupOverlayAddPodcast").hide();
+});
+
+// ── Add category to episode ───────────────────────────────
+$(document).delegate(".container-cats button", "click", async function() {
+	var idEp = $(this).data('id-episode');
+	var idCat = $(this).hasClass("btn-primary") ? 0 : $(this).data('cat');
+	await sb.from('episodes').update({ category: idCat }).eq('id', idEp);
+	$("#episode_"+idEp+" .container-cats button").removeClass("btn-primary");
+	if (idCat != 0) $(this).addClass("btn-primary");
+});
+
+// ── Filter ────────────────────────────────────────────────
+$("#filter_button").click(function() { $("#filter_modal").modal("show"); });
+async function applyFilter() {
+	var word = $("#filter-word-input").val().trim();
+	if (!word) { alert("Inserisci una parola"); return; }
+	if (!item) { alert("Nessun episodio selezionato"); return; }
+	var ch = channels.find(c => c.id == item.id_channel);
+	var idCat = ch ? ch.category : 0;
+	var { error: e1 } = await sb.from('filters').insert({ id_cat: idCat, word });
+	if (e1) { alert("Errore inserimento filtro: " + e1.message); return; }
+	var { error: e2 } = await sb.from('episodes').delete().ilike('title', '%' + word + '%').eq('id_channel', item.id_channel);
+	if (e2) { alert("Errore eliminazione episodi: " + e2.message); return; }
+	$("#filter_modal").modal('hide');
+	location.reload();
+}
+
+// ── Offline channels ──────────────────────────────────────
+$("#view_online_channels").click(async function() {
+	$("#online_channels_modal").modal('show');
+	const sevenDaysAgo = new Date(Date.now() - 7*24*60*60*1000).toISOString();
+	const { data } = await sb.from('channels').select('title, url, episodes!inner(pubdate)').eq('disable',0).eq('sleep',0).not('url','ilike','%youtube%');
+	// Semplificato: mostra canali
+	$("#online_channels_modal_content").html(data ? data.map(c=>`<tr><td><a href="${c.url}" target="_blank">${c.title}</a></td></tr>`).join('') : 'Nessun dato');
+});
+
+// ── Bookmark ──────────────────────────────────────────────
+$("#view_bookmark").click(async function() {
+	$("#bookmark_modal").modal('show');
+	const { data } = await sb.from('bookmark').select('*, episodes(title)');
+	$("#bookmark_modal_content").html('');
+	(data||[]).forEach(b => {
+		var tt = b.time.includes('-') ? 'Pagina: '+b.time.split('-')[0]+' '+parseInt(b.time.split('-')[1]) : parseInt(b.time)+'s';
+		$("#bookmark_modal_content").append(`<span class="open_bookmark" data-id-episode="${b.id_episode}" data-id-time="${b.time}">${b.episodes?.title} - ${tt}</span><br/>`);
+	});
+});
+$(document).delegate(".open_bookmark","click",function() {
+	togglePlay($(this).data("id-episode"), $(this).data("id-time"));
+});
+$("#add_bookmark").click(async function() {
+	var bm;
+	try {
+		if (player.type === "youtube") bm = player.obj.getCurrentTime();
+		else if (player.obj.pdfViewer) bm = player.obj.pdfViewer.currentPage + "-" + player.obj.currentTime;
+		else bm = player.obj.currentTime;
+	} catch(e) { return; }
+	await sb.from('bookmark').insert({ id_episode: player.id, time: String(bm) });
+});
+
+// ── TTS modal ─────────────────────────────────────────────
+$("#view_tts").click(function() { $("#tts_modal").modal('show'); });
+
+// ── Flashcards (porta 9509, invariata) ────────────────────
+$("#flashcards").click(function() { window.open(window.location.href.replace(":9123",":9509"), '_blank'); });
+
+// ══════════════════════════════════════════════════════════
+// YOUTUBE HELPER
+// ══════════════════════════════════════════════════════════
+function yotubeStatus(code) {
+	if (code==3) return "Buffering...";
+	if (code==5) return "Coda...";
+	return "";
+}
+
+// ══════════════════════════════════════════════════════════
+// PDF VIEWER (invariato)
+// ══════════════════════════════════════════════════════════
+function showPdf(url, callback) {
+	var pdfjsLib = window['pdfjs-dist/build/pdf'];
+	pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+	var pdf, self = this;
+	self.currentPage = 1; self.numPages = 1;
+
+	self.showPage = function(pageNumber) {
+		pdf.getPage(pageNumber).then(function(page) {
+			var canvas = document.getElementById('pdf-canvas'), ctx = canvas.getContext('2d');
+			canvas.height = window.innerHeight - 150;
+			var sr = canvas.height / page.getViewport(1).viewBox[3];
+			var vp = page.getViewport({scale: sr});
+			canvas.width = vp.width;
+			page.render({canvasContext: ctx, viewport: vp}).promise.then(function() {
+				page.getTextContent().then(function(tc) {
+					var cl = $("#pdf-canvas"), tl = document.querySelector('#pdf-text-layer');
+					if (!tl) return;
+					$("#pdf-text-layer").html('');
+					tl.style.left = cl.offsetLeft+'px'; tl.style.top = cl.offsetTop+'px';
+					tl.style.height = cl.offsetHeight+'px'; tl.style.width = cl.offsetWidth+'px';
+					tl.style.setProperty('--scale-factor', sr);
+					tl.style.setProperty('visibility','unset');
+					pdfjsLib.renderTextLayer({ textContentSource: tc, container: tl, viewport: vp, textDivs: [] });
+				});
+			});
+		});
+	};
+
+	self.getTextPage = function(pageNumber, cb) {
+		pdf.getPage(pageNumber).then(function(page) {
+			page.getTextContent().then(function(tc) {
+				cb(tc.items.map(i=>i.str).join(' '));
+			});
+		});
+	};
+
+	pdfjsLib.getDocument(url).promise.then(function(pdfObj) {
+		pdf = pdfObj; self.numPages = pdf.numPages;
+		self.showPage(self.currentPage); callback();
+	}, function(e) { console.error(e); });
+
+	$("#pdf-prev").on('click', function() {
+		if (self.currentPage != 1) self.showPage(--self.currentPage);
+		player.obj.pause();
+		item.audio_time = self.currentPage;
+		player.obj.src = "static/tts/" + item.title + "/" + (item.audio_time-1) + ".mp3";
+		player.obj.playbackRate = parseFloat(player.speed);
+		player.obj.play();
+	});
+	$("#pdf-next").on('click', function() {
+		if (self.currentPage != self.numPages) self.showPage(++self.currentPage);
+		player.obj.pause();
+		item.audio_time = self.currentPage;
+		player.obj.src = "static/tts/" + item.title + "/" + (item.audio_time-1) + ".mp3";
+		player.obj.playbackRate = parseFloat(player.speed);
+		player.obj.play();
+	});
+}
+</script>

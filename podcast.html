@@ -489,9 +489,15 @@ function popupPLayer(id, params) {
 	$("#popup-player .playPauseBtn").data("id", id);
 	$(".audioTitle").html(`<a href="${item.url}" target="_blank">${item.title} (${item.ia_cat})</a>`);
 	$(".audioChannelTitle").html(item.channel_title);
-	$(".audioImage").attr("src", (item.image || '').replaceAll('&amp;','&'));
+	const imgSrc = (item.image || '').replaceAll('&amp;', '&');
+	$(".audioImage").attr("src", imgSrc);
 
-	if (item.url.indexOf("http") == -1 && item.url.indexOf("static/") == -1)
+	const isYoutube = item.url.indexOf("http") == -1 && item.url.indexOf("static/") == -1;
+	const imgBase   = imgSrc.split('?')[0];
+	const imgInDesc = imgBase && item.description && item.description.includes(imgBase);
+	$(".audioImage").toggle(!isYoutube && !imgInDesc);
+
+	if (isYoutube)
 		item.description += `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${item.url}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
 
 	$("#audioDescription").html('Pubblicazione: ' + item.pubdate + '<br />' + item.description);

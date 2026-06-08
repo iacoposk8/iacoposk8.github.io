@@ -599,7 +599,7 @@ function episode_end() {
 			$("#episode_" + player.id + " .episode-title").prepend(complete_template);
 
 		// Suono casuale da Flashcards/Reminder
-		const { data } = await sb.from('settings').select('value').eq('setting', 'flashcard_urls').single();
+		const { data } = await sb.from('settings').select('value').eq('setting', 'flashcard_urls').maybeSingle();
 		if (data && data.value) {
 			try {
 				const urls = JSON.parse(data.value);

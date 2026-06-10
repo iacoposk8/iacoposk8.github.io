@@ -308,11 +308,12 @@ async function fetchEpisodes(params) {
 
 	// Quote ogni valore per PostgREST (gestisce spazi e trattini)
 	const badTuple = '(' + BAD_IA_CATS.map(c => `"${c}"`).join(',') + ')';
+	const focusExceptions = '("Musica","Trasporti")'; // visibili solo per ch113 Rivista Focus
 
 	let q = sb.from('episodes')
 		.select('*')
 		.in('id_channel', activeChannelIds)          // sostituisce channels!inner(disable=0)
-		.or(`ia_cat.is.null,ia_cat.not.in.${badTuple}`)
+		.or(`ia_cat.is.null,ia_cat.not.in.${badTuple},and(id_channel.eq.113,ia_cat.in.${focusExceptions})`)
 		.order(orderCol, { ascending: orderAsc })
 		.range(Number(params.start), Number(params.start) + 19);
 

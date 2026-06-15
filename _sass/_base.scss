@@ -61,16 +61,15 @@ p {
     font-style: normal;
     font-display: swap;
 }
-#claim {
+
+#svg_text_claim {
     font-family: 'FyneFish', Georgia, serif;
     font-size: clamp(30px, 2vw + 37px, 45px);
-    color:#fff;
-
-    text-shadow: 
-        -5px -5px 0 #142b58,  
-         5px -5px 0 #142b58,
-        -5px  5px 0 #142b58,
-         5px  5px 0 #142b58;
+    fill: white;
+    stroke: #142b58ff;
+    stroke-width: 8px;
+    paint-order: stroke fill; 
+    stroke-linejoin: round;
 }
 /*******************CLAIM*******************/
 

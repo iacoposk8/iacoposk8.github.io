@@ -63,6 +63,8 @@ p {
 }
 #claim {
     font-family: 'FyneFish', Georgia, serif;
+    font-size: clamp(14px, 2vw + 10px, 24px);
+    color:#fff;
 }
 /*******************CLAIM*******************/
 

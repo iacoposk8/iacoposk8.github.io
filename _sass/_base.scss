@@ -65,6 +65,12 @@ p {
     font-family: 'FyneFish', Georgia, serif;
     font-size: clamp(14px, 2vw + 10px, 24px);
     color:#fff;
+
+    text-shadow: 
+        -1px -1px 0 #142b58,  
+         1px -1px 0 #142b58,
+        -1px  1px 0 #142b58,
+         1px  1px 0 #142b58;
 }
 /*******************CLAIM*******************/
 

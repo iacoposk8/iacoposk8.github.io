@@ -61,10 +61,12 @@ p {
     font-style: normal;
     font-display: swap;
 }
-
+#claim{
+    text-align:center;
+}
 #svg_text_claim {
     font-family: 'FyneFish', Georgia, serif;
-    font-size: unquote("clamp(30px, 2vw + 37px, 45px)"); /* Oppure usando clamp(30px, #{"2vw + 37px"}, 45px) */
+    font-size: unquote("clamp(10px, 2vw + 15px, 20px)"); /* Oppure usando clamp(30px, #{"2vw + 37px"}, 45px) */
     fill: white;
     stroke: #142b58ff;
     stroke-width: 8px;

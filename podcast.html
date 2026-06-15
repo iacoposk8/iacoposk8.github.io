@@ -66,6 +66,18 @@
 	.audioImage{ max-width:100%; }
 </style>
 
+<div id="login-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#121212;z-index:99999;display:none;align-items:center;justify-content:center;">
+	<div style="text-align:center;padding:30px;background:#1a1a1a;border-radius:10px;">
+		<h3 style="margin-bottom:20px;">Podcast</h3>
+		<input type="email" id="login-email" placeholder="Email" autocomplete="email"
+			style="padding:10px;width:220px;border-radius:5px;border:none;color:#000;display:block;margin:0 auto 10px;" />
+		<input type="password" id="login-pwd" placeholder="Password" autocomplete="current-password"
+			style="padding:10px;width:220px;border-radius:5px;border:none;color:#000;display:block;margin:0 auto 10px;" />
+		<button id="login-btn" style="padding:10px 30px;background:#333;border:none;color:#fff;border-radius:5px;cursor:pointer;">Accedi</button>
+		<div id="login-err" style="color:#e74c3c;margin-top:12px;font-size:14px;"></div>
+	</div>
+</div>
+
 <div class="hamburger"><i class="fa-solid fa-bars"></i></div>
 <div class="sidebar"><ul class="menu"></ul></div>
 
@@ -259,20 +271,33 @@
 // ══════════════════════════════════════════════════════════
 const SUPABASE_URL      = 'https://qfuyvbpvlhnpyzmzsicv.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmdXl2YnB2bGhucHl6bXpzaWN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0NzU1NTcsImV4cCI6MjA5NjA1MTU1N30.Msn522Fb2_n--4qJmrojHCHHUM5JuGcb2odUBeQhJQ8';
-const APP_PASSWORD      = '752832';
-
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ── Auth (solo UI, non sicurezza reale) ──────────────────
-if (!localStorage.getItem('podcast_auth')) {
-	const pwd = prompt('Password:');
-	if (pwd !== APP_PASSWORD) {
-		alert('Password errata.');
-		location.reload();
+// ── Auth via Supabase ──────────────────────────────────────
+(async () => {
+	const { data: { session } } = await sb.auth.getSession();
+	if (session) {
+		init();
 	} else {
-		localStorage.setItem('podcast_auth', '1');
+		document.getElementById('login-overlay').style.display = 'flex';
+		document.getElementById('login-email').focus();
+		document.getElementById('login-btn').addEventListener('click', async () => {
+			const email = document.getElementById('login-email').value;
+			const pwd   = document.getElementById('login-pwd').value;
+			document.getElementById('login-err').textContent = '';
+			const { error } = await sb.auth.signInWithPassword({ email, password: pwd });
+			if (error) {
+				document.getElementById('login-err').textContent = 'Credenziali errate.';
+			} else {
+				document.getElementById('login-overlay').style.display = 'none';
+				init();
+			}
+		});
+		document.getElementById('login-pwd').addEventListener('keydown', e => {
+			if (e.key === 'Enter') document.getElementById('login-btn').click();
+		});
 	}
-}
+})();
 
 // ══════════════════════════════════════════════════════════
 // COSTANTI
@@ -374,7 +399,7 @@ async function updateEpisode(id, k, v) {
 // ══════════════════════════════════════════════════════════
 // INIT (async)
 // ══════════════════════════════════════════════════════════
-(async function init() {
+async function init() {
 	// Canali prima: fetchEpisodes ne ha bisogno (activeChannelIds)
 	channels = await fetchChannels();
 	[items, categories, settings] = await Promise.all([
@@ -392,7 +417,7 @@ async function updateEpisode(id, k, v) {
 	setTimeout(function() {
 		if (settings['last_episode']) popupPLayer(parseInt(settings['last_episode']));
 	}, 1000);
-})();
+}
 
 // ══════════════════════════════════════════════════════════
 // UI — MENU

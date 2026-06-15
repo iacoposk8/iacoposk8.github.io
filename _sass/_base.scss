@@ -53,6 +53,19 @@ p {
     color:#fff !important;
 }
 
+/*******************CLAIM*******************/
+@font-face {
+    font-family: 'FyneFish';
+    src: url('/font/Fyne Fish NF W01 Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+#claim {
+    font-family: 'FyneFish', Georgia, serif;
+}
+/*******************CLAIM*******************/
+
 #logo{
     display:inline !important;
     height:40px;

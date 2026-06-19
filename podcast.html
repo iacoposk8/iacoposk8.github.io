@@ -459,9 +459,6 @@ function update_items() {
 	$("#episode-list").html("");
 	for (var i = 0; i < items.length; i++) {
 		var it = items[i];
-		if ($("#episode_" + it.id).length) continue;
-		if (current_category.category != 0 && current_category.category != it.category && current_category.input == 0) continue;
-		if (current_category.category != 0 && current_category.category != it.id_channel && current_category.input == 1) continue;
 
 		var comp = it.complete == "1" ? complete_template : '';
 		var dur  = formatTime(it.duration);
@@ -819,15 +816,32 @@ $(document).delegate(".view-btn", "click", function() {
 $(".playPauseBtn").click(function() { togglePlay($(this).data("id")); });
 
 // Prev/Next episode
-$(".change-episode").click(function() {
-	if ($(this).attr("id") === "next-episode") index_array_episode++;
-	else index_array_episode--;
+let isLoadingMore = false;
+
+async function navigateEpisode(dir) {
+	const newIndex = index_array_episode + dir;
+	if (newIndex < 0) return;
+	if (newIndex >= items.length) {
+		if (isLoadingMore) return;
+		isLoadingMore = true;
+		current_category.start = items.length;
+		const more = await fetchEpisodes(current_category);
+		isLoadingMore = false;
+		if (!more.length) return;
+		items = items.concat(more);
+		update_items();
+	}
+	index_array_episode = newIndex;
 	popupPLayer(items[index_array_episode].id);
+}
+
+$(".change-episode").click(function() {
+	navigateEpisode($(this).attr("id") === "next-episode" ? 1 : -1);
 });
 
 $(document).keydown(function(e) {
-	if (e.which === 37) { index_array_episode--; e.preventDefault(); popupPLayer(items[index_array_episode].id); }
-	if (e.which === 39) { index_array_episode++; e.preventDefault(); popupPLayer(items[index_array_episode].id); }
+	if (e.which === 37) { e.preventDefault(); navigateEpisode(-1); }
+	if (e.which === 39) { e.preventDefault(); navigateEpisode(1); }
 });
 
 // Speed
@@ -875,9 +889,13 @@ $('.hamburger').click(function() { $('.sidebar').toggle(); $(this).toggleClass('
 
 // Infinite scroll
 $(window).scroll(async function() {
+	if (isLoadingMore) return;
 	if ($(window).scrollTop() + $(window).height() >= $(document).height() - 500) {
+		isLoadingMore = true;
 		current_category.start = items.length;
 		var more = await fetchEpisodes(current_category);
+		isLoadingMore = false;
+		if (!more.length) return;
 		items = items.concat(more);
 		update_items();
 	}

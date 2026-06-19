@@ -66,6 +66,8 @@
 	.audioImage{ max-width:100%; }
 </style>
 
+<div id="screen-dimmer" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#000;opacity:0.95;z-index:99990;cursor:pointer;"></div>
+
 <div id="login-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#121212;z-index:99999;display:none;align-items:center;justify-content:center;">
 	<div style="text-align:center;padding:30px;background:#1a1a1a;border-radius:10px;">
 		<h3 style="margin-bottom:20px;">Podcast</h3>
@@ -449,7 +451,7 @@ function add_menu_items() {
 	$menu.append('<li><hr style="border-color:#fff;"></li><li data-noclick="1"><strong>Channels</strong></li>');
 	input1.forEach(addGroup);
 	unassigned.forEach(ch => $menu.append($('<li>').attr({'data-content':'page_cat_'+ch.id,'data-input':'1'}).text(ch.title)));
-	$menu.append(`<li><hr style="border-color:#fff;"></li><li id="popupButton">Gestione Categorie</li><li id="add-podcast-btn">Aggiungi</li><li id="view_online_channels">Offline channels</li><li id="view_bookmark">Bookmark</li><li id="view_tts">TTS</li>`);
+	$menu.append(`<li><hr style="border-color:#fff;"></li><li id="popupButton">Gestione Categorie</li><li id="add-podcast-btn">Aggiungi</li><li id="view_online_channels">Offline channels</li><li id="view_bookmark">Bookmark</li><li id="view_tts">TTS</li><li id="dim-btn">Oscura schermo</li>`);
 }
 
 // ══════════════════════════════════════════════════════════
@@ -886,6 +888,15 @@ $(document).ready(function() { collapseBtn.click(); });
 
 // Hamburger
 $('.hamburger').click(function() { $('.sidebar').toggle(); $(this).toggleClass('is-active'); });
+
+// Screen dimmer
+$('#dim-btn').click(function() {
+	$('#screen-dimmer').fadeIn(600);
+	$('.hamburger').click();
+});
+$('#screen-dimmer').on('click touchstart', function() {
+	$(this).fadeOut(300);
+});
 
 // Infinite scroll
 $(window).scroll(async function() {

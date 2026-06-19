@@ -225,6 +225,7 @@
 				<button id="forwardsFastBtn" type="button" class="changeTime btn btn-secondary"><i class="fa-solid fa-forward-fast"></i></button>
 				<button id="pdf-next" type="button" class="btn btn-secondary" style="display:none;"><i class="fa-solid fa-forward"></i></button>
 				<button id="add_bookmark" type="button" class="btn btn-secondary"><i class="fa-solid fa-bookmark"></i></button>
+				<button id="dim-btn" type="button" class="btn btn-secondary"><i class="fa-solid fa-eye-slash"></i></button>
 			</div>
 		</div>
 	</div>
@@ -451,7 +452,7 @@ function add_menu_items() {
 	$menu.append('<li><hr style="border-color:#fff;"></li><li data-noclick="1"><strong>Channels</strong></li>');
 	input1.forEach(addGroup);
 	unassigned.forEach(ch => $menu.append($('<li>').attr({'data-content':'page_cat_'+ch.id,'data-input':'1'}).text(ch.title)));
-	$menu.append(`<li><hr style="border-color:#fff;"></li><li id="popupButton">Gestione Categorie</li><li id="add-podcast-btn">Aggiungi</li><li id="view_online_channels">Offline channels</li><li id="view_bookmark">Bookmark</li><li id="view_tts">TTS</li><li id="dim-btn">Oscura schermo</li>`);
+	$menu.append(`<li><hr style="border-color:#fff;"></li><li id="popupButton">Gestione Categorie</li><li id="add-podcast-btn">Aggiungi</li><li id="view_online_channels">Offline channels</li><li id="view_bookmark">Bookmark</li><li id="view_tts">TTS</li>`);
 }
 
 // ══════════════════════════════════════════════════════════
@@ -892,9 +893,12 @@ $('.hamburger').click(function() { $('.sidebar').toggle(); $(this).toggleClass('
 // Screen dimmer
 $('#dim-btn').click(function() {
 	$('#screen-dimmer').fadeIn(600);
-	$('.hamburger').click();
 });
-$('#screen-dimmer').on('click touchstart', function() {
+$('#screen-dimmer').on('touchend', function(e) {
+	e.preventDefault();
+	$(this).fadeOut(300);
+});
+$('#screen-dimmer').on('click', function() {
 	$(this).fadeOut(300);
 });
 

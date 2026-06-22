@@ -514,7 +514,11 @@ function popupPLayer(id, params) {
 	$(".container-cats").html('<div class="row">' + cats + '</div>');
 	$("#popup-player .playPauseBtn").data("id", id);
 	$(".audioTitle").html(`<a href="${item.url}" target="_blank">${item.title} (${item.ia_cat})</a>`);
-	$(".audioChannelTitle").html(item.channel_title);
+	const _remaining = items.filter(e => e.id_channel == item.id_channel && e.view == 0).length;
+	const _remainingHtml = _remaining > 0
+		? ` <span style="font-size:0.75em;opacity:0.6;font-weight:normal;">(${_remaining} rimanenti)</span>`
+		: '';
+	$(".audioChannelTitle").html(item.channel_title + _remainingHtml);
 	const imgSrc = (item.image || '').replaceAll('&amp;', '&');
 	$(".audioImage").attr("src", imgSrc);
 

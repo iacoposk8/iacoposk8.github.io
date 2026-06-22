@@ -317,6 +317,7 @@ const complete_template = '<span class="episode-complete d-flex justify-content-
 
 var current_category = { start: 0, category: 0, input: 0, order: "pubdate DESC", view: 0 };
 var items = [], categories = [], channels = [], settings = {};
+var sessionViewedCount = 0; // episodi aperti in questa sessione (per decrementare il totale)
 var channelMap = {};       // id → channel object (per join client-side)
 var activeChannelIds = []; // IDs canali con disable=0
 var player = { speed: 1.0 };
@@ -501,6 +502,7 @@ function popupPLayer(id, params) {
 		items[index_array_episode].view = 1;
 		updateEpisode(id, 'view', 1);
 		if (current_category.view == 0) $("#episode_" + id).css('opacity', '0.4');
+		sessionViewedCount++;
 	}
 
 	var cats = "";
@@ -514,7 +516,8 @@ function popupPLayer(id, params) {
 	$(".container-cats").html('<div class="row">' + cats + '</div>');
 	$("#popup-player .playPauseBtn").data("id", id);
 	$(".audioTitle").html(`<a href="${item.url}" target="_blank">${item.title} (${item.ia_cat})</a>`);
-	const _remaining = items.filter(e => e.id_channel == item.id_channel && e.view == 0).length;
+	const _totalUnread = categories.reduce((s, c) => s + (Number(c.unread) || 0), 0);
+	const _remaining = Math.max(0, _totalUnread - sessionViewedCount);
 	const _remainingHtml = _remaining > 0
 		? ` <span style="font-size:0.75em;opacity:0.6;font-weight:normal;">(${_remaining} rimanenti)</span>`
 		: '';

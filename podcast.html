@@ -317,7 +317,8 @@ const complete_template = '<span class="episode-complete d-flex justify-content-
 
 var current_category = { start: 0, category: 0, input: 0, order: "pubdate DESC", view: 0 };
 var items = [], categories = [], channels = [], settings = {};
-var sessionViewedCount = 0; // episodi aperti in questa sessione (per decrementare il totale)
+var sessionViewedCount = 0;  // episodi aperti in questa sessione (per decrementare il totale)
+var totalUnreadAtLoad  = 0;  // conteggio esatto da Supabase all'avvio (tutti i canali)
 var channelMap = {};       // id → channel object (per join client-side)
 var activeChannelIds = []; // IDs canali con disable=0
 var player = { speed: 1.0 };
@@ -411,6 +412,16 @@ async function init() {
 		fetchCategories(),
 		fetchSettings()
 	]);
+
+	// Conteggio totale non letti su tutti i canali attivi (inclusi MapPorn, cat 0, ecc.)
+	try {
+		const { count } = await sb.from('episodes')
+			.select('*', { count: 'exact', head: true })
+			.in('id_channel', activeChannelIds)
+			.eq('view', 0)
+			.eq('complete', 0);
+		totalUnreadAtLoad = count || 0;
+	} catch(e) { console.warn('totalUnread fetch failed', e); }
 
 	player.speed = parseFloat(settings['speed'] || 1.0);
 	$("#currentSpeedDisplay").html(player.speed + "x");
@@ -516,8 +527,7 @@ function popupPLayer(id, params) {
 	$(".container-cats").html('<div class="row">' + cats + '</div>');
 	$("#popup-player .playPauseBtn").data("id", id);
 	$(".audioTitle").html(`<a href="${item.url}" target="_blank">${item.title} (${item.ia_cat})</a>`);
-	const _totalUnread = categories.reduce((s, c) => s + (Number(c.unread) || 0), 0);
-	const _remaining = Math.max(0, _totalUnread - sessionViewedCount);
+	const _remaining = Math.max(0, totalUnreadAtLoad - sessionViewedCount);
 	const _remainingHtml = _remaining > 0
 		? ` <span style="font-size:0.75em;opacity:0.6;font-weight:normal;">(${_remaining} rimanenti)</span>`
 		: '';

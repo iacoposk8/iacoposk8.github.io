@@ -599,7 +599,7 @@ function togglePlay(id, bookmark) {
 					});
 				});
 				player.obj.src = "static/tts/" + item.title + "/" + (item.audio_time - 1) + ".mp3";
-			} else if (item.url2 != null) {
+			} else if (item.url2) {
 				player.obj.src = item.url2;
 			} else {
 				player.obj.src = item.url;
@@ -616,6 +616,11 @@ function togglePlay(id, bookmark) {
 				if (player.obj.pdfViewer) $("#pdf-next").click();
 				else episode_end();
 			});
+			player.obj.addEventListener('error', function() {
+				console.warn("Media load error (code " + (player.obj.error ? player.obj.error.code : "?") + "):", player.obj.src);
+				$("#player_container").html('<div style="padding:1em;color:#f66;font-size:0.9em;">File non disponibile (potrebbe essere stato rimosso).</div>');
+				$(".playPauseIcon").removeClass("fa-pause").addClass("fa-play");
+			});
 		}
 
 		saveSetting('last_episode', player.id);
@@ -625,7 +630,8 @@ function togglePlay(id, bookmark) {
 	try {
 		if (icon.hasClass("fa-play")) {
 			icon.removeClass("fa-play").addClass("fa-pause");
-			player.type === "youtube" ? player.obj.playVideo() : player.obj.play();
+			if (player.type === "youtube") player.obj.playVideo();
+			else player.obj.play().catch(e => console.warn("play() error:", e));
 		} else {
 			icon.removeClass("fa-pause").addClass("fa-play");
 			player.type === "youtube" ? player.obj.pauseVideo() : player.obj.pause();

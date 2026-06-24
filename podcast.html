@@ -414,12 +414,15 @@ async function init() {
 	]);
 
 	// Conteggio totale non letti su tutti i canali attivi (inclusi MapPorn, cat 0, ecc.)
+	// Stesso filtro ia_cat di fetchEpisodes per coerenza con gli episodi visibili
 	try {
+		const badTuple = '(' + BAD_IA_CATS.map(c => `"${c}"`).join(',') + ')';
 		const { count } = await sb.from('episodes')
 			.select('*', { count: 'exact', head: true })
 			.in('id_channel', activeChannelIds)
 			.eq('view', 0)
-			.eq('complete', 0);
+			.eq('complete', 0)
+			.or(`ia_cat.is.null,ia_cat.not.in.${badTuple},and(id_channel.eq.113,ia_cat.in.("Musica","Trasporti"))`);
 		totalUnreadAtLoad = count || 0;
 	} catch(e) { console.warn('totalUnread fetch failed', e); }
 

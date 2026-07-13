@@ -974,7 +974,7 @@ $('#addIcon').click(function() {
 });
 
 // ── Add podcast ───────────────────────────────────────────
-$("#add-podcast-btn").click(function() { $("#popupOverlayAddPodcast").css("display","block"); });
+$(document).on('click', '#add-podcast-btn', function() { $("#popupOverlayAddPodcast").css("display","block"); });
 $("#closePopupBtn").click(function() { $("#popupOverlayAddPodcast").css("display","none"); });
 $("#addPodcastBtn").click(async function() {
 	await sb.from('channels').insert({

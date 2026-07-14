@@ -305,13 +305,7 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ══════════════════════════════════════════════════════════
 // COSTANTI
 // ══════════════════════════════════════════════════════════
-const BAD_IA_CATS = [
-	'Arte','Bellezza','Cinema','Urbanistica','Spazio-Universo','Calcio',
-	'Complottismo','Cronaca','Elettrodomestici','Eventi e Spettacolo',
-	'Fotografia','Giardino','Guerra','Intrattenimento',
-	'Letteratura','Motori','Musica','Paranormale','Politica estera',
-	'Privacy','Trasporti','Viaggi'
-];
+var BAD_IA_CATS = []; // popolato da fetchBadIaCats() in init(), da ia_cats.view=0 su Supabase
 
 const complete_template = '<span class="episode-complete d-flex justify-content-center align-items-center bg-success rounded-circle" style="width:30px;height:30px;display:inline-flex !important;"><i class="fa-solid fa-check" style="color:#fff;"></i></span> ';
 
@@ -336,16 +330,18 @@ async function fetchEpisodes(params) {
 	const orderCol  = params.order.split(' ')[0];
 	const orderAsc  = params.order.includes('ASC');
 
-	// Quote ogni valore per PostgREST (gestisce spazi e trattini)
-	const badTuple = '(' + BAD_IA_CATS.map(c => `"${c}"`).join(',') + ')';
-	const focusExceptions = '("Musica","Trasporti")'; // visibili solo per ch113 Rivista Focus
-
 	let q = sb.from('episodes')
 		.select('*')
 		.in('id_channel', activeChannelIds)          // sostituisce channels!inner(disable=0)
-		.or(`ia_cat.is.null,ia_cat.not.in.${badTuple},and(id_channel.eq.113,ia_cat.in.${focusExceptions})`)
 		.order(orderCol, { ascending: orderAsc })
 		.range(Number(params.start), Number(params.start) + 19);
+
+	if (BAD_IA_CATS.length) {
+		// Quote ogni valore per PostgREST (gestisce spazi e trattini)
+		const badTuple = '(' + BAD_IA_CATS.map(c => `"${c}"`).join(',') + ')';
+		const focusExceptions = '("Musica","Trasporti")'; // visibili solo per ch113 Rivista Focus
+		q = q.or(`ia_cat.is.null,ia_cat.not.in.${badTuple},and(id_channel.eq.113,ia_cat.in.${focusExceptions})`);
+	}
 
 	if (isStorico) {
 		q = q.eq('complete', 1);
@@ -383,6 +379,12 @@ async function fetchChannels() {
 	return chans;
 }
 
+async function fetchBadIaCats() {
+	const { data, error } = await sb.from('ia_cats').select('name').eq('view', 0);
+	if (error) { console.error('fetchBadIaCats:', error); return []; }
+	return [...new Set((data || []).map(r => r.name))];
+}
+
 async function fetchSettings() {
 	const { data, error } = await sb.from('settings').select('*');
 	if (error) { console.error('fetchSettings:', error); return {}; }
@@ -405,8 +407,9 @@ async function updateEpisode(id, k, v) {
 // INIT (async)
 // ══════════════════════════════════════════════════════════
 async function init() {
-	// Canali prima: fetchEpisodes ne ha bisogno (activeChannelIds)
+	// Canali e BAD_IA_CATS prima: fetchEpisodes ne ha bisogno
 	channels = await fetchChannels();
+	BAD_IA_CATS = await fetchBadIaCats();
 	[items, categories, settings] = await Promise.all([
 		fetchEpisodes(current_category),
 		fetchCategories(),
@@ -416,13 +419,16 @@ async function init() {
 	// Conteggio totale non letti su tutti i canali attivi (inclusi MapPorn, cat 0, ecc.)
 	// Stesso filtro ia_cat di fetchEpisodes per coerenza con gli episodi visibili
 	try {
-		const badTuple = '(' + BAD_IA_CATS.map(c => `"${c}"`).join(',') + ')';
-		const { count } = await sb.from('episodes')
+		let cq = sb.from('episodes')
 			.select('*', { count: 'exact', head: true })
 			.in('id_channel', activeChannelIds)
 			.eq('view', 0)
-			.eq('complete', 0)
-			.or(`ia_cat.is.null,ia_cat.not.in.${badTuple},and(id_channel.eq.113,ia_cat.in.("Musica","Trasporti"))`);
+			.eq('complete', 0);
+		if (BAD_IA_CATS.length) {
+			const badTuple = '(' + BAD_IA_CATS.map(c => `"${c}"`).join(',') + ')';
+			cq = cq.or(`ia_cat.is.null,ia_cat.not.in.${badTuple},and(id_channel.eq.113,ia_cat.in.("Musica","Trasporti"))`);
+		}
+		const { count } = await cq;
 		totalUnreadAtLoad = count || 0;
 	} catch(e) { console.warn('totalUnread fetch failed', e); }
 

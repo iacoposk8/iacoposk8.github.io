@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="it"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meteo Reno di Leggiuno</title>
+<style>
+  :root { --icon-hole: #0F1B2D; }
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: "Segoe UI", system-ui, sans-serif; background: linear-gradient(180deg,#0F1B2D 0%,#16283F 55%,#1D3350 100%);
+         color: #EAF0F6; min-height: 100vh; padding: 28px 18px 40px; }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  header h1 { font-size: 26px; font-weight: 600; }
+  header .sub { color: #9FB2C6; font-size: 13px; margin-top: 4px; }
+  .now { display: flex; align-items: center; gap: 18px; margin: 26px 0 8px; }
+  .now-icon svg { width: 92px; height: 92px; }
+  .now-temp { font-size: 46px; font-weight: 300; line-height: 1; }
+  .now-label { font-size: 16px; color: #CFDCEA; margin-top: 6px; }
+  .now-sub { font-size: 13px; color: #9FB2C6; margin-top: 2px; }
+  .day-group { margin-top: 26px; }
+  .day-group h2 { font-size: 15px; font-weight: 600; color: #CFDCEA; margin-bottom: 10px; }
+  .day-group h2 .date { color: #7E93A9; font-weight: 400; font-size: 13px; }
+  .hours { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; }
+  .hour { flex: 0 0 74px; background: rgba(255,255,255,.055); border: 1px solid rgba(255,255,255,.08);
+           border-radius: 12px; padding: 8px 4px 10px; text-align: center; }
+  .h-time { font-size: 12px; color: #9FB2C6; }
+  .h-icon svg { width: 42px; height: 42px; margin: 4px 0 2px; }
+  .h-temp { font-size: 15px; font-weight: 600; }
+  .badge { margin-top: 5px; font-size: 10.5px; background: rgba(59,130,246,.25); color: #A9CBFF;
+            border-radius: 8px; padding: 2px 4px; display: inline-block; }
+  .days { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .day-card { flex: 1 1 120px; max-width: 170px; background: rgba(255,255,255,.055); border: 1px solid rgba(255,255,255,.08);
+               border-radius: 14px; padding: 14px 10px; text-align: center; }
+  .d-name { font-size: 13px; color: #CFDCEA; }
+  .d-icon svg { width: 54px; height: 54px; margin: 8px 0 4px; }
+  .d-temp { font-size: 16px; font-weight: 600; }
+  .d-temp .lo { color: #8AA0B8; font-weight: 400; }
+  .d-label { font-size: 11.5px; color: #9FB2C6; margin-top: 3px; }
+  h2.section { margin-top: 34px; font-size: 15px; color: #CFDCEA; }
+  footer { margin-top: 34px; font-size: 11.5px; color: #7E93A9; line-height: 1.6; }
+  footer a { color: #A9CBFF; }
+  .msg { margin-top: 26px; color: #9FB2C6; font-size: 14px; }
+</style></head><body><div class="wrap">
+<header>
+  <h1>Reno di Leggiuno <span style="color:#7E93A9;font-weight:400">(VA)</span></h1>
+  <div class="sub" id="sub">caricamento dati...</div>
+</header>
+<div id="now-slot"></div>
+<div id="groups-slot"></div>
+<h2 class="section">Prossimi giorni</h2>
+<div class="days" id="days-slot"></div>
+<footer id="footer-slot">
+  Regola pioggia: se anche un solo fotogramma da 10 minuti (risoluzione nativa del radar search.ch) dentro l'ora
+  mostra precipitazione sul punto, l'ora riceve l'icona della pioggia; l'intensità è la massima osservata nell'ora.<br>
+  Fonte: <a href="https://search.ch/meteo/prognosis">search.ch/meteo/prognosis</a>.
+</footer>
+</div>
+<script>
+"use strict";
+
+// Progetto Supabase condiviso con "dieta" (jbvjbuitfxokudiuhzam), tabella "meteo_reno".
+// Chiave anon: sola lettura, protetta da RLS (nessuna policy di scrittura per anon).
+const SUPABASE_URL = "https://jbvjbuitfxokudiuhzam.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpidmpidWl0Znhva3VkaXVoemFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2NzU4MDUsImV4cCI6MjA5NzI1MTgwNX0.o84lbVlnXExLRVo5IBovObpRlLQEV093H_TX83MFmDw";
+
+const LAT = 45.868, LON = 8.603;
+const TZ = "Europe/Rome";
+
+const LABELS = {
+  sole: "Sereno", luna: "Sereno",
+  poco_nuvoloso_g: "Poco nuvoloso", poco_nuvoloso_n: "Poco nuvoloso",
+  nuvoloso_g: "Nuvoloso", nuvoloso_n: "Nuvoloso", coperto: "Coperto",
+  pioggia_debole: "Pioggia debole", pioggia: "Pioggia", pioggia_forte: "Pioggia forte",
+  temporale: "Temporale",
+};
+
+const DAYNAMES = ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica"];
+const WD_INDEX = { Monday: 0, Tuesday: 1, Wednesday: 2, Thursday: 3, Friday: 4, Saturday: 5, Sunday: 6 };
+
+// ----------------------------------------------------------------------------- icone SVG (porting 1:1 da meteo_reno.py)
+
+function svgWrap(body, vb = "0 0 64 64") {
+  return `<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg">${body}</svg>`;
+}
+
+function sunIcon(cx = 32, cy = 32, r = 11) {
+  let rays = "";
+  for (let a = 0; a < 360; a += 45) {
+    const rad = a * Math.PI / 180;
+    const x1 = cx + (r + 4) * Math.cos(rad), y1 = cy + (r + 4) * Math.sin(rad);
+    const x2 = cx + (r + 9) * Math.cos(rad), y2 = cy + (r + 9) * Math.sin(rad);
+    rays += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#FDB813" stroke-width="3.6" stroke-linecap="round"/>`;
+  }
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#FDB813"/>${rays}`;
+}
+
+function moonIcon(cx = 32, cy = 32, r = 12) {
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#F4EED7"/>` +
+    `<circle cx="${cx + r * 0.45}" cy="${cy - r * 0.35}" r="${r * 0.92}" fill="var(--icon-hole, #0F1B2D)"/>`;
+}
+
+function cloudIcon(cx = 32, cy = 38, s = 1.0, fill = "#E8EDF2", stroke = "#C4CDD6") {
+  return `<g transform="translate(${cx} ${cy}) scale(${s})">` +
+    `<path d="M -20 8 a 8.5 8.5 0 0 1 1.5 -16.8 a 12.5 12.5 0 0 1 24 -3.4 a 9.5 9.5 0 0 1 12.5 9 a 9.3 9.3 0 0 1 -2 11.2 z" ` +
+    `fill="${fill}" stroke="${stroke}" stroke-width="1.6" stroke-linejoin="round"/></g>`;
+}
+
+function dropsIcon(cx = 32, y = 47, n = 3, heavy = false) {
+  const color = heavy ? "#2563EB" : "#3B82F6";
+  const w = heavy ? 4.4 : 3.6;
+  const span = (n - 1) * 9;
+  let out = "";
+  for (let i = 0; i < n; i++) {
+    const x = cx - span / 2 + i * 9;
+    const dy = i % 2 ? 4 : 0;
+    out += `<line x1="${x}" y1="${y + dy}" x2="${x - 3}" y2="${y + 9 + dy}" stroke="${color}" stroke-width="${w}" stroke-linecap="round"/>`;
+  }
+  return out;
+}
+
+function iconSvg(kind) {
+  switch (kind) {
+    case "sole": return svgWrap(sunIcon());
+    case "luna": return svgWrap(moonIcon());
+    case "poco_nuvoloso_g": return svgWrap(sunIcon(24, 24, 9) + cloudIcon(38, 42, 0.9));
+    case "poco_nuvoloso_n": return svgWrap(moonIcon(24, 23, 10) + cloudIcon(38, 42, 0.9));
+    case "nuvoloso_g": return svgWrap(sunIcon(22, 21, 8) + cloudIcon(34, 40, 1.1));
+    case "nuvoloso_n": return svgWrap(moonIcon(22, 20, 9) + cloudIcon(34, 40, 1.1));
+    case "coperto": return svgWrap(cloudIcon(40, 30, 0.85, "#C7D0DA", "#AAB6C2") + cloudIcon(30, 42, 1.15));
+    case "pioggia_debole": return svgWrap(cloudIcon(32, 32, 1.1) + dropsIcon(32, 42, 2));
+    case "pioggia": return svgWrap(cloudIcon(32, 32, 1.1, "#C7D0DA", "#AAB6C2") + dropsIcon(32, 42, 3));
+    case "pioggia_forte": return svgWrap(cloudIcon(32, 32, 1.15, "#9AA8B6", "#8291A0") + dropsIcon(32, 42, 4, true));
+    case "temporale": return svgWrap(cloudIcon(32, 30, 1.15, "#9AA8B6", "#8291A0") + dropsIcon(24, 41, 2, true)
+      + '<path d="M 36 38 L 30 50 h 6 L 32 60 L 44 46 h -7 l 5 -8 z" fill="#FDB813"/>');
+    default: return svgWrap(cloudIcon());
+  }
+}
+
+// ----------------------------------------------------------------------------- data/ora nel fuso di Reno
+
+function romeParts(date) {
+  const fmt = new Intl.DateTimeFormat("en-CA", {
+    timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false,
+  });
+  const parts = Object.fromEntries(fmt.formatToParts(date).filter(p => p.type !== "literal").map(p => [p.type, p.value]));
+  return parts;
+}
+
+function romeDateKey(date) {
+  const p = romeParts(date);
+  return `${p.year}-${p.month}-${p.day}`;
+}
+
+function romeWeekdayIndex(date) {
+  const wd = new Intl.DateTimeFormat("en-US", { timeZone: TZ, weekday: "long" }).format(date);
+  return WD_INDEX[wd];
+}
+
+function romeHour(date) {
+  return romeParts(date).hour;
+}
+
+function fmtRome(date, opts) {
+  return new Intl.DateTimeFormat("it-IT", Object.assign({ timeZone: TZ }, opts)).format(date);
+}
+
+function fmtDayTime(date) {
+  const wd = DAYNAMES[romeWeekdayIndex(date)].toLowerCase();
+  const d = fmtRome(date, { day: "2-digit", month: "2-digit", year: "numeric" });
+  const t = fmtRome(date, { hour: "2-digit", minute: "2-digit", hour12: false });
+  return `${wd} ${d} ${t}`;
+}
+
+// ----------------------------------------------------------------------------- caricamento dati
+
+async function loadData() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/meteo_reno?id=eq.1&select=*`, {
+    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const rows = await res.json();
+  if (!rows.length) throw new Error("nessuna riga in meteo_reno");
+  return rows[0];
+}
+
+// ----------------------------------------------------------------------------- render
+
+function hourCellHtml(hr) {
+  const dt = new Date(hr.dt);
+  let badge = "";
+  if (hr.rain_level > 0) badge = `<div class="badge">~${hr.rain_min}&prime; pioggia</div>`;
+  const temp = hr.temp !== null && hr.temp !== undefined ? `${Math.round(hr.temp)}°` : "–";
+  return `<div class="hour" title="${LABELS[hr.icon]} · nuvole ${(hr.cloud * 100).toFixed(0)}%">` +
+    `<div class="h-time">${romeHour(dt)}</div>` +
+    `<div class="h-icon">${iconSvg(hr.icon)}</div>` +
+    `<div class="h-temp">${temp}</div>${badge}</div>`;
+}
+
+function dayCardHtml(d) {
+  const hi = d.hi ? `${d.hi}°` : "";
+  const lo = d.lo ? `<span class="lo">${d.lo}°</span>` : "";
+  return `<div class="day-card"><div class="d-name">${d.label}</div>` +
+    `<div class="d-icon">${iconSvg(d.icon)}</div>` +
+    `<div class="d-temp">${hi} ${lo}</div>` +
+    `<div class="d-label">${LABELS[d.icon]}</div></div>`;
+}
+
+function render(row) {
+  const hours = row.hours || [];
+  const days = row.days || [];
+  const generatedAt = new Date(row.generated_at);
+  const now = new Date();
+  const todayKey = romeDateKey(now);
+  const tomorrowKey = romeDateKey(new Date(now.getTime() + 24 * 3600 * 1000));
+
+  document.getElementById("sub").textContent =
+    `dati generati ${fmtDayTime(generatedAt)} · dati radar/COSMO search.ch campionati sul punto ${LAT}N ${LON}E`;
+
+  // ora corrente: quella tra le ore caricate che coincide con l'ora reale di adesso
+  // (se la pagina viene aperta più tardi rispetto alla generazione dei dati),
+  // altrimenti la prima ora disponibile.
+  const nowHour = romeHour(now);
+  let cur = hours.find(hr => {
+    const dt = new Date(hr.dt);
+    return romeDateKey(dt) === todayKey && romeHour(dt) === nowHour;
+  });
+  if (!cur) cur = hours[0];
+
+  const nowSlot = document.getElementById("now-slot");
+  if (cur) {
+    nowSlot.innerHTML = `<div class="now"><div class="now-icon">${iconSvg(cur.icon)}</div>` +
+      `<div><div class="now-temp">${cur.temp !== null && cur.temp !== undefined ? Math.round(cur.temp) : "–"}°</div>` +
+      `<div class="now-label">${LABELS[cur.icon]}` +
+      (cur.rain_level ? ` · ~${cur.rain_min}&prime; di pioggia nell'ora` : "") +
+      `</div><div class="now-sub">nuvolosità ${(cur.cloud * 100).toFixed(0)}%</div></div></div>`;
+  } else {
+    nowSlot.innerHTML = "";
+  }
+
+  // raggruppa le ore per giorno (fuso Europe/Rome)
+  const groups = [];
+  for (const hr of hours) {
+    const dt = new Date(hr.dt);
+    const key = romeDateKey(dt);
+    if (!groups.length || groups[groups.length - 1].key !== key) groups.push({ key, dt, list: [] });
+    groups[groups.length - 1].list.push(hr);
+  }
+
+  let groupsHtml = "";
+  for (const g of groups) {
+    const title = g.key === todayKey ? "Oggi" : (g.key === tomorrowKey ? "Domani" : DAYNAMES[romeWeekdayIndex(g.dt)]);
+    const dateLabel = fmtRome(g.dt, { day: "2-digit", month: "2-digit" });
+    groupsHtml += `<div class="day-group"><h2>${title} <span class="date">${dateLabel}</span></h2>` +
+      `<div class="hours">${g.list.map(hourCellHtml).join("")}</div></div>`;
+  }
+  document.getElementById("groups-slot").innerHTML = groupsHtml;
+
+  document.getElementById("days-slot").innerHTML = days.map(dayCardHtml).join("");
+
+  const endCommon = new Date(row.end_common);
+  const footerExtra = document.createElement("p");
+  footerExtra.style.marginTop = "6px";
+  footerExtra.innerHTML = `Previsione oraria disponibile fino a ${fmtDayTime(endCommon)} (limite del layer nuvole).`;
+  document.getElementById("footer-slot").appendChild(footerExtra);
+}
+
+loadData()
+  .then(render)
+  .catch(err => {
+    document.getElementById("sub").textContent = "dati non disponibili";
+    const msg = document.createElement("div");
+    msg.className = "msg";
+    msg.textContent = `Errore nel caricamento dei dati meteo: ${err.message}`;
+    document.getElementById("now-slot").appendChild(msg);
+    console.error(err);
+  });
+</script>
+</body></html>

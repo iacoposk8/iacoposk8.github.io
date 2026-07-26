@@ -305,7 +305,8 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ══════════════════════════════════════════════════════════
 // COSTANTI
 // ══════════════════════════════════════════════════════════
-var BAD_IA_CATS = []; // popolato da fetchBadIaCats() in init(), da ia_cats.view=0 su Supabase
+var iaCatExclByGroup = {}; // { id_cat: [nomi esclusi] }, popolato da fetchIaCatExclusions() in init()
+var iaCatFilter = ''; // stringa .or() calcolata da buildIaCatFilter(), scoped per id_cat/gruppo canale
 
 const complete_template = '<span class="episode-complete d-flex justify-content-center align-items-center bg-success rounded-circle" style="width:30px;height:30px;display:inline-flex !important;"><i class="fa-solid fa-check" style="color:#fff;"></i></span> ';
 
@@ -337,12 +338,7 @@ async function fetchEpisodes(params) {
 		.order(orderCol, { ascending: orderAsc })
 		.range(Number(params.start), Number(params.start) + 19);
 
-	if (BAD_IA_CATS.length) {
-		// Quote ogni valore per PostgREST (gestisce spazi e trattini)
-		const badTuple = '(' + BAD_IA_CATS.map(c => `"${c}"`).join(',') + ')';
-		const focusExceptions = '("Musica","Trasporti")'; // visibili solo per ch113 Rivista Focus
-		q = q.or(`ia_cat.is.null,ia_cat.not.in.${badTuple},and(id_channel.eq.113,ia_cat.in.${focusExceptions})`);
-	}
+	if (iaCatFilter) q = q.or(iaCatFilter);
 
 	if (hideShortsChannelIds.length) {
 		// Nasconde gli short (is_short=1) solo per i canali con hide_shorts=1
@@ -387,10 +383,35 @@ async function fetchChannels() {
 	return chans;
 }
 
-async function fetchBadIaCats() {
-	const { data, error } = await sb.from('ia_cats').select('name').eq('view', 0);
-	if (error) { console.error('fetchBadIaCats:', error); return []; }
-	return [...new Set((data || []).map(r => r.name))];
+async function fetchIaCatExclusions() {
+	const { data, error } = await sb.from('ia_cats').select('id_cat,name').eq('view', 0);
+	if (error) { console.error('fetchIaCatExclusions:', error); return {}; }
+	const map = {};
+	(data || []).forEach(r => (map[r.id_cat] = map[r.id_cat] || []).push(r.name));
+	return map;
+}
+
+// Filtro ia_cat scoped per gruppo (channels.category / ia_cats.id_cat): un ia_cat va escluso
+// solo per i canali il cui gruppo lo marca view=0 in ia_cats, non globalmente per nome
+// (nomi come "Motori" o "Musica" possono ricorrere in gruppi diversi con significati diversi).
+function buildIaCatFilter() {
+	const byGroup = {}; // id_cat (o categoria canale) -> [id canali]
+	Object.values(channelMap).forEach(ch => (byGroup[ch.category] = byGroup[ch.category] || []).push(ch.id));
+
+	const clauses = ['ia_cat.is.null'];
+	Object.entries(byGroup).forEach(([groupId, chIds]) => {
+		const idsTuple = '(' + chIds.join(',') + ')';
+		const bad = iaCatExclByGroup[groupId];
+		if (bad && bad.length) {
+			const badTuple = '(' + bad.map(n => `"${n}"`).join(',') + ')';
+			clauses.push(`and(id_channel.in.${idsTuple},ia_cat.not.in.${badTuple})`);
+		} else {
+			clauses.push(`id_channel.in.${idsTuple}`); // gruppo senza esclusioni: sempre visibile
+		}
+	});
+	clauses.push('and(id_channel.eq.113,ia_cat.in.("Musica","Trasporti"))'); // eccezione ch113 Rivista Focus
+
+	return clauses.join(',');
 }
 
 async function fetchSettings() {
@@ -415,9 +436,10 @@ async function updateEpisode(id, k, v) {
 // INIT (async)
 // ══════════════════════════════════════════════════════════
 async function init() {
-	// Canali e BAD_IA_CATS prima: fetchEpisodes ne ha bisogno
+	// Canali e ia_cats prima: fetchEpisodes ne ha bisogno
 	channels = await fetchChannels();
-	BAD_IA_CATS = await fetchBadIaCats();
+	iaCatExclByGroup = await fetchIaCatExclusions();
+	iaCatFilter = buildIaCatFilter();
 	[items, categories, settings] = await Promise.all([
 		fetchEpisodes(current_category),
 		fetchCategories(),
@@ -432,10 +454,7 @@ async function init() {
 			.in('id_channel', activeChannelIds)
 			.eq('view', 0)
 			.eq('complete', 0);
-		if (BAD_IA_CATS.length) {
-			const badTuple = '(' + BAD_IA_CATS.map(c => `"${c}"`).join(',') + ')';
-			cq = cq.or(`ia_cat.is.null,ia_cat.not.in.${badTuple},and(id_channel.eq.113,ia_cat.in.("Musica","Trasporti"))`);
-		}
+		if (iaCatFilter) cq = cq.or(iaCatFilter);
 		if (hideShortsChannelIds.length) {
 			const idsTuple = '(' + hideShortsChannelIds.join(',') + ')';
 			cq = cq.or(`is_short.eq.0,id_channel.not.in.${idsTuple}`);

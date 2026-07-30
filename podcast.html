@@ -899,6 +899,18 @@ async function navigateEpisode(dir) {
 	}
 	index_array_episode = newIndex;
 	popupPLayer(items[index_array_episode].id);
+
+	// Precarica altri episodi quando ne restano pochi, per evitare l'attesa a fine lista
+	if (!isLoadingMore && items.length - 1 - index_array_episode <= 5) {
+		isLoadingMore = true;
+		current_category.start = items.length;
+		const more = await fetchEpisodes(current_category);
+		isLoadingMore = false;
+		if (more.length) {
+			items = items.concat(more);
+			update_items();
+		}
+	}
 }
 
 $(".change-episode").click(function() {

@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dragon Ball – Età Anagrafica vs Corporea</title>
+<style>
+:root{
+  --orange:#e67817;
+  --orange-dark:#c9660f;
+  --navy:#1f3864;
+  --navy-light:#2c4a7c;
+  --bg:#f5f3ef;
+  --card-bg:#ffffff;
+  --text:#211c16;
+  --text-muted:#726a5e;
+  --border:#e2ddd3;
+  --diverge-bg:#fff2cc;
+  --diverge-border:#e0b74a;
+  --dead:#b3261e;
+  --shadow:0 1px 3px rgba(31,56,100,.08), 0 1px 2px rgba(31,56,100,.06);
+  --shadow-lg:0 8px 24px rgba(31,56,100,.18);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#15181d;
+    --card-bg:#1e2530;
+    --text:#eee9e0;
+    --text-muted:#a7a196;
+    --border:#333c4a;
+    --diverge-bg:#4a3f16;
+    --diverge-border:#8a6d1f;
+    --shadow:0 1px 3px rgba(0,0,0,.4);
+    --shadow-lg:0 8px 28px rgba(0,0,0,.55);
+  }
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.45;
+  -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px 48px;}
+
+header.top{
+  background:linear-gradient(135deg,var(--orange) 0%,var(--orange-dark) 100%);
+  color:#fff;
+  padding:20px 16px 24px;
+  box-shadow:var(--shadow);
+}
+header.top h1{
+  margin:0 0 4px;
+  font-size:1.35rem;
+  font-weight:700;
+}
+header.top p{
+  margin:0;
+  font-size:.85rem;
+  opacity:.92;
+}
+
+.controls{
+  max-width:1080px;
+  margin:-20px auto 0;
+  padding:0 16px;
+}
+.controls-card{
+  background:var(--card-bg);
+  border-radius:14px;
+  box-shadow:var(--shadow-lg);
+  padding:16px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.field label{
+  display:block;
+  font-size:.72rem;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  color:var(--text-muted);
+  margin-bottom:6px;
+}
+select#sagaSelect{
+  width:100%;
+  font-size:1rem;
+  padding:12px 14px;
+  border-radius:10px;
+  border:1.5px solid var(--border);
+  background:var(--bg);
+  color:var(--text);
+  font-weight:600;
+  appearance:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23726a5e' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>");
+  background-repeat:no-repeat;
+  background-position:right 12px center;
+  background-size:20px;
+  padding-right:40px;
+}
+select#sagaSelect:focus{outline:2px solid var(--orange);outline-offset:1px;}
+
+.saga-meta{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  font-size:.82rem;
+  color:var(--text-muted);
+}
+.saga-meta .age-badge{
+  background:var(--navy);
+  color:#fff;
+  font-weight:700;
+  border-radius:999px;
+  padding:3px 10px;
+  font-size:.75rem;
+}
+
+.row-controls{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:space-between;
+}
+input#searchBox{
+  flex:1;
+  min-width:150px;
+  padding:9px 12px;
+  border-radius:9px;
+  border:1.5px solid var(--border);
+  background:var(--bg);
+  color:var(--text);
+  font-size:.9rem;
+}
+.toggle-label{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  font-size:.82rem;
+  color:var(--text-muted);
+  white-space:nowrap;
+  cursor:pointer;
+  user-select:none;
+}
+.toggle-label input{width:16px;height:16px;accent-color:var(--orange);}
+
+.count-line{
+  font-size:.78rem;
+  color:var(--text-muted);
+  margin:14px 2px 8px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:14px;
+}
+
+.card{
+  background:var(--card-bg);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px 16px 16px;
+  box-shadow:var(--shadow);
+  transition:opacity .15s ease;
+}
+.card.inactive{opacity:.5;}
+.card .name-row{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:8px;
+  margin-bottom:2px;
+}
+.card h3{
+  margin:0;
+  font-size:1.05rem;
+  color:var(--navy);
+  font-weight:700;
+}
+@media (prefers-color-scheme: dark){ .card h3{color:#9db6e0;} }
+.species{
+  font-size:.72rem;
+  color:var(--text-muted);
+  margin-bottom:10px;
+}
+.status-pill{
+  display:inline-block;
+  font-size:.68rem;
+  font-weight:700;
+  padding:2px 8px;
+  border-radius:999px;
+  background:var(--border);
+  color:var(--text-muted);
+}
+
+.field-row{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+  padding:7px 0;
+  border-top:1px solid var(--border);
+}
+.field-row:first-of-type{border-top:none;padding-top:2px;}
+.field-key{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  font-size:.76rem;
+  color:var(--text-muted);
+  white-space:nowrap;
+  flex-shrink:0;
+  padding-top:2px;
+}
+.field-val{
+  font-size:.88rem;
+  text-align:right;
+  font-weight:600;
+  word-break:break-word;
+}
+.field-val.diverge{
+  background:var(--diverge-bg);
+  border:1px solid var(--diverge-border);
+  border-radius:8px;
+  padding:3px 8px;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+}
+.field-val .term{
+  border-bottom:1.5px dotted var(--orange-dark);
+  cursor:pointer;
+}
+.field-val.mortotxt, .term.morte-hit{color:var(--dead);}
+
+.info-btn{
+  border:none;
+  background:none;
+  color:var(--orange-dark);
+  font-size:.9rem;
+  line-height:1;
+  padding:0;
+  cursor:pointer;
+  font-weight:700;
+  border-radius:50%;
+  width:18px;height:18px;
+  flex-shrink:0;
+}
+@media (prefers-color-scheme: dark){ .info-btn{color:#f0a94e;} }
+.info-btn:focus-visible{outline:2px solid var(--orange);}
+
+.dash{color:var(--text-muted);}
+
+/* tooltip popover */
+#tipPopover{
+  position:fixed;
+  max-width:280px;
+  background:var(--navy);
+  color:#fff;
+  font-size:.82rem;
+  line-height:1.4;
+  padding:10px 12px;
+  border-radius:10px;
+  box-shadow:var(--shadow-lg);
+  z-index:1000;
+  display:none;
+}
+#tipPopover.show{display:block;}
+#tipPopover::after{
+  content:"";
+  position:absolute;
+  width:10px;height:10px;
+  background:var(--navy);
+  transform:rotate(45deg);
+}
+#tipPopover.arrow-top::after{top:-5px;left:var(--arrow-x,20px);}
+#tipPopover.arrow-bottom::after{bottom:-5px;left:var(--arrow-x,20px);}
+#tipOverlay{
+  position:fixed;inset:0;z-index:999;display:none;background:transparent;
+}
+#tipOverlay.show{display:block;}
+
+details.ref-section{
+  background:var(--card-bg);
+  border:1px solid var(--border);
+  border-radius:12px;
+  margin-top:16px;
+  padding:12px 16px;
+}
+details.ref-section summary{
+  cursor:pointer;
+  font-weight:700;
+  font-size:.92rem;
+  color:var(--navy);
+}
+@media (prefers-color-scheme: dark){ details.ref-section summary{color:#9db6e0;} }
+.legend-list{margin:12px 0 4px;padding:0;list-style:none;}
+.legend-list li{
+  padding:8px 0;
+  border-top:1px solid var(--border);
+  font-size:.85rem;
+}
+.legend-list li:first-child{border-top:none;}
+.legend-list b{color:var(--orange-dark);}
+
+.no-results{
+  text-align:center;
+  color:var(--text-muted);
+  padding:40px 10px;
+  font-size:.9rem;
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>🐉 Dragon Ball — Età Anagrafica vs Corporea</h1>
+  <p>Scegli una saga per confrontare, per ogni personaggio, età anagrafica ed età corporea, con le cause degli scarti.</p>
+</header>
+
+<div class="controls">
+  <div class="controls-card">
+    <div class="field">
+      <label for="sagaSelect">Saga</label>
+      <select id="sagaSelect"></select>
+    </div>
+    <div class="saga-meta">
+      <span class="age-badge" id="ageBadge">Age —</span>
+      <span id="sagaFullName"></span>
+    </div>
+    <div class="row-controls">
+      <input type="text" id="searchBox" placeholder="Cerca personaggio…">
+      <label class="toggle-label">
+        <input type="checkbox" id="hideInactive">
+        Nascondi non presenti in questa saga
+      </label>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="count-line" id="countLine"></div>
+  <div class="grid" id="grid"></div>
+  <div class="no-results" id="noResults" style="display:none;">Nessun personaggio trovato.</div>
+
+  <details class="ref-section">
+    <summary>📖 Legenda completa</summary>
+    <ul class="legend-list" id="legendList"></ul>
+  </details>
+
+  <details class="ref-section">
+    <summary>📅 Date di nascita &amp; specie — tabella completa</summary>
+    <ul class="legend-list" id="birthList"></ul>
+  </details>
+</div>
+
+<div id="tipOverlay"></div>
+<div id="tipPopover"></div>
+
+<script>
+const DATA = {"sagas": ["Pilaf\n(Age 749)", "21 Torneo e Fiocco Rosso\n(Age 750)", "22 Torneo e Grande Mago Piccolo\n(Age 753)", "23 Torneo e Piccolo Jr.\n(Age 756)", "Saiyan\n(Age 761)", "Freezer\n(Age 762)", "Mecha Freezer\n(Age 764)", "Androidi e Cell\n(Age 767)", "Majin Bu\n(Age 774)", "Daima\n(Age 774)", "Battaglia degli Dei\n(Age 778)", "Ritorno di Freezer\n(Age 779)", "Goku Black / Torneo del Potere / Broly\n(Age 780)", "Moro e Granolah\n(Age 781)", "Super Hero\n(Age 781)", "28 Torneo\n(Age 784)", "Spazio e Saga di Baby (GT)\n(Age 789)", "Super C-17 e Draghi Malvagi (GT)\n(Age 790)"], "characters": ["Goku", "Vegeta", "Gohan", "Piccolo", "Trunks (presente)", "Trunks del Futuro", "Goten", "Crilin", "Bulma", "Yamcha", "Tenshinhan", "Chiaotzu", "Chichi", "Videl", "Pan", "Muten Roshi", "Freezer", "King Cold", "Cell", "Majin Bu", "Nappa", "Raditz", "Beerus / Whis", "Goku Black / Zamasu"], "anagrafica": {"Goku": ["12", "13", "16", "19", "24", "25", "27", "30", "37", "37", "41", "42", "43", "44", "44", "47", "52", "53"], "Vegeta": ["17", "18", "21", "24", "29", "30", "32", "35", "42", "42", "46", "47", "48", "49", "49", "52", "57", "58"], "Gohan": ["non nato", "non nato", "non nato", "non nato", "4", "5", "7", "10", "17", "17", "21", "22", "23", "24", "24", "27", "32", "33"], "Piccolo": ["non nato", "non nato", "0 (uovo)", "3", "8", "9", "11", "14", "21", "21", "25", "26", "27", "28", "28", "31", "36", "morto"], "Trunks (presente)": ["non nato", "non nato", "non nato", "non nato", "non nato", "non nato", "non nato", "0-1 (neonato)", "8", "8", "12", "13", "14", "15", "15", "18", "23", "24"], "Trunks del Futuro": ["—", "—", "—", "—", "—", "—", "~17", "~20", "—", "—", "—", "—", "~adulto", "—", "—", "—", "—", "—"], "Goten": ["non nato", "non nato", "non nato", "non nato", "non nato", "non nato", "non nato", "non nato", "7", "7", "11", "12", "13", "14", "14", "17", "22", "23"], "Crilin": ["13", "14", "17", "20", "25", "26", "28", "31", "38", "38", "42", "43", "44", "45", "45", "48", "53", "54"], "Bulma": ["16", "17", "20", "23", "28", "29", "31", "34", "41", "41", "45", "46", "47", "48", "48", "51", "56", "57"], "Yamcha": ["16", "17", "20", "23", "28", "29", "31", "34", "41", "41", "45", "46", "47", "48", "48", "51", "56", "57"], "Tenshinhan": ["16", "17", "20", "23", "28", "29", "31", "34", "41", "41", "45", "46", "47", "48", "48", "51", "56", "57"], "Chiaotzu": ["—", "—", "adulto", "adulto", "adulto", "adulto", "adulto", "adulto", "adulto", "—", "—", "—", "—", "—", "—", "—", "—", "—"], "Chichi": ["12", "13", "16", "19", "24", "25", "27", "30", "37", "37", "41", "42", "43", "44", "44", "47", "52", "53"], "Videl": ["non nato", "non nato", "non nato", "0", "5", "6", "8", "11", "18", "18", "22", "23", "24", "25", "25", "28", "33", "34"], "Pan": ["non nato", "non nato", "non nato", "non nato", "non nato", "non nato", "non nato", "non nato", "non nato", "non nato", "non nato", "0", "1", "2", "2", "5", "10", "11"], "Muten Roshi": ["longevo (~340-430)", "longevo (~340-430)", "longevo (~340-430)", "longevo (~340-430)", "longevo (~340-430)", "longevo (~340-430)", "longevo (~340-430)", "longevo (~340-430)", "longevo (~340-430)", "longevo (~340-430)", "longevo (~340-430)", "longevo (~340-430)", "longevo (~340-430)", "longevo (~340-430)", "longevo (~340-430)", "longevo (~340-430)", "longevo (~340-430)", "longevo (~340-430)"], "Freezer": ["—", "—", "—", "—", "—", "~70", "~72", "morto", "morto", "morto", "morto", "~87", "~88", "~89", "—", "—", "morto", "morto"], "King Cold": ["—", "—", "—", "—", "—", "—", "molto anziano", "morto", "morto", "morto", "morto", "morto", "morto", "morto", "—", "—", "morto", "morto"], "Cell": ["—", "—", "—", "—", "—", "—", "—", "dal futuro", "morto", "morto", "morto", "morto", "morto", "morto", "—", "—", "—", "morto"], "Majin Bu": ["—", "—", "—", "—", "—", "—", "—", "—", "milioni di anni (essere magico)", "milioni di anni (essere magico)", "milioni di anni (essere magico)", "milioni di anni (essere magico)", "milioni di anni (essere magico)", "milioni di anni (essere magico)", "milioni di anni (essere magico)", "milioni di anni (essere magico)", "milioni di anni (essere magico)", "milioni di anni (essere magico)"], "Nappa": ["—", "—", "—", "—", "adulto (Saiyan)", "morto", "morto", "morto", "morto", "morto", "morto", "morto", "morto", "morto", "morto", "morto", "morto", "morto"], "Raditz": ["—", "—", "—", "—", "adulto (Saiyan)", "morto", "morto", "morto", "morto", "morto", "morto", "morto", "morto", "morto", "morto", "morto", "morto", "morto"], "Beerus / Whis": ["—", "—", "—", "—", "—", "—", "—", "—", "—", "—", "milioni di anni (divinita)", "milioni di anni (divinita)", "milioni di anni (divinita)", "milioni di anni (divinita)", "milioni di anni (divinita)", "milioni di anni (divinita)", "milioni di anni (divinita)", "milioni di anni (divinita)"], "Goku Black / Zamasu": ["—", "—", "—", "—", "—", "—", "—", "—", "—", "—", "—", "—", "divinita (Kaioshin)", "—", "—", "—", "—", "—"]}, "corporea": {"Goku": ["12", "13", "16", "19", "24", "25", "27 (assente, su Yardrat)", "31 (STT +1)", "30 (morto -7)", "bambino (rimpicciolito in Daima)", "34 (morto -7)", "35 (morto -7)", "36 (morto -7)", "37 (morto -7)", "37 (morto -7)", "40 (morto -7)", "bambino (desiderio Sfere Nere)", "bambino (desiderio Sfere Nere)"], "Vegeta": ["17", "18", "21", "24", "29", "30", "32", "36 (STT +1)", "42", "rimpicciolito (Daima)", "46", "47", "48", "49", "49", "52", "57", "58"], "Gohan": ["non nato", "non nato", "non nato", "non nato", "4", "5", "7", "11 (STT +1)", "17", "rimpicciolito (Daima)", "21", "22", "23", "24", "24", "27", "32", "33"], "Piccolo": ["non nato", "non nato", "neonato (uovo)", "giovane adulto (specie)", "adulto", "adulto", "adulto", "adulto", "adulto", "rimpicciolito (Daima)", "adulto", "adulto", "adulto", "adulto", "adulto", "adulto", "adulto", "morto"], "Trunks (presente)": ["non nato", "non nato", "non nato", "non nato", "non nato", "non nato", "non nato", "0-1 (neonato)", "8", "8", "12", "13", "14", "15", "15", "18", "23", "24"], "Trunks del Futuro": ["—", "—", "—", "—", "—", "—", "~17", "~22 (STT +2)", "—", "—", "—", "—", "dal futuro (anni dopo)", "—", "—", "—", "—", "—"], "Goten": ["non nato", "non nato", "non nato", "non nato", "non nato", "non nato", "non nato", "non nato", "7", "7", "11", "12", "13", "14", "14", "17", "22", "23"], "Crilin": ["13", "14", "17", "20", "25", "26", "28", "31", "38", "38", "42", "43", "44", "45", "45", "48", "53", "54"], "Bulma": ["16", "17", "20", "23", "28", "29", "31", "34", "41", "41", "45", "46", "47", "48", "48", "51", "56", "57"], "Yamcha": ["16", "17", "20", "23", "28", "29", "31", "34", "41", "41", "45", "46", "47", "48", "48", "51", "56", "57"], "Tenshinhan": ["16", "17", "20", "23", "28", "29", "31", "34", "41", "41", "45", "46", "47", "48", "48", "51", "56", "57"], "Chiaotzu": ["—", "—", "aspetto da bambino", "aspetto da bambino", "aspetto da bambino", "aspetto da bambino", "aspetto da bambino", "aspetto da bambino", "aspetto da bambino", "—", "—", "—", "—", "—", "—", "—", "—", "—"], "Chichi": ["12", "13", "16", "19", "24", "25", "27", "30", "37", "37", "41", "42", "43", "44", "44", "47", "52", "53"], "Videl": ["non nato", "non nato", "non nato", "0", "5", "6", "8", "11", "18", "18", "22", "23", "24", "25", "25", "28", "33", "34"], "Pan": ["non nato", "non nato", "non nato", "non nato", "non nato", "non nato", "non nato", "non nato", "non nato", "non nato", "non nato", "0", "1", "2", "2", "5", "10", "11"], "Muten Roshi": ["longevo (~340-430) (Acqua Ultra Divina)", "longevo (~340-430) (Acqua Ultra Divina)", "longevo (~340-430) (Acqua Ultra Divina)", "longevo (~340-430) (Acqua Ultra Divina)", "longevo (~340-430) (Acqua Ultra Divina)", "longevo (~340-430) (Acqua Ultra Divina)", "longevo (~340-430) (Acqua Ultra Divina)", "longevo (~340-430) (Acqua Ultra Divina)", "longevo (~340-430) (Acqua Ultra Divina)", "longevo (~340-430) (Acqua Ultra Divina)", "longevo (~340-430) (Acqua Ultra Divina)", "longevo (~340-430) (Acqua Ultra Divina)", "longevo (~340-430) (Acqua Ultra Divina)", "longevo (~340-430) (Acqua Ultra Divina)", "longevo (~340-430) (Acqua Ultra Divina)", "longevo (~340-430) (Acqua Ultra Divina)", "longevo (~340-430) (Acqua Ultra Divina)", "longevo (~340-430) (Acqua Ultra Divina)"], "Freezer": ["—", "—", "—", "—", "—", "~70 (aspetto giovane)", "~72", "morto (Inferno)", "morto", "morto", "morto", "~72 (era morto)", "~73", "~74 (Black Frieza)", "—", "—", "morto", "morto (evade dall'Inferno)"], "King Cold": ["—", "—", "—", "—", "—", "—", "anziano (specie longeva)", "morto", "morto", "morto", "morto", "morto", "morto", "morto", "—", "—", "morto", "morto"], "Cell": ["—", "—", "—", "—", "—", "—", "—", "matura per fasi (imperfetto->perfetto)", "morto", "morto", "morto", "morto", "morto", "morto", "—", "—", "—", "morto (evade dall'Inferno)"], "Majin Bu": ["—", "—", "—", "—", "—", "—", "—", "—", "aspetto invariato", "aspetto invariato", "aspetto invariato", "aspetto invariato", "aspetto invariato", "aspetto invariato", "aspetto invariato", "aspetto invariato", "aspetto invariato", "aspetto invariato"], "Nappa": ["—", "—", "—", "—", "adulto (Saiyan)", "morto", "morto", "morto", "morto", "morto", "morto", "morto", "morto", "morto", "morto", "morto", "morto", "morto"], "Raditz": ["—", "—", "—", "—", "adulto (Saiyan)", "morto", "morto", "morto", "morto", "morto", "morto", "morto", "morto", "morto", "morto", "morto", "morto", "morto"], "Beerus / Whis": ["—", "—", "—", "—", "—", "—", "—", "—", "—", "—", "aspetto invariato", "aspetto invariato", "aspetto invariato", "aspetto invariato", "aspetto invariato", "aspetto invariato", "aspetto invariato", "aspetto invariato"], "Goku Black / Zamasu": ["—", "—", "—", "—", "—", "—", "—", "—", "—", "—", "—", "—", "corpo di Goku + Anelli del Tempo", "—", "—", "—", "—", "—"]}, "divergent": {"Goku": [false, false, false, false, false, false, true, true, true, true, true, true, true, true, true, true, true, true], "Vegeta": [false, false, false, false, false, false, false, true, false, true, false, false, false, false, false, false, false, false], "Gohan": [false, false, false, false, false, false, false, true, false, true, false, false, false, false, false, false, false, false], "Piccolo": [false, false, true, true, false, false, false, false, false, true, false, false, false, false, false, false, false, false], "Trunks (presente)": [false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false], "Trunks del Futuro": [false, false, false, false, false, false, false, true, false, false, false, false, true, false, false, false, false, false], "Goten": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false], "Crilin": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false], "Bulma": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false], "Yamcha": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false], "Tenshinhan": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false], "Chiaotzu": [false, false, true, true, true, true, true, true, true, false, false, false, false, false, false, false, false, false], "Chichi": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false], "Videl": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false], "Pan": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false], "Muten Roshi": [true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true], "Freezer": [false, false, false, false, false, true, false, true, false, false, false, true, false, true, false, false, false, true], "King Cold": [false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false], "Cell": [false, false, false, false, false, false, false, true, false, false, false, false, false, false, false, false, false, true], "Majin Bu": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false], "Nappa": [false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false], "Raditz": [false, false, false, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false], "Beerus / Whis": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false], "Goku Black / Zamasu": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}};
+
+const META = {"Goku": {"species": "Saiyan", "birth": "Age 737", "cause": "Morto per 7 anni (Age 767-774): da morto il corpo non invecchia. +1 anno per la Stanza del Tempo prima dei Cell Games. In Daima e a inizio GT viene rimpicciolito a bambino da un desiderio (età anagrafica invariata)."}, "Vegeta": {"species": "Saiyan", "birth": "Age 732", "cause": "Stanza del Tempo prima dei Cell Games (+1 anno). Rimpicciolito in Daima. Aspetto giovanile dovuto alla genetica Saiyan."}, "Gohan": {"species": "Mezzo-Saiyan", "birth": "Age 757", "cause": "Stanza del Tempo prima dei Cell Games (+1 anno). Rimpicciolito in Daima."}, "Piccolo": {"species": "Namecciano", "birth": "Age 753 (nasce come uovo)", "cause": "Namecciano: a 0-3 anni anagrafici ha già il corpo di un adulto. Rimpicciolito in Daima. Muore nella Saga di Baby (GT)."}, "Trunks (presente)": {"species": "Mezzo-Saiyan", "birth": "Age 766", "cause": "Nessuno scarto: crescita in tempo reale (mezzosangue non soggetto ad anomalie)."}, "Trunks del Futuro": {"species": "Mezzo-Saiyan (linea temporale alternativa)", "birth": "Sconosciuta (viene dal futuro)", "cause": "Viene da una linea temporale alternativa e trascorre 2 giorni nella Stanza del Tempo con Vegeta ai Cell Games (+2 anni corporei)."}, "Goten": {"species": "Mezzo-Saiyan", "birth": "Age 767", "cause": "Nessuno scarto: crescita in tempo reale."}, "Crilin": {"species": "Umano", "birth": "Age 736", "cause": "Muore e viene resuscitato rapidamente con le Sfere del Drago: gli anni trascorsi da morto sono pochi (giorni/mesi), scarto trascurabile."}, "Bulma": {"species": "Umana", "birth": "Age 733", "cause": "Nessuno scarto: crescita in tempo reale."}, "Yamcha": {"species": "Umano", "birth": "Age 733", "cause": "Muore e viene resuscitato rapidamente con le Sfere del Drago: scarto trascurabile."}, "Tenshinhan": {"species": "Umano (Triclope)", "birth": "Age 733", "cause": "Muore e viene resuscitato rapidamente con le Sfere del Drago: scarto trascurabile."}, "Chiaotzu": {"species": "Umano (specie particolare)", "birth": "Sconosciuta", "cause": "Ha sempre un aspetto da bambino per caratteristiche della sua specie, indipendentemente dall'età anagrafica."}, "Chichi": {"species": "Umana", "birth": "Age 737", "cause": "Nessuno scarto: crescita in tempo reale."}, "Videl": {"species": "Umana", "birth": "Age 756", "cause": "Nessuno scarto: crescita in tempo reale."}, "Pan": {"species": "1/4 Saiyan", "birth": "Age 779", "cause": "Nessuno scarto: crescita in tempo reale."}, "Muten Roshi": {"species": "Umano longevo", "birth": "~Age 340-430 (imprecisata)", "cause": "Specie/individuo longevo: vive centinaia di anni mantenendo un aspetto stabile grazie all'Acqua Ultra Divina."}, "Freezer": {"species": "Specie di Freezer (longeva)", "birth": "~Age 692", "cause": "Specie longeva (corpo ~70 anni già su Namecc). Ucciso nel 764, resta morto fino al Ritorno di Freezer (779): il corpo non invecchia in quegli anni."}, "King Cold": {"species": "Specie di Freezer (longeva)", "birth": "Sconosciuta", "cause": "Specie longeva: invecchia molto lentamente rispetto all'età anagrafica."}, "Cell": {"species": "Bio-androide", "birth": "Creato artificialmente (Age 767)", "cause": "Bio-androide che matura per fasi (imperfetto → perfetto). Resta morto dai Cell Games (767) in poi (evade dall'Inferno solo in GT, non canonico)."}, "Majin Bu": {"species": "Essere magico", "birth": "Milioni di anni fa", "cause": "Essere magico: milioni di anni di età, aspetto invariato nel tempo."}, "Nappa": {"species": "Saiyan", "birth": "Sconosciuta", "cause": "Saiyan adulto già dalla Saga Saiyan; muore nella stessa saga e resta morto."}, "Raditz": {"species": "Saiyan", "birth": "Sconosciuta", "cause": "Saiyan adulto già dalla Saga Saiyan; muore nella stessa saga e resta morto."}, "Beerus / Whis": {"species": "Divinità", "birth": "Milioni di anni fa", "cause": "Divinità: milioni di anni di età, aspetto invariato nel tempo."}, "Goku Black / Zamasu": {"species": "Kaioshin (nel corpo di Goku)", "birth": "Non applicabile", "cause": "Kaioshin che utilizza il corpo di Goku prelevato tramite gli Anelli del Tempo (viaggio nel tempo): l'età corporea non è la propria."}};
+
+const GLOSSARY = [
+  {key:"anagrafica", term:"Età anagrafica", def:"Anni trascorsi dalla nascita secondo le date ufficiali \"Age\"."},
+  {key:"corporea", term:"Età corporea", def:"Quanto è invecchiato realmente il corpo del personaggio (può differire dall'età anagrafica)."},
+  {key:"stt", term:"STT (Stanza del Tempo)", def:"1 giorno fuori = 1 anno dentro: il corpo invecchia di +1 anno per ogni giorno trascorso nella Stanza dello Spirito e del Tempo."},
+  {key:"morte", term:"Morte", def:"Da morto il corpo NON invecchia (es. Goku resta \"fermo\" per 7 anni tra l'Age 767 e l'Age 774)."},
+  {key:"sfere", term:"Sfere del Drago", def:"Non ringiovaniscono chi resuscitano: riportano il corpo allo stato in cui si trovava al momento della morte."},
+  {key:"daima", term:"Rimpicciolito (Daima)", def:"In Dragon Ball Daima un desiderio trasforma diversi eroi in bambini: corpo da ragazzino, età anagrafica invariata."},
+  {key:"sferenere", term:"Desiderio Sfere Nere (GT)", def:"All'inizio di Dragon Ball GT, Pilaf trasforma Goku in bambino: per tutta la serie ha il corpo di un ragazzino ma l'età anagrafica di un adulto."},
+  {key:"nonnato", term:"non nato / —", def:"Il trattino (—) indica che il personaggio non è ancora nato oppure non è presente/applicabile in questa saga."},
+  {key:"diverge", term:"Cella evidenziata", def:"Indica uno scarto tra età corporea e anagrafica: il motivo specifico è nel tooltip (ⓘ) accanto al valore."},
+  {key:"saiyansaga", term:"Nota Saga Saiyan", def:"Raditz arriva nell'Age 761, mentre Vegeta e Nappa arrivano nell'Age 762: nel frattempo Goku passa da 24 a 25 anni."}
+];
+const GLOSSARY_BY_KEY = Object.fromEntries(GLOSSARY.map(g=>[g.key,g]));
+
+const TERM_RULES = [
+  {re:/rimpicciolito(\s*\(Daima\))?/i, key:"daima"},
+  {re:/Sfere Nere/i, key:"sferenere"},
+  {re:/\bSTT\b/i, key:"stt"},
+  {re:/\bmorto\b/i, key:"morte"},
+  {re:/\bnon nato\b/i, key:"nonnato"},
+];
+
+function escapeHtml(s){
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function annotate(raw){
+  if(raw==null || raw==="") return "";
+  let out = escapeHtml(raw);
+  for(const rule of TERM_RULES){
+    if(rule.re.test(out)){
+      out = out.replace(rule.re, m => `<span class="term" data-key="${rule.key}">${m}</span>`);
+    }
+  }
+  return out;
+}
+
+function sagaShort(full){
+  const [name] = full.split("\n");
+  return name.trim();
+}
+function sagaAge(full){
+  const m = full.match(/Age\s*(\d+)/);
+  return m ? m[1] : "—";
+}
+
+// ---------- populate saga select ----------
+const sagaSelect = document.getElementById("sagaSelect");
+DATA.sagas.forEach((s,i)=>{
+  const opt = document.createElement("option");
+  opt.value = i;
+  opt.textContent = `${sagaShort(s)} (Age ${sagaAge(s)})`;
+  sagaSelect.appendChild(opt);
+});
+
+const ageBadge = document.getElementById("ageBadge");
+const sagaFullName = document.getElementById("sagaFullName");
+const grid = document.getElementById("grid");
+const countLine = document.getElementById("countLine");
+const noResults = document.getElementById("noResults");
+const searchBox = document.getElementById("searchBox");
+const hideInactive = document.getElementById("hideInactive");
+
+function isPresent(val){
+  return val && val !== "—" && val !== "non nato";
+}
+
+function fieldRow(label, legendKey, valueHtml, extraClass){
+  return `<div class="field-row">
+    <span class="field-key">${label}<button type="button" class="info-btn" data-key="${legendKey}" aria-label="Info ${label}">ⓘ</button></span>
+    <span class="field-val ${extraClass||""}">${valueHtml}</span>
+  </div>`;
+}
+
+function renderGrid(){
+  const sagaIdx = parseInt(sagaSelect.value,10);
+  const q = searchBox.value.trim().toLowerCase();
+  const onlyActive = hideInactive.checked;
+
+  grid.innerHTML = "";
+  let shown = 0;
+
+  DATA.characters.forEach(name=>{
+    if(q && !name.toLowerCase().includes(q)) return;
+
+    const anagRaw = DATA.anagrafica[name][sagaIdx];
+    const corpRaw = DATA.corporea[name][sagaIdx];
+    const diverges = DATA.divergent[name][sagaIdx];
+    const present = isPresent(anagRaw) || isPresent(corpRaw);
+
+    if(onlyActive && !present) return;
+
+    shown++;
+    const m = META[name] || {};
+
+    const anagHtml = isPresent(anagRaw)
+      ? annotate(anagRaw)
+      : `<span class="dash term" data-key="nonnato">${escapeHtml(anagRaw||"—")}</span>`;
+
+    let corpHtml = isPresent(corpRaw)
+      ? annotate(corpRaw)
+      : `<span class="dash term" data-key="nonnato">${escapeHtml(corpRaw||"—")}</span>`;
+
+    if(diverges && present){
+      corpHtml = `${corpHtml}<button type="button" class="info-btn" data-tip="${escapeHtml(m.cause||"")}" aria-label="Perché diverge">ⓘ</button>`;
+    }
+
+    const card = document.createElement("div");
+    card.className = "card" + (present ? "" : " inactive");
+    card.innerHTML = `
+      <div class="name-row">
+        <h3>${escapeHtml(name)}</h3>
+        ${present ? "" : '<span class="status-pill">non in scena</span>'}
+      </div>
+      <div class="species">${escapeHtml(m.species||"")}</div>
+      ${fieldRow("Età anagrafica","anagrafica", anagHtml)}
+      ${fieldRow("Età corporea","corporea", corpHtml, diverges && present ? "diverge" : "")}
+      ${fieldRow("Nascita","nonnato_hide", escapeHtml(m.birth||"—")).replace('<button type="button" class="info-btn" data-key="nonnato_hide" aria-label="Info Nascita">ⓘ</button>','')}
+    `;
+    grid.appendChild(card);
+  });
+
+  countLine.textContent = `${shown} personaggi mostrati`;
+  noResults.style.display = shown===0 ? "block" : "none";
+}
+
+function updateSagaMeta(){
+  const sagaIdx = parseInt(sagaSelect.value,10);
+  const full = DATA.sagas[sagaIdx];
+  ageBadge.textContent = `Age ${sagaAge(full)}`;
+  sagaFullName.textContent = sagaShort(full);
+}
+
+sagaSelect.addEventListener("change", ()=>{ updateSagaMeta(); renderGrid(); });
+searchBox.addEventListener("input", renderGrid);
+hideInactive.addEventListener("change", renderGrid);
+
+// ---------- tooltip popover (tap-friendly for mobile) ----------
+const tipPopover = document.getElementById("tipPopover");
+const tipOverlay = document.getElementById("tipOverlay");
+
+function showTooltip(targetEl, text){
+  tipPopover.textContent = text;
+  tipPopover.className = "show";
+  tipOverlay.classList.add("show");
+
+  const rect = targetEl.getBoundingClientRect();
+  const vw = window.innerWidth, vh = window.innerHeight;
+  tipPopover.style.visibility = "hidden";
+  tipPopover.style.display = "block";
+  const pw = tipPopover.offsetWidth, ph = tipPopover.offsetHeight;
+
+  let left = rect.left + rect.width/2 - pw/2;
+  left = Math.max(10, Math.min(left, vw - pw - 10));
+
+  let top = rect.bottom + 10;
+  let arrowClass = "arrow-top";
+  if(top + ph > vh - 10){
+    top = rect.top - ph - 10;
+    arrowClass = "arrow-bottom";
+  }
+  const arrowX = Math.max(12, Math.min(rect.left + rect.width/2 - left, pw-12));
+
+  tipPopover.style.left = left+"px";
+  tipPopover.style.top = top+"px";
+  tipPopover.style.setProperty("--arrow-x", arrowX+"px");
+  tipPopover.classList.remove("arrow-top","arrow-bottom");
+  tipPopover.classList.add(arrowClass);
+  tipPopover.style.visibility = "visible";
+}
+
+function hideTooltip(){
+  tipPopover.classList.remove("show");
+  tipOverlay.classList.remove("show");
+}
+
+document.addEventListener("click", (e)=>{
+  const infoBtn = e.target.closest(".info-btn");
+  const term = e.target.closest(".term");
+  if(infoBtn){
+    e.stopPropagation();
+    const key = infoBtn.getAttribute("data-key");
+    const directTip = infoBtn.getAttribute("data-tip");
+    const text = directTip || (GLOSSARY_BY_KEY[key] ? GLOSSARY_BY_KEY[key].def : "");
+    if(text) showTooltip(infoBtn, text);
+    return;
+  }
+  if(term){
+    e.stopPropagation();
+    const key = term.getAttribute("data-key");
+    const g = GLOSSARY_BY_KEY[key];
+    if(g) showTooltip(term, g.def);
+    return;
+  }
+  hideTooltip();
+});
+tipOverlay.addEventListener("click", hideTooltip);
+window.addEventListener("scroll", hideTooltip, true);
+window.addEventListener("resize", hideTooltip);
+document.addEventListener("keydown", (e)=>{ if(e.key==="Escape") hideTooltip(); });
+
+// ---------- reference sections ----------
+const legendList = document.getElementById("legendList");
+legendList.innerHTML = GLOSSARY.map(g=>`<li><b>${escapeHtml(g.term)}</b> — ${escapeHtml(g.def)}</li>`).join("");
+
+const birthList = document.getElementById("birthList");
+birthList.innerHTML = DATA.characters.map(name=>{
+  const m = META[name]||{};
+  return `<li><b>${escapeHtml(name)}</b> (${escapeHtml(m.species||"—")}) — nascita: ${escapeHtml(m.birth||"—")}</li>`;
+}).join("");
+
+// ---------- init ----------
+updateSagaMeta();
+renderGrid();
+</script>
+</body>
+</html>

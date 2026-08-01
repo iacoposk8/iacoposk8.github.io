@@ -3,6 +3,14 @@ layout: default
 title: Projects
 ---
 
+## Dragon Ball Ages
+
+Ever wondered how old Goku and the Z Fighters are throughout their journey? Explore our comprehensive guide tracking every character's age from the Original Dragon Ball all the way to Dragon Ball Super!
+
+<a href="/projects/dragonball-age.html" target="_blank" class="btn btn-primary btn-xl">Find it!</a>
+
+---
+
 ## AI Music video
 I designed an AI-powered music video for a track I love. The band liked it so much they shared it on their official Instagram! Watch the full video here.
 

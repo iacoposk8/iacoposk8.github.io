@@ -526,7 +526,7 @@ function update_items() {
 			</div>
 			<div class="episode-info col-sm-8">
 				<h4 class="channel-title">${it.channel_title}</h4>
-				<h3 class="episode-title view-btn" attr-idx="${it.id}">${comp} ${it.title} (${it.ia_cat})</h3>
+				<h3 class="episode-title view-btn" attr-idx="${it.id}">${comp} ${it.title}${titleSuffix(it)}</h3>
 				<p class="episode-duration">${dur}</p>
 			</div>
 		</li>`);
@@ -536,6 +536,23 @@ function update_items() {
 function formatTime(time) {
 	const h = Math.floor(time / 3600), m = Math.floor((time % 3600) / 60), s = Math.floor(time % 60);
 	return [h,m,s].map(n => String(n).padStart(2,'0')).join(':');
+}
+
+// Suffissi dopo il titolo: (categoria) e (indice di gradimento 0-100).
+// Un valore assente o -1 non viene mostrato: -1 vuol dire che la classificazione e'
+// fallita, null che non e' ancora stata calcolata, e in nessuno dei due casi c'e'
+// qualcosa da dire. Attenzione: like_score = 0 e' un valore valido (percentile piu'
+// basso), quindi i controlli sono espliciti e non affidati alla veridicita' del valore.
+function titleSuffix(ep) {
+	if (!ep) return '';
+	let out = '';
+	const cat = ep.ia_cat;
+	if (cat !== null && cat !== undefined && String(cat).trim() !== '' && String(cat).trim() !== '-1')
+		out += ` (${cat})`;
+	const score = ep.like_score;
+	if (score !== null && score !== undefined && String(score).trim() !== '' && Number(score) !== -1)
+		out += ` (${score})`;
+	return out;
 }
 
 // ══════════════════════════════════════════════════════════
@@ -566,7 +583,7 @@ function popupPLayer(id, params) {
 	}
 	$(".container-cats").html('<div class="row">' + cats + '</div>');
 	$("#popup-player .playPauseBtn").data("id", id);
-	$(".audioTitle").html(`<a href="${item.url}" target="_blank">${item.title} (${item.ia_cat})</a>`);
+	$(".audioTitle").html(`<a href="${item.url}" target="_blank">${item.title}${titleSuffix(item)}</a>`);
 	const _remaining = Math.max(0, totalUnreadAtLoad - sessionViewedCount);
 	const _remainingHtml = _remaining > 0
 		? ` <span style="font-size:0.75em;opacity:0.6;font-weight:normal;">(${_remaining} rimanenti)</span>`

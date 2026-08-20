@@ -78,6 +78,16 @@
         .move-btn { background-color: #34495e; padding: 5px 10px; font-size: 14px; margin-right: 5px; min-width: 34px; }
         .move-btn:hover { background-color: #2c3e50; }
         button:disabled, button:disabled:hover { background-color: #bdc3c7; cursor: not-allowed; }
+
+        /* Tab orizzontali del Dettaglio Prodotti */
+        .tab-bar { display: flex; gap: 4px; margin: 15px 0 0; border-bottom: 2px solid #ddd; }
+        .tab-btn {
+            background-color: #ecf0f1; color: #2c3e50; margin: 0; border-radius: 4px 4px 0 0;
+            padding: 8px 16px; font-size: 15px;
+        }
+        .tab-btn:hover { background-color: #dfe4e6; }
+        .tab-btn.active { background-color: #3498db; color: #fff; }
+        .tab-panel { margin-top: 15px; }
         #cancel-edit-btn { background-color: #95a5a6; margin-left: 10px; }
         #cancel-edit-btn:hover { background-color: #7f8c8d; }
 
@@ -306,6 +316,7 @@
         let stream = null;
         let dieta = [];
         let editingIndex = -1;
+        let dettaglioTabAttivo = '100g';
 
         // --- ACCESSO ---
         document.getElementById('login-btn').addEventListener('click', () => {
@@ -918,58 +929,50 @@
                     html += `<tr><td>${escapeHtml(key)}</td><td>${escapeHtml(value)}</td></tr>`;
                 }
             }
-            const DETTAGLIO_COLONNE = 11;
-            // Valori per 100g -> quanto se ne mangia in un giorno (una porzione) e in una
-            // settimana (porzione * volte a settimana), non la media giornaliera sui 5 giorni.
-            function rigaProdotto(item) {
-                const porzione = parseFloat(item.porzione) || 0;
-                const volte = parseFloat(item.n_settimana) || 0;
-                const cella = (raw) => {
-                    const per100 = parseFloat(raw || 0);
-                    const giorno = (per100 / 100) * porzione;
-                    const settimana = giorno * volte;
-                    return '<td>' + giorno.toFixed(1) + '</td><td>' + settimana.toFixed(1) + '</td>';
-                };
-                return '<tr><td>' + escapeHtml(item.name) + '</td>' +
-                    '<td>' + escapeHtml(item.porzione) + 'g</td>' +
-                    '<td>' + escapeHtml(item.n_settimana) + '</td>' +
-                    cella(item['energy-kcal']) + cella(item.carbohydrates) + cella(item.proteins) + cella(item.fat) +
-                    '</tr>';
-            }
+            html += `</table>`;
 
-            html += `</table><h3>Dettaglio Prodotti</h3><div style="overflow-x:auto;">
-                <table class="nutrition-table"><tr>
-                    <th>Prodotto</th><th>Porzione</th><th>Volte/sett</th>
-                    <th>Kcal/giorno</th><th>Kcal/sett</th>
-                    <th>Carbo/giorno</th><th>Carbo/sett</th>
-                    <th>Prot/giorno</th><th>Prot/sett</th>
-                    <th>Grassi/giorno</th><th>Grassi/sett</th>
-                </tr>`;
-            if (data.dieta && data.dieta.length > 0) {
-                const ordinePasti = ['colazione', 'pranzo', 'merenda', 'cena'];
-                const prodottiReali = data.dieta.filter(item => item.name && item.name !== "TOTALI GIORNALIERI MEDIA");
-                const intestazioniPasti = { 'colazione': '☕ COLAZIONE', 'pranzo': '🍝 PRANZO', 'merenda': '🍎 MERENDA', 'cena': '🥗 CENA' };
-                ordinePasti.forEach(nomePasto => {
-                    const prodottiPasto = prodottiReali.filter(item => item.pasto === nomePasto);
-                    if (prodottiPasto.length > 0) {
-                        html += `<tr><td colspan="${DETTAGLIO_COLONNE}" style="background-color:#2c3e50;color:white;font-weight:bold;text-align:left;padding:12px;letter-spacing:1px;">${intestazioniPasti[nomePasto]}</td></tr>`;
-                        prodottiPasto.forEach(item => { html += rigaProdotto(item); });
-                    }
-                });
-                const altriProdotti = prodottiReali.filter(item => !ordinePasti.includes(item.pasto));
-                if (altriProdotti.length > 0) {
-                    html += `<tr><td colspan="${DETTAGLIO_COLONNE}" style="background-color:#2c3e50;color:white;font-weight:bold;text-align:left;padding:12px;">🍽️ ALTRI PASTI</td></tr>`;
-                    altriProdotti.forEach(item => { html += rigaProdotto(item); });
-                }
-            }
-            html += '</table></div>';
+            html += `<h3>Dettaglio Prodotti</h3>
+                <div class="tab-bar">
+                    <button type="button" class="tab-btn" data-tab="100g">Per 100g</button>
+                    <button type="button" class="tab-btn" data-tab="giorno">Al giorno</button>
+                    <button type="button" class="tab-btn" data-tab="settimana">A settimana</button>
+                </div>
+                <div id="tab-100g" class="tab-panel"><div style="overflow-x:auto;">${buildDettaglioTable(data.dieta || [], '100g')}</div></div>
+                <div id="tab-giorno" class="tab-panel"><div style="overflow-x:auto;">${buildDettaglioTable(data.dieta || [], 'giorno')}</div></div>
+                <div id="tab-settimana" class="tab-panel"><div style="overflow-x:auto;">${buildDettaglioTable(data.dieta || [], 'settimana')}</div></div>`;
+
             nutritionResults.innerHTML = html;
+            attivaTabDettaglio(dettaglioTabAttivo);
+            nutritionResults.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => attivaTabDettaglio(btn.dataset.tab));
+            });
         }
 
-        window.addEventListener('beforeunload', () => {
-            if (stream) stream.getTracks().forEach(track => track.stop());
-        });
-    });
-    </script>
-</body>
-</html>
+        function attivaTabDettaglio(tab) {
+            dettaglioTabAttivo = tab;
+            nutritionResults.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+            nutritionResults.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('hidden', p.id !== 'tab-' + tab));
+        }
+
+        // Costruisce una delle 3 tabelle del Dettaglio Prodotti.
+        // tipo: '100g' (valore per 100g cosi' com'e'), 'giorno' (per la porzione mangiata quel
+        // giorno) o 'settimana' (giorno * volte a settimana). Il per-100g non dipende da
+        // porzione/frequenza, quindi non mostra quelle colonne.
+        function buildDettaglioTable(dataDieta, tipo) {
+            const conPorzione = tipo !== '100g';
+            const colonne = conPorzione
+                ? ['Prodotto', 'Porzione', 'Volte/sett', 'Kcal', 'Carbo', 'Prot', 'Grassi']
+                : ['Prodotto', 'Kcal', 'Carbo', 'Prot', 'Grassi'];
+
+            function valore(raw, porzione, volte) {
+                const per100 = parseFloat(raw || 0);
+                if (tipo === '100g') return per100;
+                const giorno = (per100 / 100) * porzione;
+                return tipo === 'settimana' ? giorno * volte : giorno;
+            }
+
+            function riga(item) {
+                const porzione = parseFloat(item.porzione) || 0;
+                const volte = parseFloat(item.n_settimana) || 0;
+                const extra = conPorzione
+                    ? '<td>' + escapeHtml(item.porzione) + 'g</td><td>' + escapeHtml(item.n_settiman

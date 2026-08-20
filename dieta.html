@@ -121,21 +121,6 @@
         #barcode-result.ok { background-color: #eafaf1; border-color: #2ecc71; font-weight: bold; }
         #barcode-result.ko { background-color: #fdedec; border-color: #e74c3c; }
 
-        /* Prodotti disattivati (archivio) */
-        .dieta-item.is-disabled { opacity: 0.6; }
-        .dieta-item.is-disabled strong { text-decoration: line-through; }
-        .toggle-btn { background-color: #7f8c8d; padding: 5px 10px; font-size: 14px; margin-right: 5px; }
-        .toggle-btn:hover { background-color: #616a6b; }
-        .restore-btn { background-color: #27ae60; padding: 5px 10px; font-size: 14px; margin-right: 5px; }
-        .restore-btn:hover { background-color: #1e8449; }
-        #archive-box { margin-top: 20px; border-top: 1px dashed #ccc; padding-top: 10px; }
-        #archive-toggle {
-            background: none; color: #2c3e50; padding: 6px 0; margin: 0;
-            font-weight: bold; font-size: 15px;
-        }
-        #archive-toggle:hover { background: none; text-decoration: underline; }
-        #archive-list { margin-top: 10px; }
-        .muted { color: #7f8c8d; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -237,10 +222,6 @@
         <div class="section">
             <h2>La Tua Dieta</h2>
             <div id="dieta-list"></div>
-            <div id="archive-box" class="hidden">
-                <button id="archive-toggle" type="button">Prodotti disattivati (0)</button>
-                <div id="archive-list" class="hidden"></div>
-            </div>
             <div style="margin-top:15px;">
                 <button id="recalc-btn" class="secondary">Ricalcola</button>
                 <a id="download-link" href="#" class="hidden">Scarica CSV</a>
@@ -317,9 +298,6 @@
         const manSat = document.getElementById('man-sat');
         const manSugar = document.getElementById('man-sugar');
         const manSalt = document.getElementById('man-salt');
-        const archiveBox = document.getElementById('archive-box');
-        const archiveList = document.getElementById('archive-list');
-        const archiveToggle = document.getElementById('archive-toggle');
         const recalcBtn = document.getElementById('recalc-btn');
 
         let stream = null;
@@ -695,14 +673,8 @@
                 newItem['salt'] = parseFloat(manSalt.value) || 0;
             }
 
-            if (editingIndex >= 0) {
-                // Conserva lo stato attivo/disattivato del prodotto che stiamo modificando.
-                newItem.disabled = !!dieta[editingIndex].disabled;
-                dieta[editingIndex] = newItem;
-                cancelEdit();
-            } else {
-                dieta.push(newItem);
-            }
+            if (editingIndex >= 0) { dieta[editingIndex] = newItem; cancelEdit(); }
+            else { dieta.push(newItem); }
 
             renderDieta();
             calculateAndSave();
@@ -728,9 +700,9 @@
 
         const MEAL_PRIORITY = { 'colazione': 1, 'pranzo': 2, 'merenda': 3, 'cena': 4 };
 
-        function buildRow(item, index, archived) {
+        function buildRow(item, index) {
             const div = document.createElement('div');
-            div.className = 'dieta-item' + (archived ? ' is-disabled' : '');
+            div.className = 'dieta-item';
             const code = item.bar_code || '';
             const codeDisplay = code.indexOf('MANUAL_') === 0 ? 'Ricetta/Manuale' : (code || 'senza codice');
             const pasto = item.pasto || '';
@@ -743,15 +715,10 @@
                 ', Porzione: ' + escapeHtml(item.porzione) + 'g, Freq: ' + escapeHtml(item.n_settimana) + '/sett';
 
             const actions = document.createElement('div');
-            if (archived) {
-                actions.appendChild(makeBtn('Riattiva', 'restore-btn', () => setDisabled(index, false)));
-            } else {
-                actions.appendChild(makeBtn('Modifica', 'edit-btn', () => {
-                    addProductTitle.scrollIntoView({ behavior: 'smooth' });
-                    editDietaItem(index);
-                }));
-                actions.appendChild(makeBtn('Disattiva', 'toggle-btn', () => setDisabled(index, true)));
-            }
+            actions.appendChild(makeBtn('Modifica', 'edit-btn', () => {
+                addProductTitle.scrollIntoView({ behavior: 'smooth' });
+                editDietaItem(index);
+            }));
             actions.appendChild(makeBtn('Elimina', 'delete-btn', () => removeItem(index)));
 
             div.appendChild(info);
@@ -769,39 +736,18 @@
 
         function renderDieta() {
             dietaList.innerHTML = '';
-            archiveList.innerHTML = '';
+            if (dieta.length === 0) { dietaList.innerHTML = '<p>Nessun prodotto nella dieta.</p>'; return; }
 
-            const byMeal = (a, b) => (MEAL_PRIORITY[a.item.pasto] || 99) - (MEAL_PRIORITY[b.item.pasto] || 99);
-            const entries = dieta.map((item, index) => ({ item: item, index: index }));
-            const attivi = entries.filter(e => !e.item.disabled).sort(byMeal);
-            const spenti = entries.filter(e => e.item.disabled).sort(byMeal);
-
-            if (attivi.length === 0) {
-                dietaList.innerHTML = '<p>Nessun prodotto attivo nella dieta.</p>';
-            } else {
-                attivi.forEach(e => dietaList.appendChild(buildRow(e.item, e.index, false)));
-            }
-
-            archiveBox.classList.toggle('hidden', spenti.length === 0);
-            archiveToggle.textContent = (archiveList.classList.contains('hidden') ? 'Mostra' : 'Nascondi') +
-                ' prodotti disattivati (' + spenti.length + ')';
-            spenti.forEach(e => archiveList.appendChild(buildRow(e.item, e.index, true)));
-        }
-
-        // Disattivare = togliere dal conteggio e dalla lista, ma tenere il prodotto da parte
-        // nell'archivio, pronto per essere riattivato con un clic.
-        function setDisabled(index, value) {
-            if (!dieta[index]) return;
-            dieta[index].disabled = value;
-            if (editingIndex === index) cancelEdit();
-            renderDieta();
-            calculateAndSave();
+            dieta
+                .map((item, index) => ({ item: item, index: index }))
+                .sort((a, b) => (MEAL_PRIORITY[a.item.pasto] || 99) - (MEAL_PRIORITY[b.item.pasto] || 99))
+                .forEach(e => dietaList.appendChild(buildRow(e.item, e.index)));
         }
 
         function removeItem(index) {
             const item = dieta[index];
             if (!item) return;
-            if (!confirm('Eliminare definitivamente "' + item.name + '"? Per toglierlo solo dal conteggio usa "Disattiva".')) return;
+            if (!confirm('Eliminare "' + item.name + '" dalla dieta?')) return;
             dieta.splice(index, 1);
             // Gli indici scalano: se stavamo modificando un prodotto successivo, seguiamolo.
             if (editingIndex === index) cancelEdit();
@@ -809,11 +755,6 @@
             renderDieta();
             calculateAndSave();
         }
-
-        archiveToggle.addEventListener('click', () => {
-            archiveList.classList.toggle('hidden');
-            renderDieta();
-        });
 
         // --- CALCOLO + SALVATAGGIO ---
         // Una richiesta per volta: /api/calculate fa leggi-modifica-scrivi sulla stessa riga,

@@ -75,6 +75,9 @@
         .edit-btn:hover { background-color: #e67e22; }
         .delete-btn { background-color: #e74c3c; padding: 5px 10px; font-size: 14px; }
         .delete-btn:hover { background-color: #c0392b; }
+        .move-btn { background-color: #34495e; padding: 5px 10px; font-size: 14px; margin-right: 5px; min-width: 34px; }
+        .move-btn:hover { background-color: #2c3e50; }
+        button:disabled, button:disabled:hover { background-color: #bdc3c7; cursor: not-allowed; }
         #cancel-edit-btn { background-color: #95a5a6; margin-left: 10px; }
         #cancel-edit-btn:hover { background-color: #7f8c8d; }
 
@@ -675,6 +678,7 @@
 
             if (editingIndex >= 0) { dieta[editingIndex] = newItem; cancelEdit(); }
             else { dieta.push(newItem); }
+            dieta = regroupByMeal(dieta);
 
             renderDieta();
             calculateAndSave();
@@ -685,7 +689,7 @@
             api('/api/dieta')
                 .then(response => response.json())
                 .then(data => {
-                    dieta = data.dieta || [];
+                    dieta = regroupByMeal(data.dieta || []);
                     pesoInput.value = (data.peso === null || data.peso === undefined) ? 64 : data.peso;
                     renderDieta();
                     // All'apertura mostriamo l'ultima analisi già salvata invece di ricalcolare:
@@ -714,7 +718,21 @@
                 '<span style="color:#2c3e50; font-weight:bold;">' + escapeHtml(pastoCapitalized) + '</span>' +
                 ', Porzione: ' + escapeHtml(item.porzione) + 'g, Freq: ' + escapeHtml(item.n_settimana) + '/sett';
 
+            // L'ordine si può cambiare solo dentro lo stesso pasto: l'array `dieta` resta
+            // sempre raggruppato per pasto (vedi regroupByMeal), quindi il vicino in array
+            // con lo stesso `pasto` è per costruzione il vicino nello stesso gruppo.
+            const canUp = index > 0 && dieta[index - 1].pasto === pasto;
+            const canDown = index < dieta.length - 1 && dieta[index + 1].pasto === pasto;
+
             const actions = document.createElement('div');
+            const upBtn = makeBtn('▲', 'move-btn', () => moveItem(index, -1));
+            upBtn.title = 'Sposta su (dentro lo stesso pasto)';
+            upBtn.disabled = !canUp;
+            const downBtn = makeBtn('▼', 'move-btn', () => moveItem(index, 1));
+            downBtn.title = 'Sposta giù (dentro lo stesso pasto)';
+            downBtn.disabled = !canDown;
+            actions.appendChild(upBtn);
+            actions.appendChild(downBtn);
             actions.appendChild(makeBtn('Modifica', 'edit-btn', () => {
                 addProductTitle.scrollIntoView({ behavior: 'smooth' });
                 editDietaItem(index);
@@ -734,14 +752,30 @@
             return b;
         }
 
+        // Raggruppa per pasto (ordine colazione/pranzo/merenda/cena) mantenendo l'ordine
+        // relativo già presente all'interno di ogni gruppo: è un sort stabile, quindi
+        // l'ordinamento manuale (vedi moveItem) sopravvive al raggruppamento.
+        function regroupByMeal(list) {
+            return list.slice().sort((a, b) => (MEAL_PRIORITY[a.pasto] || 99) - (MEAL_PRIORITY[b.pasto] || 99));
+        }
+
         function renderDieta() {
             dietaList.innerHTML = '';
             if (dieta.length === 0) { dietaList.innerHTML = '<p>Nessun prodotto nella dieta.</p>'; return; }
+            dieta.forEach((item, index) => dietaList.appendChild(buildRow(item, index)));
+        }
 
-            dieta
-                .map((item, index) => ({ item: item, index: index }))
-                .sort((a, b) => (MEAL_PRIORITY[a.item.pasto] || 99) - (MEAL_PRIORITY[b.item.pasto] || 99))
-                .forEach(e => dietaList.appendChild(buildRow(e.item, e.index)));
+        // Scambia il prodotto con il vicino nella stessa direzione, solo se è dello stesso
+        // pasto (buildRow disabilita già il pulsante quando non è possibile).
+        function moveItem(index, delta) {
+            const target = index + delta;
+            if (target < 0 || target >= dieta.length) return;
+            if (dieta[target].pasto !== dieta[index].pasto) return;
+            const tmp = dieta[index]; dieta[index] = dieta[target]; dieta[target] = tmp;
+            if (editingIndex === index) editingIndex = target;
+            else if (editingIndex === target) editingIndex = index;
+            renderDieta();
+            calculateAndSave();
         }
 
         function removeItem(index) {
@@ -884,8 +918,33 @@
                     html += `<tr><td>${escapeHtml(key)}</td><td>${escapeHtml(value)}</td></tr>`;
                 }
             }
+            const DETTAGLIO_COLONNE = 11;
+            // Valori per 100g -> quanto se ne mangia in un giorno (una porzione) e in una
+            // settimana (porzione * volte a settimana), non la media giornaliera sui 5 giorni.
+            function rigaProdotto(item) {
+                const porzione = parseFloat(item.porzione) || 0;
+                const volte = parseFloat(item.n_settimana) || 0;
+                const cella = (raw) => {
+                    const per100 = parseFloat(raw || 0);
+                    const giorno = (per100 / 100) * porzione;
+                    const settimana = giorno * volte;
+                    return '<td>' + giorno.toFixed(1) + '</td><td>' + settimana.toFixed(1) + '</td>';
+                };
+                return '<tr><td>' + escapeHtml(item.name) + '</td>' +
+                    '<td>' + escapeHtml(item.porzione) + 'g</td>' +
+                    '<td>' + escapeHtml(item.n_settimana) + '</td>' +
+                    cella(item['energy-kcal']) + cella(item.carbohydrates) + cella(item.proteins) + cella(item.fat) +
+                    '</tr>';
+            }
+
             html += `</table><h3>Dettaglio Prodotti</h3><div style="overflow-x:auto;">
-                <table class="nutrition-table"><tr><th>Prodotto</th><th>Kcal</th><th>Carbo</th><th>Prot</th><th>Grassi</th></tr>`;
+                <table class="nutrition-table"><tr>
+                    <th>Prodotto</th><th>Porzione</th><th>Volte/sett</th>
+                    <th>Kcal/giorno</th><th>Kcal/sett</th>
+                    <th>Carbo/giorno</th><th>Carbo/sett</th>
+                    <th>Prot/giorno</th><th>Prot/sett</th>
+                    <th>Grassi/giorno</th><th>Grassi/sett</th>
+                </tr>`;
             if (data.dieta && data.dieta.length > 0) {
                 const ordinePasti = ['colazione', 'pranzo', 'merenda', 'cena'];
                 const prodottiReali = data.dieta.filter(item => item.name && item.name !== "TOTALI GIORNALIERI MEDIA");
@@ -893,26 +952,14 @@
                 ordinePasti.forEach(nomePasto => {
                     const prodottiPasto = prodottiReali.filter(item => item.pasto === nomePasto);
                     if (prodottiPasto.length > 0) {
-                        html += `<tr><td colspan="5" style="background-color:#2c3e50;color:white;font-weight:bold;text-align:left;padding:12px;letter-spacing:1px;">${intestazioniPasti[nomePasto]}</td></tr>`;
-                        prodottiPasto.forEach(item => {
-                            html += `<tr><td>${escapeHtml(item.name)}</td>
-                                <td>${parseFloat(item['energy-kcal'] || 0).toFixed(1)}</td>
-                                <td>${parseFloat(item.carbohydrates || 0).toFixed(1)}</td>
-                                <td>${parseFloat(item.proteins || 0).toFixed(1)}</td>
-                                <td>${parseFloat(item.fat || 0).toFixed(1)}</td></tr>`;
-                        });
+                        html += `<tr><td colspan="${DETTAGLIO_COLONNE}" style="background-color:#2c3e50;color:white;font-weight:bold;text-align:left;padding:12px;letter-spacing:1px;">${intestazioniPasti[nomePasto]}</td></tr>`;
+                        prodottiPasto.forEach(item => { html += rigaProdotto(item); });
                     }
                 });
                 const altriProdotti = prodottiReali.filter(item => !ordinePasti.includes(item.pasto));
                 if (altriProdotti.length > 0) {
-                    html += `<tr><td colspan="5" style="background-color:#2c3e50;color:white;font-weight:bold;text-align:left;padding:12px;">🍽️ ALTRI PASTI</td></tr>`;
-                    altriProdotti.forEach(item => {
-                        html += `<tr><td>${escapeHtml(item.name)}</td>
-                            <td>${parseFloat(item['energy-kcal'] || 0).toFixed(1)}</td>
-                            <td>${parseFloat(item.carbohydrates || 0).toFixed(1)}</td>
-                            <td>${parseFloat(item.proteins || 0).toFixed(1)}</td>
-                            <td>${parseFloat(item.fat || 0).toFixed(1)}</td></tr>`;
-                    });
+                    html += `<tr><td colspan="${DETTAGLIO_COLONNE}" style="background-color:#2c3e50;color:white;font-weight:bold;text-align:left;padding:12px;">🍽️ ALTRI PASTI</td></tr>`;
+                    altriProdotti.forEach(item => { html += rigaProdotto(item); });
                 }
             }
             html += '</table></div>';

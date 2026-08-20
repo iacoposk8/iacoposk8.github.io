@@ -238,6 +238,7 @@
             <div style="margin-top:15px;">
                 <button id="recalc-btn" class="secondary">Ricalcola</button>
                 <a id="download-link" href="#" class="hidden">Scarica CSV</a>
+                <div id="save-error" class="login-error hidden" style="margin-top:10px;"></div>
             </div>
         </div>
 
@@ -277,7 +278,21 @@
     async function api(path, opts) {
         opts = opts || {};
         opts.headers = Object.assign({ 'X-App-Password': getPw() }, opts.headers || {});
-        const r = await fetch(getApiBase() + path, opts);
+        // Senza timeout, una richiesta che resta appesa (rete instabile, server che non
+        // risponde) lascia l'utente a fissare la pagina senza nessun segnale di errore.
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+        let r;
+        try {
+            r = await fetch(getApiBase() + path, Object.assign({ signal: controller.signal }, opts));
+        } catch (networkErr) {
+            if (networkErr.name === 'AbortError') {
+                throw new Error('Il server non risponde (richiesta scaduta). Controlla l\'indirizzo e la connessione.');
+            }
+            throw new Error('Impossibile contattare il server. Controlla l\'indirizzo e la connessione a internet.');
+        } finally {
+            clearTimeout(timeoutId);
+        }
         if (r.status === 401) {
             localStorage.removeItem('appPassword');
             showLogin('Password errata o sessione scaduta.');
@@ -312,6 +327,7 @@
         const manSugar = document.getElementById('man-sugar');
         const manSalt = document.getElementById('man-salt');
         const recalcBtn = document.getElementById('recalc-btn');
+        const saveErrorBox = document.getElementById('save-error');
 
         let stream = null;
         let dieta = [];
@@ -710,7 +726,13 @@
                         downloadLink.classList.remove('hidden');
                     }
                 })
-                .catch(error => { if (error.message !== 'unauthorized') console.error('Errore caricamento:', error); });
+                .catch(error => {
+                    if (error.message === 'unauthorized') return;
+                    console.error('Errore caricamento:', error);
+                    // Senza questo, un errore di rete lascia l'overlay già chiuso e la pagina
+                    // vuota, senza nessun segnale per l'utente ("non succede nulla").
+                    showLogin(error.message);
+                });
         }
 
         const MEAL_PRIORITY = { 'colazione': 1, 'pranzo': 2, 'merenda': 3, 'cena': 4 };
@@ -811,6 +833,7 @@
             saveInFlight = true;
             recalcBtn.disabled = true;
             recalcBtn.textContent = 'Calcolo...';
+            saveErrorBox.classList.add('hidden');
             const peso = parseFloat(pesoInput.value) || 64;
 
             api('/api/calculate', {
@@ -827,7 +850,14 @@
                         alert('Errore nel calcolo: ' + data.message);
                     }
                 })
-                .catch(error => { if (error.message !== 'unauthorized') console.error('Errore calculate:', error); })
+                .catch(error => {
+                    if (error.message === 'unauthorized') return;
+                    console.error('Errore calculate:', error);
+                    // Senza questo, un fallimento del salvataggio non lascia nessuna traccia
+                    // visibile: le modifiche restano solo nella pagina, non sul server.
+                    saveErrorBox.textContent = 'Salvataggio non riuscito: ' + error.message;
+                    saveErrorBox.classList.remove('hidden');
+                })
                 .then(() => {
                     saveInFlight = false;
                     recalcBtn.disabled = false;
@@ -975,4 +1005,39 @@
                 const porzione = parseFloat(item.porzione) || 0;
                 const volte = parseFloat(item.n_settimana) || 0;
                 const extra = conPorzione
-                    ? '<td>' + escapeHtml(item.porzione) + 'g</td><td>' + escapeHtml(item.n_settiman
+                    ? '<td>' + escapeHtml(item.porzione) + 'g</td><td>' + escapeHtml(item.n_settimana) + '</td>'
+                    : '';
+                return '<tr><td>' + escapeHtml(item.name) + '</td>' + extra +
+                    '<td>' + valore(item['energy-kcal'], porzione, volte).toFixed(1) + '</td>' +
+                    '<td>' + valore(item.carbohydrates, porzione, volte).toFixed(1) + '</td>' +
+                    '<td>' + valore(item.proteins, porzione, volte).toFixed(1) + '</td>' +
+                    '<td>' + valore(item.fat, porzione, volte).toFixed(1) + '</td></tr>';
+            }
+
+            let html = '<table class="nutrition-table"><tr>' + colonne.map(c => '<th>' + c + '</th>').join('') + '</tr>';
+            const ordinePasti = ['colazione', 'pranzo', 'merenda', 'cena'];
+            const prodottiReali = dataDieta.filter(item => item.name && item.name !== "TOTALI GIORNALIERI MEDIA");
+            const intestazioniPasti = { 'colazione': '☕ COLAZIONE', 'pranzo': '🍝 PRANZO', 'merenda': '🍎 MERENDA', 'cena': '🥗 CENA' };
+            ordinePasti.forEach(nomePasto => {
+                const prodottiPasto = prodottiReali.filter(item => item.pasto === nomePasto);
+                if (prodottiPasto.length > 0) {
+                    html += `<tr><td colspan="${colonne.length}" style="background-color:#2c3e50;color:white;font-weight:bold;text-align:left;padding:12px;letter-spacing:1px;">${intestazioniPasti[nomePasto]}</td></tr>`;
+                    prodottiPasto.forEach(item => { html += riga(item); });
+                }
+            });
+            const altriProdotti = prodottiReali.filter(item => !ordinePasti.includes(item.pasto));
+            if (altriProdotti.length > 0) {
+                html += `<tr><td colspan="${colonne.length}" style="background-color:#2c3e50;color:white;font-weight:bold;text-align:left;padding:12px;">🍽️ ALTRI PASTI</td></tr>`;
+                altriProdotti.forEach(item => { html += riga(item); });
+            }
+            html += '</table>';
+            return html;
+        }
+
+        window.addEventListener('beforeunload', () => {
+            if (stream) stream.getTracks().forEach(track => track.stop());
+        });
+    });
+    </script>
+</body>
+</html>

@@ -622,7 +622,7 @@ function togglePlay(id, bookmark) {
 				events: {
 					'onReady': function(e) {
 						e.target.setPlaybackRate(parseFloat(player.speed));
-						e.target.seekTo(typeof bookmark !== "undefined" ? parseInt(bookmark) : item.audio_time);
+						e.target.seekTo(typeof bookmark !== "undefined" ? parseInt(bookmark) : item.audio_time, true);
 					},
 					'onStateChange': function(e) {
 						player.status = e.data;

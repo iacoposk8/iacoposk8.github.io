@@ -616,13 +616,14 @@ function togglePlay(id, bookmark) {
 
 		if (item.url.indexOf("http") == -1 && item.url.indexOf("static/") == -1) {
 			player.type = "youtube";
+			const startAt = typeof bookmark !== "undefined" ? parseInt(bookmark) : parseInt(item.audio_time);
 			player.obj = new YT.Player('player_yt', {
 				width: '100%', videoId: item.url,
-				playerVars: { controls: 0, showinfo: 0, rel: 0, modestbranding: 0 },
+				playerVars: { controls: 0, showinfo: 0, rel: 0, modestbranding: 0, start: startAt },
 				events: {
 					'onReady': function(e) {
 						e.target.setPlaybackRate(parseFloat(player.speed));
-						e.target.seekTo(typeof bookmark !== "undefined" ? parseInt(bookmark) : item.audio_time, true);
+						e.target.seekTo(startAt, true);
 					},
 					'onStateChange': function(e) {
 						player.status = e.data;

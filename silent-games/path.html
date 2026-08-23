@@ -106,6 +106,14 @@ body {
   cursor: pointer;
 }
 
+.back-link {
+  align-self: flex-start;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  text-decoration: none;
+  padding: 6px 0 10px;
+}
+
 /* ---------- Menu ---------- */
 
 #screen-menu {
@@ -364,6 +372,7 @@ body.blackout-mode .btn-blackout-toggle {
 
   <!-- ============ MODE SELECT ============ -->
   <section id="screen-mode" class="screen active">
+    <a class="back-link" href="/silent-games/">← HaptiPlay</a>
     <h1>🎮 Giochi Tattili</h1>
     <p class="subtitle">Tre giochi pensati per essere sentiti, non solo visti. Provali anche a schermo spento.</p>
     <button type="button" class="mode-card" id="pick-prato">

@@ -5,13 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Maze Game - Screen Off Mode</title>
     <style>
+        :root {
+            --bg: #0c1410;
+            --panel: #141f18;
+            --accent: #6fd07f;
+            --text: #e7f3ea;
+            --text-dim: #8ea896;
+            --border: #2a3b2f;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
         }
-        
+
         body {
             display: flex;
             justify-content: center;
@@ -20,28 +29,38 @@
             min-height: 100vh;
             margin: 0;
             padding: 10px;
-            background-color: #1a1a1a;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             touch-action: manipulation;
             transition: background-color 0.5s;
         }
-        
+
         body.screen-off {
             background-color: #000;
         }
-        
+
+        .back-btn {
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            text-decoration: none;
+        }
+
         .header {
             text-align: center;
             margin-bottom: 15px;
-            color: #fff;
+            color: var(--text);
             width: 100%;
         }
-        
+
         .header h1 {
             font-size: 1.5rem;
             margin-bottom: 5px;
         }
-        
+
         .controls {
             display: flex;
             flex-wrap: wrap;
@@ -50,29 +69,28 @@
             margin-bottom: 15px;
             width: 100%;
         }
-        
+
         button {
             padding: 10px 15px;
             font-size: 0.9rem;
-            border: none;
-            border-radius: 8px;
-            background: linear-gradient(to bottom, #4CAF50, #3e8e41);
-            color: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--panel);
+            color: var(--text);
             cursor: pointer;
-            box-shadow: 0 3px 5px rgba(0,0,0,0.3);
             transition: all 0.2s;
             font-weight: bold;
         }
-        
+
         button:active {
-            transform: translateY(2px);
-            box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            transform: scale(0.98);
         }
-        
+
         #screenOffButton {
-            background: linear-gradient(to bottom, #ff9800, #f57c00);
+            border-color: var(--accent);
+            color: var(--accent);
         }
-        
+
         .game-container {
             display: flex;
             flex-direction: row; /* Modifica per affiancare i canvas */
@@ -82,43 +100,44 @@
             width: 100%;
             gap: 20px; /* Aggiunge spazio tra i canvas */
         }
-        
+
         canvas {
-            border: 2px solid #333;
-            background-color: #222;
+            border-radius: 16px;
+            box-shadow: 0 0 0 1px var(--border), 0 10px 30px rgba(0,0,0,0.5);
+            background-color: var(--panel);
             max-width: 100%;
             transition: opacity 0.5s;
         }
-        
+
         body.screen-off canvas, body.screen-off .controls, body.screen-off .instructions  {
             opacity: 0;
         }
-        
+
         #mazeCanvas {
             width: 45vmin; /* Adattato per stare affiancato */
             height: 45vmin;
         }
-        
+
         #currentCellCanvas {
             width: 45vmin; /* Adattato per stare affiancato */
             height: 45vmin;
         }
-        
+
         .instructions {
             text-align: center;
             padding: 20px 0;
-            color: #ccc;
+            color: var(--text-dim);
             font-size: 0.9rem;
             line-height: 1.4;
             max-width: 50%;
         }
-        
+
         .screen-off-message {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            color: #333;
+            color: #1f3327;
             font-size: 1.2rem;
             text-align: center;
             opacity: 0;
@@ -126,7 +145,7 @@
             transition: opacity 0.5s;
             z-index: 100;
         }
-        
+
         body.screen-off .screen-off-message {
             opacity: 1;
         }
@@ -146,6 +165,7 @@
     </style>
 </head>
 <body>
+    <a class="back-btn" href="/silent-games/">&larr; HaptiPlay</a>
     <div class="instructions">
         Use arrow keys or swipe up/down to move forward/backward. Swipe left/right to rotate.<br />
 You won't be able to see the entire labyrinth at once. The view is limited to the single tile you are currently on and any surrounding walls.<br />

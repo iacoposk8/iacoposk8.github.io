@@ -1,0 +1,2798 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Prato a Spirale, Gara alla Cieca &amp; Prato alla Cieca</title>
+<style>
+:root {
+  --bg: #0c1410;
+  --panel: #141f18;
+  --green-dark: #1c3d24;
+  --green-light: #2f6b3c;
+  --accent: #6fd07f;
+  --text: #e7f3ea;
+  --text-dim: #8ea896;
+  --danger: #d0776f;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: #000;
+  overscroll-behavior: none;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--text);
+}
+
+#app {
+  height: 100%;
+  height: 100dvh;
+  width: 100%;
+  background: var(--bg);
+  position: relative;
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  padding: max(20px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom));
+}
+
+.screen.active { display: flex; }
+
+/* ---------- Mode select ---------- */
+
+#screen-mode {
+  align-items: stretch;
+  justify-content: center;
+  gap: 14px;
+}
+
+#screen-mode h1 {
+  text-align: center;
+  font-size: 1.7rem;
+  margin: 0 0 4px;
+}
+
+#screen-mode .subtitle { margin-bottom: 10px; }
+
+.mode-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  padding: 26px 20px;
+  border-radius: 18px;
+  border: 1px solid #2a3b2f;
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.mode-card:active { transform: scale(0.98); }
+
+.mode-emoji { font-size: 2.1rem; }
+
+.mode-title { font-size: 1.15rem; font-weight: 700; }
+
+.mode-desc {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+.back-btn {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  padding: 6px 0 10px;
+  cursor: pointer;
+}
+
+/* ---------- Menu ---------- */
+
+#screen-menu {
+  align-items: stretch;
+  justify-content: flex-start;
+  overflow-y: auto;
+}
+
+#screen-menu h1 {
+  text-align: center;
+  font-size: 1.8rem;
+  margin: 12px 0 4px;
+}
+
+.subtitle {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.92rem;
+  margin: 0 0 20px;
+  line-height: 1.4;
+}
+
+.option-group { margin-bottom: 18px; }
+
+.option-group h2 {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  margin: 0 0 8px;
+  font-weight: 600;
+}
+
+.options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 8px;
+}
+
+.opt {
+  min-width: 0;
+  padding: 14px 8px;
+  border-radius: 12px;
+  border: 1px solid #2a3b2f;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 0.85rem;
+  line-height: 1.3;
+  cursor: pointer;
+}
+
+.opt.selected {
+  background: var(--green-dark);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+button.primary {
+  margin-top: 8px;
+  padding: 18px;
+  border-radius: 14px;
+  border: none;
+  background: var(--accent);
+  color: #0c1410;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button.primary:active { transform: scale(0.98); }
+
+.hint {
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  margin-top: 14px;
+  line-height: 1.4;
+}
+
+/* ---------- Game ---------- */
+
+#screen-game { padding-left: 12px; padding-right: 12px; }
+
+.hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 6px 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-left {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+
+#hud-progress, #mow-progress {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+#hud-remaining, #mow-remaining {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+#hud-timer, #mow-timer {
+  font-size: 1.1rem;
+  color: var(--text-dim);
+}
+
+#field-wrap {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+#field {
+  border-radius: 16px;
+  box-shadow: 0 0 0 1px #24352a, 0 10px 30px rgba(0,0,0,0.5);
+  touch-action: none;
+}
+
+.blackout-panel {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  border-radius: 16px;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+}
+
+.blackout-panel.active { display: flex; }
+
+#race-wrap .blackout-panel, #mow-wrap .blackout-panel { border-radius: 0; }
+
+.blackout-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #1a2a20;
+  margin-bottom: 18px;
+}
+
+.blackout-msg {
+  color: #1f3327;
+  font-size: 0.78rem;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.blackout-msg span { display: block; font-size: 0.7rem; margin-top: 4px; }
+
+.controls {
+  display: flex;
+  gap: 8px;
+  padding-top: 14px;
+}
+
+.controls button {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 4px;
+  border-radius: 12px;
+  border: 1px solid #2a3b2f;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: opacity 0.3s;
+}
+
+.controls button span {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+}
+
+.controls button.on {
+  border-color: var(--accent);
+  background: var(--green-dark);
+}
+
+body.blackout-mode .controls button:not(.btn-blackout-toggle) {
+  opacity: 0.12;
+}
+
+body.blackout-mode .btn-blackout-toggle {
+  opacity: 0.35;
+}
+
+/* ---------- Race & first-person mowing ---------- */
+
+#screen-race, #screen-mow { padding-left: 12px; padding-right: 12px; }
+#screen-mow-menu { overflow-y: auto; }
+#screen-mow-menu h1 { text-align: center; font-size: 1.8rem; margin: 12px 0 4px; }
+
+#race-pos, #race-speed { color: var(--text-dim); font-size: 0.85rem; }
+#race-lap { font-size: 1.1rem; font-weight: 700; color: var(--accent); margin-right: 10px; }
+#race-timer { font-size: 1.1rem; color: var(--text-dim); }
+
+#race-wrap, #mow-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px #24352a, 0 10px 30px rgba(0,0,0,0.5);
+}
+
+#race-wrap:focus, #mow-wrap:focus { outline: none; }
+
+#race-field, #mow-field {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+/* ---------- Win ---------- */
+
+#screen-win {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 6px;
+}
+
+#screen-win h1 { font-size: 1.6rem; margin-bottom: 8px; }
+#screen-win p { color: var(--text-dim); margin: 2px 0; }
+#screen-win button { margin-top: 14px; width: 100%; max-width: 320px; }
+#btn-back-menu {
+  background: transparent;
+  border: 1px solid #2a3b2f;
+  color: var(--text-dim);
+  padding: 14px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ MODE SELECT ============ -->
+  <section id="screen-mode" class="screen active">
+    <h1>🎮 Giochi Tattili</h1>
+    <p class="subtitle">Tre giochi pensati per essere sentiti, non solo visti. Provali anche a schermo spento.</p>
+    <button type="button" class="mode-card" id="pick-prato">
+      <span class="mode-emoji">🌀</span>
+      <span class="mode-title">Prato a Spirale</span>
+      <span class="mode-desc">Taglia l'erba a tocchi, senti la texture del terreno sotto le dita.</span>
+    </button>
+    <button type="button" class="mode-card" id="pick-gara">
+      <span class="mode-emoji">🏎️</span>
+      <span class="mode-title">Gara alla Cieca</span>
+      <span class="mode-desc">Guida in prima persona: inclina per sterzare, trascina per accelerare.</span>
+    </button>
+    <button type="button" class="mode-card" id="pick-mow">
+      <span class="mode-emoji">🚜</span>
+      <span class="mode-title">Prato alla Cieca</span>
+      <span class="mode-desc">I due giochi incrociati: segui la spirale dal sedile del trattorino, guidato dalle vibrazioni.</span>
+    </button>
+  </section>
+
+  <!-- ============ PRATO: settings ============ -->
+  <section id="screen-menu" class="screen">
+    <button type="button" class="back-btn" data-back="screen-mode">← Giochi</button>
+    <h1>🌀 Prato a Spirale</h1>
+    <p class="subtitle">Un tosaerba tutto da sentire. Puoi giocarlo anche a occhi chiusi, solo con le vibrazioni.</p>
+
+    <div class="option-group">
+      <h2>Terreno</h2>
+      <div class="options" data-group="terrain">
+        <button type="button" data-value="secco" class="opt selected">🌾 Erba secca</button>
+        <button type="button" data-value="bagnato" class="opt">💧 Erba bagnata</button>
+        <button type="button" data-value="misto" class="opt">🪨 Misto (sassi)</button>
+      </div>
+    </div>
+
+    <div class="option-group">
+      <h2>Dimensione prato</h2>
+      <div class="options" data-group="size">
+        <button type="button" data-value="8" class="opt selected">Piccolo</button>
+        <button type="button" data-value="12" class="opt">Medio</button>
+        <button type="button" data-value="16" class="opt">Grande</button>
+      </div>
+    </div>
+
+    <p class="hint">👣 Tocca per avanzare di una zolla, scorri per girare. Tocchi ritmici ti fanno avanzare più veloce.</p>
+
+    <button type="button" id="btn-start" class="primary">Inizia a tagliare l'erba</button>
+    <p class="hint" id="vibe-hint"></p>
+  </section>
+
+  <!-- ============ PRATO: game ============ -->
+  <section id="screen-game" class="screen">
+    <header class="hud">
+      <div class="hud-left">
+        <span id="hud-progress">0%</span>
+        <span id="hud-remaining">0 zolle</span>
+      </div>
+      <div class="hud-right">
+        <span id="hud-timer">00:00</span>
+      </div>
+    </header>
+
+    <div id="field-wrap">
+      <canvas id="field"></canvas>
+      <div id="blackout" class="blackout-panel">
+        <div class="blackout-dot"></div>
+        <p class="blackout-msg">Schermo spento — continua pure a tagliare<br><span>Doppio tocco per riaccendere</span></p>
+      </div>
+    </div>
+
+    <footer class="controls">
+      <button type="button" id="btn-blackout" class="btn-blackout-toggle" title="Spegni schermo">🌑<span>Nero</span></button>
+      <button type="button" id="btn-sound" title="Audio">🔊<span>Audio</span></button>
+      <button type="button" id="btn-menu" title="Menu">☰<span>Menu</span></button>
+    </footer>
+  </section>
+
+  <!-- ============ GARA: settings ============ -->
+  <section id="screen-race-menu" class="screen">
+    <button type="button" class="back-btn" data-back="screen-mode">← Giochi</button>
+    <h1>🏎️ Gara alla Cieca</h1>
+    <p class="subtitle">Inclina il telefono per sterzare. Appoggia il dito e <strong>tienilo</strong> spostato in alto per accelerare, in basso per frenare: più lo allontani, più spingi. Stacca il dito e rallenta. Fuori pista si affonda: più vai largo, meno spinge — ma appena rientri riprendi tutto.</p>
+
+    <div class="option-group">
+      <h2>Giri</h2>
+      <div class="options" data-group="laps">
+        <button type="button" data-value="1" class="opt">1</button>
+        <button type="button" data-value="3" class="opt selected">3</button>
+        <button type="button" data-value="5" class="opt">5</button>
+      </div>
+    </div>
+
+    <div class="option-group">
+      <h2>Avversari</h2>
+      <div class="options" data-group="opponents">
+        <button type="button" data-value="2" class="opt">2</button>
+        <button type="button" data-value="4" class="opt selected">4</button>
+        <button type="button" data-value="6" class="opt">6</button>
+      </div>
+    </div>
+
+    <div class="option-group">
+      <h2>Contatto con le altre auto</h2>
+      <div class="options" data-group="collisions">
+        <button type="button" data-value="off" class="opt selected">👻 Ci passi attraverso</button>
+        <button type="button" data-value="on" class="opt">💥 Urti realistici</button>
+      </div>
+    </div>
+
+    <p class="hint">📱 Sul telefono: tieni il telefono in verticale, al via calibriamo lo zero sulla tua posizione. 🖥️ Su PC: frecce ← → (o A/D) per sterzare, ↑ ↓ (o W/S) per accelerare/frenare — oppure trascina il mouse.</p>
+
+    <button type="button" id="btn-race-start" class="primary">Parti!</button>
+    <p class="hint" id="tilt-hint"></p>
+  </section>
+
+  <!-- ============ GARA: race ============ -->
+  <section id="screen-race" class="screen">
+    <header class="hud">
+      <div class="hud-left">
+        <span id="race-lap">Giro 1/3</span>
+        <span id="race-pos">1°/5</span>
+      </div>
+      <div class="hud-right">
+        <span id="race-speed">0 km/h</span>
+        <span id="race-timer">00:00</span>
+      </div>
+    </header>
+
+    <div id="race-wrap" tabindex="0">
+      <canvas id="race-field"></canvas>
+      <div id="race-blackout" class="blackout-panel">
+        <div class="blackout-dot"></div>
+        <p class="blackout-msg">Schermo spento — guida coi sensi<br><span>Doppio tocco per riaccendere</span></p>
+      </div>
+    </div>
+
+    <footer class="controls">
+      <button type="button" id="btn-race-blackout" class="btn-blackout-toggle" title="Spegni schermo">🌑<span>Nero</span></button>
+      <button type="button" id="btn-race-recenter" title="Ricalibra sterzo">🎯<span>Centra</span></button>
+      <button type="button" id="btn-race-sound" title="Audio">🔊<span>Audio</span></button>
+      <button type="button" id="btn-race-menu" title="Menu">☰<span>Menu</span></button>
+    </footer>
+  </section>
+
+  <!-- ============ PRATO ALLA CIECA: settings ============ -->
+  <section id="screen-mow-menu" class="screen">
+    <button type="button" class="back-btn" data-back="screen-mode">← Giochi</button>
+    <h1>🚜 Prato alla Cieca</h1>
+    <p class="subtitle">La spirale del primo gioco, percorsa dal sedile del trattorino. Inclina per sterzare, appoggia il dito e <strong>tienilo</strong> spostato in alto per avanzare, in basso per fermarti e fare retromarcia.</p>
+
+    <div class="option-group">
+      <h2>Terreno</h2>
+      <div class="options" data-group="mowTerrain">
+        <button type="button" data-value="secco" class="opt selected">🌾 Erba secca</button>
+        <button type="button" data-value="bagnato" class="opt">💧 Erba bagnata</button>
+        <button type="button" data-value="misto" class="opt">🪨 Misto (sassi)</button>
+      </div>
+    </div>
+
+    <div class="option-group">
+      <h2>Dimensione prato</h2>
+      <div class="options" data-group="mowSize">
+        <button type="button" data-value="10" class="opt selected">Piccolo</button>
+        <button type="button" data-value="14" class="opt">Medio</button>
+        <button type="button" data-value="18" class="opt">Grande</button>
+      </div>
+    </div>
+
+    <div class="option-group">
+      <h2>Guida sulla spirale</h2>
+      <div class="options" data-group="mowRadar">
+        <button type="button" data-value="on" class="opt selected">📡 Tocco a ogni giro</button>
+        <button type="button" data-value="off" class="opt">🤫 Solo il motore</button>
+      </div>
+    </div>
+
+    <p class="hint">🌀 Il prato è ovale e la pista è una spirale sola, dal bordo al centro. Bordi invisibili ti tengono dentro: non puoi saltare zolle né farle in ordine diverso. Sfiorare il bordo non costa quasi niente, ma più spingi fuori più il trattorino affonda — e appena rientri torna veloce. Più sei preciso, meno tempo ci metti. Ogni giro chiuso è un tocco più acuto del precedente.</p>
+    <p class="hint">🌱 Il taglio è largo una zolla: grattugia sull'erba alta, silenzio su quella già tagliata, click quando affianchi la passata precedente.</p>
+
+    <button type="button" id="btn-mow-start" class="primary">Sali sul trattorino</button>
+    <p class="hint" id="mow-hint"></p>
+  </section>
+
+  <!-- ============ PRATO ALLA CIECA: game ============ -->
+  <section id="screen-mow" class="screen">
+    <header class="hud">
+      <div class="hud-left">
+        <span id="mow-progress">0%</span>
+        <span id="mow-remaining">0 zolle</span>
+      </div>
+      <div class="hud-right">
+        <span id="mow-timer">00:00</span>
+      </div>
+    </header>
+
+    <div id="mow-wrap" tabindex="0">
+      <canvas id="mow-field"></canvas>
+      <div id="mow-blackout" class="blackout-panel">
+        <div class="blackout-dot"></div>
+        <p class="blackout-msg">Schermo spento — taglia a sentimento<br><span>Doppio tocco per riaccendere</span></p>
+      </div>
+    </div>
+
+    <footer class="controls">
+      <button type="button" id="btn-mow-blackout" class="btn-blackout-toggle" title="Spegni schermo">🌑<span>Nero</span></button>
+      <button type="button" id="btn-mow-recenter" title="Ricalibra sterzo">🎯<span>Centra</span></button>
+      <button type="button" id="btn-mow-sound" title="Audio">🔊<span>Audio</span></button>
+      <button type="button" id="btn-mow-menu" title="Menu">☰<span>Menu</span></button>
+    </footer>
+  </section>
+
+  <!-- ============ WIN (shared) ============ -->
+  <section id="screen-win" class="screen">
+    <h1 id="win-title">Fatto! 🌿</h1>
+    <p id="win-time"></p>
+    <p id="win-best"></p>
+    <button type="button" id="btn-again" class="primary">Ancora</button>
+    <button type="button" id="btn-back-menu">Torna ai giochi</button>
+  </section>
+
+</div>
+<script>
+(function () {
+  'use strict';
+
+  // ================= Helpers =================
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function easeInOut(a, b, t) { return a + (b - a) * ((1 - Math.cos(t * Math.PI)) / 2); }
+  function formatTime(ms) {
+    const s = Math.floor(ms / 1000);
+    const mm = String(Math.floor(s / 60)).padStart(2, '0');
+    const ss = String(s % 60).padStart(2, '0');
+    return mm + ':' + ss;
+  }
+
+  // ================= DOM =================
+  const screens = {
+    'screen-mode': document.getElementById('screen-mode'),
+    'screen-menu': document.getElementById('screen-menu'),
+    'screen-game': document.getElementById('screen-game'),
+    'screen-race-menu': document.getElementById('screen-race-menu'),
+    'screen-race': document.getElementById('screen-race'),
+    'screen-mow-menu': document.getElementById('screen-mow-menu'),
+    'screen-mow': document.getElementById('screen-mow'),
+    'screen-win': document.getElementById('screen-win'),
+  };
+  function showScreen(name) {
+    Object.values(screens).forEach((s) => s.classList.remove('active'));
+    screens[name].classList.add('active');
+  }
+
+  document.getElementById('pick-prato').addEventListener('click', () => showScreen('screen-menu'));
+  document.getElementById('pick-gara').addEventListener('click', () => showScreen('screen-race-menu'));
+  document.getElementById('pick-mow').addEventListener('click', () => showScreen('screen-mow-menu'));
+  document.querySelectorAll('.back-btn').forEach((b) => {
+    b.addEventListener('click', () => showScreen(b.dataset.back));
+  });
+
+  const winTitleEl = document.getElementById('win-title');
+  const winTimeEl = document.getElementById('win-time');
+  const winBestEl = document.getElementById('win-best');
+  const btnAgain = document.getElementById('btn-again');
+  const btnBackMenu = document.getElementById('btn-back-menu');
+  let currentMode = 'prato';
+
+  // ================= Settings =================
+  const settings = {
+    terrain: 'secco', size: 8,
+    laps: 3, opponents: 4, collisions: 'off',
+    mowTerrain: 'secco', mowSize: 10, mowRadar: 'on',
+  };
+  const NUMERIC_SETTINGS = ['size', 'laps', 'opponents', 'mowSize'];
+
+  document.querySelectorAll('.options').forEach((group) => {
+    const key = group.dataset.group;
+    group.addEventListener('click', (e) => {
+      const btn = e.target.closest('.opt');
+      if (!btn) return;
+      group.querySelectorAll('.opt').forEach((b) => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      const numeric = NUMERIC_SETTINGS.indexOf(key) !== -1;
+      settings[key] = numeric ? parseInt(btn.dataset.value, 10) : btn.dataset.value;
+    });
+  });
+
+  const hasVibration = 'vibrate' in navigator;
+  const vibeMsg = hasVibration
+    ? '📳 Vibrazione attiva su questo dispositivo. Prova a giocare con lo schermo spento!'
+    : '🔇 Questo dispositivo non supporta la vibrazione (es. iPhone): userai l\'audio come feedback aptico. Tienilo con te, non serve guardarlo.';
+  document.getElementById('vibe-hint').textContent = vibeMsg;
+  document.getElementById('mow-hint').textContent = vibeMsg;
+
+  const hasTilt = typeof window.DeviceOrientationEvent !== 'undefined';
+  document.getElementById('tilt-hint').textContent = hasTilt
+    ? (typeof DeviceOrientationEvent.requestPermission === 'function'
+        ? '📲 Ti chiederemo il permesso di usare i sensori di movimento al via.'
+        : '📲 Sterzo a inclinazione pronto. Se il telefono non risponde, useremo il dito sullo schermo.')
+    : '🖐️ Questo dispositivo non ha sensori di inclinazione: sterza trascinando il dito a destra e sinistra.';
+
+  function vib(pattern) {
+    if (hasVibration) {
+      try { navigator.vibrate(pattern); } catch (e) { /* ignore */ }
+    }
+  }
+
+  // ================= Audio (haptic fallback / companion) =================
+  const AudioFX = (function () {
+    let ctxA = null;
+    let noiseBuf = null;
+    let enabled = true;
+    let engine = null;
+
+    function ensure() {
+      if (!ctxA) {
+        ctxA = new (window.AudioContext || window.webkitAudioContext)();
+        const len = ctxA.sampleRate * 1;
+        noiseBuf = ctxA.createBuffer(1, len, ctxA.sampleRate);
+        const data = noiseBuf.getChannelData(0);
+        for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+      }
+      if (ctxA.state === 'suspended') ctxA.resume();
+    }
+
+    // stereo placement is a real cue when playing blind — it tells you which
+    // side of the machine something happened on
+    function connectOut(node, pan) {
+      if (pan && ctxA.createStereoPanner) {
+        const panner = ctxA.createStereoPanner();
+        panner.pan.value = clamp(pan, -1, 1);
+        node.connect(panner);
+        panner.connect(ctxA.destination);
+      } else {
+        node.connect(ctxA.destination);
+      }
+    }
+
+    function noiseBurst({ freq = 2000, q = 1, duration = 0.02, volume = 0.25, delay = 0, pan = 0 }) {
+      if (!enabled) return;
+      ensure();
+      const t0 = ctxA.currentTime + delay;
+      const src = ctxA.createBufferSource();
+      src.buffer = noiseBuf;
+      const filter = ctxA.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.value = freq;
+      filter.Q.value = q;
+      const gain = ctxA.createGain();
+      gain.gain.setValueAtTime(0, t0);
+      gain.gain.linearRampToValueAtTime(volume, t0 + 0.004);
+      gain.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
+      filter.connect(gain);
+      connectOut(gain, pan);
+      src.connect(filter);
+      src.start(t0);
+      src.stop(t0 + duration + 0.02);
+    }
+
+    function thud({ freq = 90, duration = 0.09, volume = 0.35, delay = 0 }) {
+      if (!enabled) return;
+      ensure();
+      const t0 = ctxA.currentTime + delay;
+      const osc = ctxA.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t0);
+      osc.frequency.exponentialRampToValueAtTime(freq * 0.6, t0 + duration);
+      const gain = ctxA.createGain();
+      gain.gain.setValueAtTime(volume, t0);
+      gain.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
+      osc.connect(gain).connect(ctxA.destination);
+      osc.start(t0);
+      osc.stop(t0 + duration + 0.02);
+    }
+
+    function tone({ freq = 600, duration = 0.12, volume = 0.2, delay = 0, type = 'sine', pan = 0 }) {
+      if (!enabled) return;
+      ensure();
+      const t0 = ctxA.currentTime + delay;
+      const osc = ctxA.createOscillator();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, t0);
+      const gain = ctxA.createGain();
+      gain.gain.setValueAtTime(0, t0);
+      gain.gain.linearRampToValueAtTime(volume, t0 + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
+      osc.connect(gain);
+      connectOut(gain, pan);
+      osc.start(t0);
+      osc.stop(t0 + duration + 0.02);
+    }
+
+    // A racing car and a lawn tractor are the same synth with different
+    // numbers: the profile is what makes one scream and the other putter.
+    const ENGINE_CAR = { type: 'sawtooth', freq: 60, freqSpan: 160, filt: 300, filtSpan: 1200, gain: 0.05, gainSpan: 0.12, gainMax: 0.2 };
+
+    function engineStart(profile) {
+      ensure();
+      if (engine) return;
+      const p = Object.assign({}, ENGINE_CAR, profile || {});
+      const osc = ctxA.createOscillator();
+      osc.type = p.type;
+      osc.frequency.value = p.freq;
+      const filt = ctxA.createBiquadFilter();
+      filt.type = 'lowpass';
+      filt.frequency.value = p.filt;
+      const gain = ctxA.createGain();
+      gain.gain.value = 0;
+      osc.connect(filt).connect(gain).connect(ctxA.destination);
+      osc.start();
+      engine = { osc, filt, gain, p };
+    }
+
+    function engineUpdate(speedRatio) {
+      if (!engine) return;
+      const now = ctxA.currentTime;
+      const p = engine.p;
+      const targetGain = enabled ? clamp(p.gain + speedRatio * p.gainSpan, 0, p.gainMax) : 0;
+      engine.gain.gain.setTargetAtTime(targetGain, now, 0.08);
+      engine.osc.frequency.setTargetAtTime(p.freq + speedRatio * p.freqSpan, now, 0.1);
+      engine.filt.frequency.setTargetAtTime(p.filt + speedRatio * p.filtSpan, now, 0.1);
+    }
+
+    function engineStop() {
+      if (!engine) return;
+      try { engine.gain.gain.setTargetAtTime(0, ctxA.currentTime, 0.05); engine.osc.stop(ctxA.currentTime + 0.3); } catch (e) { /* ignore */ }
+      engine = null;
+    }
+
+    return {
+      ensure, noiseBurst, thud, tone, engineStart, engineUpdate, engineStop,
+      setEnabled(v) { enabled = v; if (!v) engineUpdate(0); },
+      isEnabled: () => enabled,
+    };
+  })();
+
+  const soundButtons = ['btn-sound', 'btn-race-sound', 'btn-mow-sound'].map((id) => document.getElementById(id));
+  function syncSoundButtons() {
+    const on = AudioFX.isEnabled();
+    soundButtons.forEach((btn) => {
+      btn.classList.toggle('on', on);
+      btn.innerHTML = on ? '🔊<span>Audio</span>' : '🔈<span>Muto</span>';
+    });
+  }
+  function toggleSound() { AudioFX.setEnabled(!AudioFX.isEnabled()); syncSoundButtons(); }
+  soundButtons.forEach((btn) => btn.addEventListener('click', toggleSound));
+
+  /* ================= Steering input (shared by both driving games) =================
+     Tilt and keyboard are hardware, not game state: the race and the mower
+     read the same plumbing. Each game owns its own pointer handlers, because
+     those hang off its own canvas. */
+
+  let tiltAvailable = false, tiltZero = null, lastRawGamma = 0, orientationReceived = false;
+  let steerActive = false;   // true only while a driving game is on screen
+  const keyState = { left: false, right: false, up: false, down: false };
+
+  function requestTiltPermission() {
+    if (hasTilt && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      return DeviceOrientationEvent.requestPermission().then((state) => state === 'granted').catch(() => false);
+    }
+    return Promise.resolve(hasTilt);
+  }
+
+  function onOrientation(e) {
+    if (e.gamma === null || e.gamma === undefined) return;
+    orientationReceived = true;
+    lastRawGamma = e.gamma;
+    if (tiltZero === null) tiltZero = e.gamma;
+  }
+
+  function stopOrientationListener() {
+    window.removeEventListener('deviceorientation', onOrientation);
+  }
+
+  // Ask for the sensors, fall back to the finger if nothing arrives in time.
+  function beginTilt() {
+    return requestTiltPermission().then((granted) => {
+      tiltAvailable = granted;
+      tiltZero = null; orientationReceived = false;
+      if (granted) {
+        window.addEventListener('deviceorientation', onOrientation);
+        setTimeout(() => {
+          if (!orientationReceived) { tiltAvailable = false; stopOrientationListener(); }
+        }, 1200);
+      }
+    });
+  }
+
+  // Match on e.code as well as e.key: code is layout independent, and key can
+  // be missing or unexpected depending on keyboard layout and focused element.
+  function applyKey(e, down) {
+    const k = e.key || '';
+    const c = e.code || '';
+    let hit = false;
+    if (k === 'ArrowLeft' || c === 'ArrowLeft' || k === 'a' || k === 'A' || c === 'KeyA') { keyState.left = down; hit = true; }
+    if (k === 'ArrowRight' || c === 'ArrowRight' || k === 'd' || k === 'D' || c === 'KeyD') { keyState.right = down; hit = true; }
+    if (k === 'ArrowUp' || c === 'ArrowUp' || k === 'w' || k === 'W' || c === 'KeyW') { keyState.up = down; hit = true; }
+    if (k === 'ArrowDown' || c === 'ArrowDown' || k === 's' || k === 'S' || c === 'KeyS') { keyState.down = down; hit = true; }
+    return hit;
+  }
+
+  function clearKeys() { keyState.left = keyState.right = keyState.up = keyState.down = false; }
+
+  // Capture phase on window is the very first point in the event path, so the
+  // game receives the key whatever element happens to hold focus.
+  window.addEventListener('keydown', (e) => {
+    if (!steerActive) return;
+    if (applyKey(e, true) && e.cancelable) e.preventDefault(); // don't scroll the page
+  }, true);
+  window.addEventListener('keyup', (e) => { applyKey(e, false); }, true);
+  // a key held while tabbing away would otherwise stay stuck down for ever
+  window.addEventListener('blur', clearKeys);
+
+  /* ============================================================ */
+  /* =====================  PRATO A SPIRALE  ===================== */
+  /* ============================================================ */
+
+  const canvas = document.getElementById('field');
+  const ctx = canvas.getContext('2d');
+  const blackoutEl = document.getElementById('blackout');
+  const fieldWrap = document.getElementById('field-wrap');
+  const hudProgress = document.getElementById('hud-progress');
+  const hudRemaining = document.getElementById('hud-remaining');
+  const hudTimer = document.getElementById('hud-timer');
+  const btnBlackout = document.getElementById('btn-blackout');
+  const btnMenu = document.getElementById('btn-menu');
+  const btnStart = document.getElementById('btn-start');
+
+  const Haptics = {
+    grass(terrain, urgency) {
+      const u = clamp(urgency, 0, 1);
+      if (terrain === 'bagnato') {
+        const len = Math.round(16 - u * 4);
+        const gap = Math.round(12 - u * 4);
+        vib([len, gap, len]);
+        AudioFX.noiseBurst({ freq: 380, q: 1.2, duration: 0.05, volume: 0.22 });
+      } else {
+        const count = 3 + Math.round(u * 3);
+        const pattern = [];
+        for (let i = 0; i < count; i++) pattern.push(4, 5);
+        vib(pattern);
+        AudioFX.noiseBurst({ freq: 2600, q: 3, duration: 0.018, volume: 0.16 });
+        if (terrain === 'misto') AudioFX.noiseBurst({ freq: 1400, q: 2, duration: 0.02, volume: 0.1, delay: 0.01 });
+      }
+    },
+    edgeClick() {
+      vib([4, 20, 10]);
+      AudioFX.noiseBurst({ freq: 3400, q: 6, duration: 0.012, volume: 0.18 });
+    },
+    border() {
+      vib([55]);
+      AudioFX.thud({ freq: 90, duration: 0.09, volume: 0.32 });
+    },
+    obstacle() {
+      vib([10, 10, 10, 10, 60]);
+      AudioFX.noiseBurst({ freq: 700, q: 0.7, duration: 0.05, volume: 0.3 });
+      AudioFX.thud({ freq: 60, duration: 0.07, volume: 0.25, delay: 0.04 });
+    },
+    win() {
+      const pattern = [];
+      for (let i = 0; i < 6; i++) pattern.push(8 + i * 5, 26 - i * 2);
+      pattern.push(180);
+      vib(pattern);
+      for (let i = 0; i < 5; i++) AudioFX.tone({ freq: 440 + i * 90, duration: 0.1, volume: 0.15, delay: i * 0.08 });
+      AudioFX.thud({ freq: 130, duration: 0.35, volume: 0.35, delay: 0.5 });
+    },
+  };
+
+  let cols = 8, rows = 8, cellPx = 0, dpr = 1;
+  let cells = []; // 0=uncut grass, 1=cut, 2=obstacle
+  let totalMowable = 0, cutCount = 0;
+  let mowerCol = 0, mowerRow = 0;
+  let facing = 'right';
+  let edgeFlag = false, obstacleFlag = false;
+  let startTime = 0, timerInterval = null, running = false;
+  let lastTapTime = 0;
+  let pointerDownInfo = null;
+
+  const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+
+  function idx(c, r) { return r * cols + c; }
+  function inBounds(c, r) { return c >= 0 && c < cols && r >= 0 && r < rows; }
+
+  function buildGrid() {
+    cols = rows = settings.size;
+    cells = new Array(cols * rows).fill(0);
+    if (settings.terrain === 'misto') {
+      const obstacleCount = Math.round(cols * rows * 0.08);
+      let placed = 0;
+      while (placed < obstacleCount) {
+        const c = Math.floor(Math.random() * cols);
+        const r = Math.floor(Math.random() * rows);
+        const cx = Math.floor(cols / 2), cy = Math.floor(rows / 2);
+        if ((c === cx && r === cy) || (c === 0 && r === 0)) continue;
+        if (cells[idx(c, r)] === 2) continue;
+        cells[idx(c, r)] = 2;
+        placed++;
+      }
+    }
+    totalMowable = cells.filter((v) => v !== 2).length;
+    mowerCol = 0; mowerRow = 0;
+    cells[idx(mowerCol, mowerRow)] = 1;
+    cutCount = 1;
+    facing = 'right';
+    edgeFlag = false; obstacleFlag = false;
+  }
+
+  function resizeCanvas() {
+    const size = Math.floor(Math.min(fieldWrap.clientWidth, fieldWrap.clientHeight));
+    dpr = window.devicePixelRatio || 1;
+    canvas.style.width = size + 'px';
+    canvas.style.height = size + 'px';
+    canvas.width = Math.floor(size * dpr);
+    canvas.height = Math.floor(size * dpr);
+    cellPx = size / cols;
+    render();
+  }
+
+  function speck(c, r, n) {
+    const x = Math.sin(c * 127.1 + r * 311.7 + n * 74.3) * 43758.5453;
+    return x - Math.floor(x);
+  }
+
+  function render() {
+    if (blackoutActive) return;
+    const w = canvas.width, h = canvas.height;
+    ctx.save();
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, w / dpr, h / dpr);
+    const px = cellPx;
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const v = cells[idx(c, r)];
+        const x = c * px, y = r * px;
+        if (v === 2) {
+          ctx.fillStyle = '#26201c';
+          ctx.fillRect(x, y, px, px);
+          ctx.fillStyle = '#4a4038';
+          ctx.beginPath();
+          ctx.arc(x + px * 0.5, y + px * 0.5, px * 0.28, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (v === 1) {
+          ctx.fillStyle = (r % 2 === 0) ? '#356b3e' : '#2f6238';
+          ctx.fillRect(x, y, px, px);
+        } else {
+          ctx.fillStyle = '#173420';
+          ctx.fillRect(x, y, px, px);
+          ctx.fillStyle = 'rgba(255,255,255,0.05)';
+          for (let n = 0; n < 4; n++) {
+            const sx = x + speck(c, r, n) * px;
+            const sy = y + speck(c, r, n + 10) * px;
+            ctx.fillRect(sx, sy, 1.5, 1.5);
+          }
+        }
+      }
+    }
+
+    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+    ctx.lineWidth = 1;
+    for (let c = 0; c <= cols; c++) { ctx.beginPath(); ctx.moveTo(c * px, 0); ctx.lineTo(c * px, rows * px); ctx.stroke(); }
+    for (let r = 0; r <= rows; r++) { ctx.beginPath(); ctx.moveTo(0, r * px); ctx.lineTo(cols * px, r * px); ctx.stroke(); }
+
+    const mx = mowerCol * px + px / 2, my = mowerRow * px + px / 2;
+    ctx.fillStyle = '#e7f3ea';
+    ctx.beginPath(); ctx.arc(mx, my, px * 0.32, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#0c1410';
+    ctx.beginPath();
+    const d = DIRS[facing];
+    ctx.moveTo(mx + d[0] * px * 0.32, my + d[1] * px * 0.32);
+    ctx.arc(mx, my, px * 0.1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function updateHud() {
+    const pct = Math.round((cutCount / totalMowable) * 100);
+    hudProgress.textContent = pct + '%';
+    hudRemaining.textContent = (totalMowable - cutCount) + ' zolle';
+  }
+
+  function startTimer() {
+    startTime = Date.now();
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => { hudTimer.textContent = formatTime(Date.now() - startTime); }, 250);
+  }
+
+  function urgency() { return 1 - (totalMowable - cutCount) / totalMowable; }
+
+  function processPath(path) {
+    let moved = false;
+    let hitObstacle = false;
+    for (const [c, r] of path) {
+      if (cells[idx(c, r)] === 2) { hitObstacle = true; break; }
+      mowerCol = c; mowerRow = r;
+      moved = true;
+      const cellVal = cells[idx(c, r)];
+      if (cellVal === 0) {
+        const adjacentCut =
+          (inBounds(c - 1, r) && cells[idx(c - 1, r)] === 1) ||
+          (inBounds(c + 1, r) && cells[idx(c + 1, r)] === 1) ||
+          (inBounds(c, r - 1) && cells[idx(c, r - 1)] === 1) ||
+          (inBounds(c, r + 1) && cells[idx(c, r + 1)] === 1);
+        cells[idx(c, r)] = 1;
+        cutCount++;
+        if (adjacentCut) Haptics.edgeClick(); else Haptics.grass(settings.terrain, urgency());
+      }
+    }
+    if (hitObstacle) { if (!obstacleFlag) { Haptics.obstacle(); obstacleFlag = true; } } else { obstacleFlag = false; }
+    if (moved) {
+      edgeFlag = false;
+      render();
+      updateHud();
+      if (cutCount >= totalMowable) endGame();
+    }
+    return moved;
+  }
+
+  function clampCell(c, r) {
+    const cc = Math.max(0, Math.min(cols - 1, c));
+    const rr = Math.max(0, Math.min(rows - 1, r));
+    return [cc, rr, cc !== c || rr !== r];
+  }
+
+  function facingFromDelta(dx, dy) {
+    if (dx === 0 && dy === 0) return null;
+    if (Math.abs(dx) > Math.abs(dy)) return dx > 0 ? 'right' : 'left';
+    return dy > 0 ? 'down' : 'up';
+  }
+
+  function stepForward(n) {
+    const path = [];
+    let c = mowerCol, r = mowerRow;
+    for (let i = 0; i < n; i++) {
+      const d = DIRS[facing];
+      const [cc, rr, clamped] = clampCell(c + d[0], r + d[1]);
+      if (clamped) { if (!edgeFlag) { Haptics.border(); edgeFlag = true; } break; }
+      path.push([cc, rr]); c = cc; r = rr;
+    }
+    if (path.length) processPath(path);
+  }
+
+  function turnTo(dir) { facing = dir; render(); }
+
+  fieldWrap.addEventListener('pointerdown', (e) => {
+    if (!running) return;
+    AudioFX.ensure();
+    try { fieldWrap.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+    pointerDownInfo = { x: e.clientX, y: e.clientY, t: Date.now(), moved: false };
+  });
+
+  fieldWrap.addEventListener('pointermove', (e) => {
+    if (!running || !pointerDownInfo) return;
+    const dx = e.clientX - pointerDownInfo.x, dy = e.clientY - pointerDownInfo.y;
+    if (Math.hypot(dx, dy) > 8) pointerDownInfo.moved = true;
+  });
+
+  fieldWrap.addEventListener('pointerup', (e) => {
+    if (!running || !pointerDownInfo) return;
+    const info = pointerDownInfo;
+    pointerDownInfo = null;
+    const dx = e.clientX - info.x, dy = e.clientY - info.y;
+    const dt = Date.now() - info.t;
+    const dist = Math.hypot(dx, dy);
+    if (dist > 30 && dt < 600) { turnTo(facingFromDelta(dx, dy)); return; }
+    if (!info.moved && dt < 350) {
+      const now = Date.now();
+      const rhythmic = now - lastTapTime < 380;
+      lastTapTime = now;
+      stepForward(rhythmic ? 2 : 1);
+    }
+  });
+
+  let lastBlackoutTap = 0;
+  blackoutEl.addEventListener('pointerdown', () => {
+    const now = Date.now();
+    if (now - lastBlackoutTap < 350) setBlackout(false);
+    lastBlackoutTap = now;
+  });
+
+  let blackoutActive = false;
+  function setBlackout(on) {
+    blackoutActive = on;
+    blackoutEl.classList.toggle('active', on);
+    document.body.classList.toggle('blackout-mode', on);
+    if (!on) render();
+  }
+  btnBlackout.addEventListener('click', () => setBlackout(!blackoutActive));
+
+  function startGame() {
+    currentMode = 'prato';
+    buildGrid();
+    setBlackout(false);
+    showScreen('screen-game');
+    running = true;
+    requestAnimationFrame(() => { resizeCanvas(); });
+    updateHud();
+    startTimer();
+  }
+
+  function endGame() {
+    running = false;
+    clearInterval(timerInterval);
+    const elapsed = Date.now() - startTime;
+    Haptics.win();
+    const key = 'pratoSpirale_best_' + settings.terrain + '_' + settings.size;
+    const prevBest = parseInt(localStorage.getItem(key) || '0', 10);
+    let isBest = false;
+    if (!prevBest || elapsed < prevBest) { localStorage.setItem(key, String(elapsed)); isBest = true; }
+    winTitleEl.textContent = 'Prato completato! 🌿';
+    winTimeEl.textContent = 'Tempo: ' + formatTime(elapsed);
+    winBestEl.textContent = isBest ? '🏆 Nuovo record per questo prato!' : 'Record: ' + formatTime(prevBest);
+    setTimeout(() => showScreen('screen-win'), 900);
+  }
+
+  btnStart.addEventListener('click', () => { AudioFX.ensure(); startGame(); });
+  btnMenu.addEventListener('click', () => { running = false; clearInterval(timerInterval); showScreen('screen-mode'); });
+
+  /* ============================================================ */
+  /* ======================  GARA ALLA CIECA  ===================== */
+  /* ============================================================ */
+
+  const raceCanvas = document.getElementById('race-field');
+  const raceCtx = raceCanvas.getContext('2d');
+  const raceWrap = document.getElementById('race-wrap');
+  const raceBlackoutEl = document.getElementById('race-blackout');
+  const btnRaceStart = document.getElementById('btn-race-start');
+  const btnRaceBlackout = document.getElementById('btn-race-blackout');
+  const btnRaceRecenter = document.getElementById('btn-race-recenter');
+  const btnRaceMenu = document.getElementById('btn-race-menu');
+  const raceLapEl = document.getElementById('race-lap');
+  const racePosEl = document.getElementById('race-pos');
+  const raceSpeedEl = document.getElementById('race-speed');
+  const raceTimerEl = document.getElementById('race-timer');
+
+  const SEG_LEN = 200;
+  const ROAD_HALF_WIDTH = 1000;
+  const CAMERA_HEIGHT = 1000;
+  const CAMERA_DEPTH = 1 / Math.tan((100 / 2) * Math.PI / 180);
+  const DRAW_DISTANCE = 130;
+  const MAX_SPEED = 9000;
+  const THROTTLE_ACCEL = 6000;
+  const BRAKE_DECEL = 7000;
+  const THROTTLE_RANGE = 90;      // px from the touch anchor for full throttle
+  const COAST_FRICTION = 3200;
+  const MIN_STEER_AUTHORITY = 0.4; // you can always steer back onto the tarmac
+  const CURVE_PULL = 0.18;        // centrifugal push toward the outside of a bend
+  const FIELD_LIMIT = 8;          // you may drive right off the track; this only
+                                  // stops the camera wandering off to infinity
+  /* Off the tarmac the car bogs down: the further out, the lower the speed it
+     will hold, and the moment a wheel is back on the black stuff the cap goes
+     straight back up and it pulls away again. OFFROAD_DRAG is how hard the
+     verge scrubs the speed off — a cap alone would stop the car dead as it
+     crossed the white line. */
+  const OFFROAD_GRIP_LOSS = 0.68; // fraction of top speed lost once properly off
+  const OFFROAD_FULL = 2;         // road half-widths past the edge for the full loss:
+                                  // spread over FIELD_LIMIT instead, putting a wheel
+                                  // on the grass cost 1% and nobody would ever feel it
+  const OFFROAD_DRAG = 9500;      // MUST beat THROTTLE_ACCEL, or the throttle simply
+                                  // out-runs the cap and the verge costs nothing
+  const COLLISION_Z = 260;
+  const COLLISION_X = 0.5;
+  const MAX_HEADING = 0.45;       // rad — full steering lock relative to the track
+  const HEADING_EASE = 4.5;       // how fast the nose swings toward the target heading
+  const STEER_TRAVEL = 3.0;       // lateral travel per second at full lock, top speed
+  const MAX_ROLL = 0.36;          // how far the horizon banks at full lock
+  const SKY_SCROLL = 0.11;        // how fast the horizon sweeps through a bend
+  const YAW_VIEW = 0.4;           // how much of the crab angle the camera shows
+  const POST_EVERY = 5;           // roadside marker posts, in segments
+  const CAR_HALF_WIDTH = 300;     // world units, vs ROAD_HALF_WIDTH = 1000
+  const OPP_COLORS = ['#e0555f', '#4fa8e0', '#e0b84f', '#8f5fe0', '#4fe0a0', '#e08f4f'];
+
+  const RaceHaptics = {
+    edge(intensity) {
+      vib([Math.round(3 + intensity * 14)]);
+      AudioFX.noiseBurst({ freq: 500 + intensity * 300, q: 1, duration: 0.03, volume: 0.1 + intensity * 0.15 });
+    },
+    // grows with how far out you are, the same rule the mower's verge follows
+    offroad(intensity) {
+      const n = Math.round(10 + intensity * 16);
+      vib([n, 10, n, 10, n]);
+      AudioFX.noiseBurst({ freq: 200 + intensity * 90, q: 0.8, duration: 0.05 + intensity * 0.03, volume: 0.16 + intensity * 0.16 });
+    },
+    brush() {
+      vib([8, 12, 8]);
+      AudioFX.noiseBurst({ freq: 600, q: 1, duration: 0.04, volume: 0.14 });
+    },
+    wallHit() {
+      vib([70]);
+      AudioFX.thud({ freq: 55, duration: 0.15, volume: 0.42 });
+    },
+    passOpponent(side) {
+      AudioFX.noiseBurst({ freq: 900, q: 2, duration: 0.05, volume: 0.16, pan: side });
+      vib([6, 10, 6]);
+    },
+    countdownTick() {
+      vib([35]);
+      AudioFX.tone({ freq: 560, duration: 0.16, volume: 0.22 });
+    },
+    countdownGo() {
+      vib([30, 40, 160]);
+      AudioFX.tone({ freq: 1120, duration: 0.5, volume: 0.28 });
+    },
+    lap() {
+      vib([10, 20, 10, 20, 40]);
+      AudioFX.tone({ freq: 700, duration: 0.12, volume: 0.2 });
+      AudioFX.tone({ freq: 1000, duration: 0.14, volume: 0.18, delay: 0.1 });
+    },
+    finish() {
+      const pattern = [];
+      for (let i = 0; i < 6; i++) pattern.push(8 + i * 5, 26 - i * 2);
+      pattern.push(180);
+      vib(pattern);
+      for (let i = 0; i < 5; i++) AudioFX.tone({ freq: 440 + i * 90, duration: 0.1, volume: 0.15, delay: i * 0.08 });
+      AudioFX.thud({ freq: 130, duration: 0.35, volume: 0.35, delay: 0.5 });
+    },
+  };
+
+  let trackSegments = [], N = 1, trackWorldLength = 0;
+
+  function buildTrack() {
+    trackSegments = [];
+    function addSeg(curve) { trackSegments.push({ curve }); }
+    function addRoad(enter, hold, leave, curve) {
+      for (let i = 0; i < enter; i++) addSeg(easeInOut(0, curve, i / enter));
+      for (let i = 0; i < hold; i++) addSeg(curve);
+      for (let i = 0; i < leave; i++) addSeg(easeInOut(curve, 0, i / leave));
+    }
+    addRoad(50, 50, 50, 0);
+    addRoad(40, 70, 40, 3.2);
+    addRoad(60, 40, 60, 0);
+    addRoad(40, 70, 40, -3.2);
+    addRoad(30, 50, 30, 4.6);
+    addRoad(50, 60, 50, 0);
+
+    N = trackSegments.length;
+    trackWorldLength = N * SEG_LEN;
+  }
+
+  // The road is STRAIGHT in world space. Curvature is a rendering-time
+  // horizontal displacement that accumulates with distance ahead and restarts
+  // at zero at the car every frame, so the car stays aligned with the road.
+  // Baking the accumulation into world coordinates instead left the road
+  // running off diagonally for ever, leaving you perpendicular to it.
+  function segCurve(k) { return trackSegments[((k % N) + N) % N].curve; }
+
+  function curveAt(distance) {
+    return segCurve(Math.floor(Math.max(0, distance) / SEG_LEN));
+  }
+
+  let player = { x: 0, position: 0, speed: 0, lap: 0, roll: 0, heading: 0 };
+  let opponents = [];
+  let raceRunning = false, raceRAF = null, lastFrameTime = 0, hapticTickAccum = 0;
+  let countingDown = false, countdownStart = 0, lastCountdownStep = -1;
+  let skyOffset = 0;              // accumulated horizon sweep, in screen widths
+  let raceBlackoutActive = false;
+  let raceStartTime = 0, raceTotalDistance = 0;
+  let pointerActive = false, pointerAnchorY = 0, throttleAxis = 0, fallbackTargetX = 0;
+  let raceDpr = 1;
+
+  function resetPlayer() {
+    player = { x: 0, position: 0, speed: 0, lap: 0, roll: 0, heading: 0 };
+    fallbackTargetX = 0;
+    skyOffset = 0;
+  }
+
+  function buildOpponents() {
+    opponents = [];
+    const count = settings.opponents;
+    for (let i = 0; i < count; i++) {
+      const spacing = 900 + Math.random() * 500;
+      opponents.push({
+        distance: (i + 1) * spacing + 500,
+        centerX: ((i % 2 === 0) ? -1 : 1) * (0.3 + 0.15 * Math.floor(i / 2)),
+        x: 0,
+        baseSpeed: MAX_SPEED * (0.68 + Math.random() * 0.27),
+        wobbleFreq: 0.3 + Math.random() * 0.4,
+        seed: Math.random() * 10,
+        collideCooldown: 0,
+        prevRel: undefined,
+        color: OPP_COLORS[i % OPP_COLORS.length],
+      });
+    }
+  }
+
+  // acts as a steering wheel: how far the finger/mouse sits from the centre
+  function updateFallbackSteer(clientX) {
+    const rect = raceCanvas.getBoundingClientRect();
+    const t = ((clientX - rect.left) / rect.width) * 2 - 1;
+    fallbackTargetX = clamp(t * 1.6, -1, 1);
+  }
+
+  // The throttle is a HELD position, not a swipe: how far the finger sits
+  // above (accelerate) or below (brake) the point where it first touched.
+  // A swipe-based throttle can't out-run off-road friction — the finger
+  // runs out of screen before the car recovers.
+  raceWrap.addEventListener('pointerdown', (e) => {
+    if (!raceRunning) return;
+    AudioFX.ensure();
+    try { raceWrap.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+    pointerActive = true;
+    pointerAnchorY = e.clientY;
+    throttleAxis = 0;
+    if (!tiltAvailable) updateFallbackSteer(e.clientX);
+  });
+  raceWrap.addEventListener('pointermove', (e) => {
+    if (!raceRunning || !pointerActive) return;
+    throttleAxis = clamp((pointerAnchorY - e.clientY) / THROTTLE_RANGE, -1, 1);
+    if (!tiltAvailable) updateFallbackSteer(e.clientX);
+  });
+  // letting go releases both throttle and wheel
+  function releasePointer() { pointerActive = false; throttleAxis = 0; fallbackTargetX = 0; }
+  raceWrap.addEventListener('pointerup', releasePointer);
+  raceWrap.addEventListener('pointercancel', releasePointer);
+
+  let lastRaceBlackoutTap = 0;
+  raceBlackoutEl.addEventListener('pointerdown', () => {
+    const now = Date.now();
+    if (now - lastRaceBlackoutTap < 350) setRaceBlackout(false);
+    lastRaceBlackoutTap = now;
+  });
+
+  function setRaceBlackout(on) {
+    raceBlackoutActive = on;
+    raceBlackoutEl.classList.toggle('active', on);
+    document.body.classList.toggle('blackout-mode', on);
+  }
+  btnRaceBlackout.addEventListener('click', () => setRaceBlackout(!raceBlackoutActive));
+
+  btnRaceRecenter.addEventListener('click', () => {
+    if (tiltAvailable) tiltZero = lastRawGamma;
+    fallbackTargetX = 0;
+    if (Math.abs(player.x) > 1) player.x = 0;
+  });
+
+  function resizeRaceCanvas() {
+    const w = Math.floor(raceWrap.clientWidth);
+    const h = Math.floor(raceWrap.clientHeight);
+    raceDpr = window.devicePixelRatio || 1;
+    raceCanvas.style.width = w + 'px';
+    raceCanvas.style.height = h + 'px';
+    raceCanvas.width = Math.floor(w * raceDpr);
+    raceCanvas.height = Math.floor(h * raceDpr);
+  }
+
+  function projectPoint(worldX, worldZ, camX, camZ, camYaw, camDepth, width, height, halfWidth) {
+    const dz = worldZ - camZ;
+    // yaw the camera by the car's heading, so the road visibly swings
+    // across the view when turning rather than just drifting sideways
+    const lx = worldX - camX;
+    const sinY = Math.sin(camYaw), cosY = Math.cos(camYaw);
+    const xCam = lx * cosY - dz * sinY;
+    const zCam = lx * sinY + dz * cosY;
+    const clampedZ = zCam < 1 ? 1 : zCam;
+    const scale = camDepth / clampedZ;
+    return {
+      x: (width / 2) + scale * xCam * (width / 2),
+      y: (height / 2) + scale * CAMERA_HEIGHT * (height / 2),
+      w: scale * halfWidth * (width / 2),
+      scale, dz: zCam,
+    };
+  }
+
+  function segColor(idx2) {
+    const roadA = Math.floor(idx2 / 3) % 2 === 0;
+    const rumbleA = Math.floor(idx2 / 4) % 2 === 0;
+    const grassA = Math.floor(idx2 / 5) % 2 === 0;
+    return {
+      road: roadA ? '#5c5c5c' : '#545454',
+      rumble: rumbleA ? '#c23f3f' : '#e8e8e8',
+      grass: grassA ? '#0f3d1c' : '#0d3518',
+    };
+  }
+
+  const RACE_FOG = [10, 16, 26];
+
+  // `sky` is where the distance fades to, so each game passes its own horizon
+  function fogMix(hex, t, sky) {
+    if (t <= 0) return hex;
+    sky = sky || RACE_FOG;
+    const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+    const rr = Math.round(lerp(r, sky[0], t));
+    const gg = Math.round(lerp(g, sky[1], t));
+    const bb = Math.round(lerp(b, sky[2], t));
+    return 'rgb(' + rr + ',' + gg + ',' + bb + ')';
+  }
+
+  function renderRace() {
+    const width = raceCanvas.width / raceDpr;
+    const height = raceCanvas.height / raceDpr;
+    raceCtx.save();
+    raceCtx.scale(raceDpr, raceDpr);
+
+    // whole-scene banking: rotate around a pivot near the bottom so the
+    // car visibly leans into the turn instead of just sliding sideways
+    const rollAngle = player.roll * MAX_ROLL;
+    raceCtx.save();
+    raceCtx.translate(width / 2, height * 0.85);
+    raceCtx.rotate(rollAngle);
+    raceCtx.translate(-width / 2, -height * 0.85);
+
+    const skyGrad = raceCtx.createLinearGradient(0, -height * 0.25, 0, height * 0.55);
+    skyGrad.addColorStop(0, '#050912');
+    skyGrad.addColorStop(1, '#0a101a');
+    raceCtx.fillStyle = skyGrad;
+    raceCtx.fillRect(-width * 0.7, -height * 0.7, width * 2.4, height * 1.2);
+
+    // A featureless sky cannot show rotation, however much the camera yaws.
+    // These ridges are the reference that makes a turn read as a turn.
+    const horizonY = height * 0.5;
+    // yawing right pushes the road left on screen, so distant scenery must
+    // travel left too — the same sign as the bend accumulation in skyOffset
+    const sweep = skyOffset - Math.sin(player.heading) * 0.45;
+    drawRidge(raceCtx, sweep * 0.55, horizonY + height * 0.010, height * 0.085, '#101c2b', width, 0);
+    drawRidge(raceCtx, sweep * 1.00, horizonY + height * 0.004, height * 0.055, '#16283a', width, 2.1);
+
+    raceCtx.fillStyle = '#0d3518';
+    raceCtx.fillRect(-width * 0.7, height * 0.5, width * 2.4, height * 1.2);
+
+    const camZ = player.position;
+    const camYaw = player.heading * YAW_VIEW;
+    const baseIdx = Math.floor(player.position / SEG_LEN);
+    const basePercent = (player.position - baseIdx * SEG_LEN) / SEG_LEN;
+    const playerWorldX = player.x * ROAD_HALF_WIDTH;
+
+    // curveX/curveDX restart from the car every frame — that is what keeps the
+    // car aligned with the road no matter how many bends it has been through
+    let curveX = 0;
+    let curveDX = -(segCurve(baseIdx) * basePercent);
+    const segOffsets = new Array(DRAW_DISTANCE + 1);
+
+    const visible = [];
+    let maxy = height;
+    for (let n = 0; n < DRAW_DISTANCE; n++) {
+      const boundary = baseIdx + n;
+      const idx2 = ((boundary % N) + N) % N;
+      segOffsets[n] = curveX;
+      const p1 = projectPoint(0, boundary * SEG_LEN, playerWorldX - curveX, camZ, camYaw, CAMERA_DEPTH, width, height, ROAD_HALF_WIDTH);
+      const p2 = projectPoint(0, (boundary + 1) * SEG_LEN, playerWorldX - curveX - curveDX, camZ, camYaw, CAMERA_DEPTH, width, height, ROAD_HALF_WIDTH);
+      // advance the sweep even for hidden segments, or the road would kink
+      curveX += curveDX;
+      curveDX += trackSegments[idx2].curve;
+      if (p1.dz <= 0 || p2.y >= p1.y || p2.y >= maxy) continue;
+      visible.push({ p1, p2, idx2, n });
+      maxy = p2.y;
+    }
+    segOffsets[DRAW_DISTANCE] = curveX;
+
+    for (let i = visible.length - 1; i >= 0; i--) {
+      const { p1, p2, idx2, n } = visible[i];
+      const fogT = n > DRAW_DISTANCE * 0.65 ? clamp((n - DRAW_DISTANCE * 0.65) / (DRAW_DISTANCE * 0.35), 0, 1) : 0;
+      const c = segColor(idx2);
+      raceCtx.fillStyle = fogMix(c.grass, fogT);
+      raceCtx.fillRect(0, p2.y, width, Math.max(1, p1.y - p2.y));
+
+      const rumbleW1 = p1.w * 1.15, rumbleW2 = p2.w * 1.15;
+      raceCtx.fillStyle = fogMix(c.rumble, fogT);
+      polygon(raceCtx, p1.x - rumbleW1, p1.y, p1.x + rumbleW1, p1.y, p2.x + rumbleW2, p2.y, p2.x - rumbleW2, p2.y);
+
+      raceCtx.fillStyle = fogMix(c.road, fogT);
+      polygon(raceCtx, p1.x - p1.w, p1.y, p1.x + p1.w, p1.y, p2.x + p2.w, p2.y, p2.x - p2.w, p2.y);
+
+      if (Math.floor(idx2 / 3) % 2 === 0) {
+        const laneW1 = p1.w * 0.03, laneW2 = p2.w * 0.03;
+        raceCtx.fillStyle = fogMix('#e8e8e8', fogT);
+        polygon(raceCtx, p1.x - laneW1, p1.y, p1.x + laneW1, p1.y, p2.x + laneW2, p2.y, p2.x - laneW2, p2.y);
+      }
+
+      // Roadside posts: vertical landmarks whose parallax makes rotation
+      // legible — a flat road surface alone cannot convey it.
+      if (idx2 % POST_EVERY === 0 && p1.scale > 0) {
+        const postH = p1.scale * 900 * (height / 2);
+        const postW = Math.max(1, p1.scale * 90 * (width / 2));
+        raceCtx.fillStyle = fogMix(Math.floor(idx2 / POST_EVERY) % 2 === 0 ? '#e8e8e8' : '#c23f3f', fogT);
+        for (const side of [-1, 1]) {
+          const px = p1.x + side * p1.w * 1.35;
+          raceCtx.fillRect(px - postW / 2, p1.y - postH, postW, postH);
+        }
+      }
+    }
+
+    const oppDraws = [];
+    for (const o of opponents) {
+      // sample the same per-frame road sweep at the opponent's distance
+      const nf = (o.distance - baseIdx * SEG_LEN) / SEG_LEN;
+      const n0 = Math.floor(nf);
+      if (n0 < 0 || n0 >= DRAW_DISTANCE) continue;
+      const off = lerp(segOffsets[n0], segOffsets[n0 + 1], nf - n0);
+      const p = projectPoint(o.x * ROAD_HALF_WIDTH, o.distance, playerWorldX - off, camZ, camYaw, CAMERA_DEPTH, width, height, ROAD_HALF_WIDTH);
+      if (p.dz <= 0 || p.dz > DRAW_DISTANCE * SEG_LEN) continue;
+      if (p.y < height * 0.3 || p.y > height + 200) continue;
+      oppDraws.push({ o, p });
+    }
+    oppDraws.sort((a, b) => b.p.dz - a.p.dz);
+    for (const { o, p } of oppDraws) {
+      const carHalfW = clamp(p.scale * CAR_HALF_WIDTH * (width / 2), 3, width * 0.6);
+      const carH = carHalfW * 1.1;
+      raceCtx.fillStyle = '#000';
+      raceCtx.globalAlpha = 0.25;
+      raceCtx.beginPath();
+      raceCtx.ellipse(p.x, p.y, carHalfW * 1.1, carHalfW * 0.35, 0, 0, Math.PI * 2);
+      raceCtx.fill();
+      raceCtx.globalAlpha = 1;
+      raceCtx.fillStyle = o.color;
+      roundRect(raceCtx, p.x - carHalfW, p.y - carH, carHalfW * 2, carH, carHalfW * 0.25);
+      raceCtx.fillStyle = 'rgba(10,14,20,0.55)';
+      roundRect(raceCtx, p.x - carHalfW * 0.62, p.y - carH * 0.92, carHalfW * 1.24, carH * 0.4, carHalfW * 0.15);
+      raceCtx.fillStyle = '#ff5555';
+      raceCtx.fillRect(p.x - carHalfW * 0.95, p.y - carH * 0.25, carHalfW * 0.22, carH * 0.16);
+      raceCtx.fillRect(p.x + carHalfW * 0.73, p.y - carH * 0.25, carHalfW * 0.22, carH * 0.16);
+    }
+
+    raceCtx.restore(); // end banking rotation — everything below is screen-fixed
+
+    // The cockpit must NOT bank with the world. It is bolted to the camera,
+    // so it stays level and gives the eye the fixed reference against which
+    // the horizon visibly rolls; rotating it too cancelled the whole effect.
+    raceCtx.fillStyle = '#11151a';
+    raceCtx.beginPath();
+    raceCtx.moveTo(width * 0.06, height * 1.05);
+    raceCtx.lineTo(width * 0.30, height * 0.90);
+    raceCtx.lineTo(width * 0.70, height * 0.90);
+    raceCtx.lineTo(width * 0.94, height * 1.05);
+    raceCtx.closePath();
+    raceCtx.fill();
+    raceCtx.fillStyle = '#1c2129';
+    roundRect(raceCtx, width * 0.02, height * 0.855, width * 0.1, height * 0.05, 4);
+    roundRect(raceCtx, width * 0.88, height * 0.855, width * 0.1, height * 0.05, 4);
+
+    // steering wheel: turns with the input, another cue that the car is turning
+    drawWheel(raceCtx, width * 0.5, height * 1.02, Math.min(width, height) * 0.20, player.roll);
+
+    raceCtx.restore();
+  }
+
+  // One seamless period of hills spanning `width`, tiled left and right so it
+  // can scroll forever. All components are periodic in u, so tiles line up.
+  function drawRidge(c2, offset, baseY, amp, color, width, phase) {
+    const shift = ((offset % 1) + 1) % 1 * width;
+    c2.fillStyle = color;
+    for (let tile = -1; tile <= 1; tile++) {
+      const x0 = shift + tile * width;
+      c2.beginPath();
+      c2.moveTo(x0, baseY);
+      for (let s = 0; s <= 32; s++) {
+        const u = s / 32;
+        const h = 0.42
+          + 0.30 * Math.sin(2 * Math.PI * u + phase)
+          + 0.18 * Math.sin(4 * Math.PI * u + phase * 1.7)
+          + 0.10 * Math.sin(6 * Math.PI * u + phase * 2.3);
+        c2.lineTo(x0 + u * width, baseY - h * amp);
+      }
+      c2.lineTo(x0 + width, baseY);
+      c2.closePath();
+      c2.fill();
+    }
+  }
+
+  function drawWheel(c2, cx, cy, radius, roll, color) {
+    c2.save();
+    c2.translate(cx, cy);
+    c2.rotate(roll * 0.9);
+    c2.strokeStyle = color || '#2b323c';
+    c2.lineWidth = Math.max(4, radius * 0.16);
+    c2.lineCap = 'round';
+    c2.beginPath();
+    c2.arc(0, 0, radius, Math.PI * 1.08, Math.PI * 1.92);
+    c2.stroke();
+    c2.beginPath();
+    c2.moveTo(-radius, 0);
+    c2.lineTo(radius, 0);
+    c2.stroke();
+    c2.restore();
+  }
+
+  function renderCountdown(label, phase) {
+    const width = raceCanvas.width / raceDpr;
+    const height = raceCanvas.height / raceDpr;
+    raceCtx.save();
+    raceCtx.scale(raceDpr, raceDpr);
+
+    raceCtx.fillStyle = 'rgba(0,0,0,0.35)';
+    raceCtx.fillRect(0, 0, width, height);
+
+    // each number swells and fades over its own second
+    const grow = 1 + (1 - phase) * 0.5;
+    const isGo = label === 'VIA!';
+    raceCtx.globalAlpha = clamp(phase < 0.15 ? phase / 0.15 : 1 - (phase - 0.15) * 0.45, 0, 1);
+    raceCtx.fillStyle = isGo ? '#6fd07f' : '#e7f3ea';
+    raceCtx.font = '700 ' + Math.round(Math.min(width, height) * (isGo ? 0.26 : 0.42) * grow) + 'px -apple-system, "Segoe UI", Roboto, sans-serif';
+    raceCtx.textAlign = 'center';
+    raceCtx.textBaseline = 'middle';
+    raceCtx.fillText(label, width / 2, height * 0.45);
+
+    raceCtx.globalAlpha = 1;
+    raceCtx.fillStyle = 'rgba(231,243,234,0.55)';
+    raceCtx.font = '600 ' + Math.round(Math.min(width, height) * 0.045) + 'px -apple-system, "Segoe UI", Roboto, sans-serif';
+    raceCtx.fillText('Tieni il dito sullo schermo e spingi in alto per accelerare', width / 2, height * 0.86);
+
+    raceCtx.restore();
+  }
+
+  function polygon(c2, x1, y1, x2, y2, x3, y3, x4, y4) {
+    c2.beginPath();
+    c2.moveTo(x1, y1); c2.lineTo(x2, y2); c2.lineTo(x3, y3); c2.lineTo(x4, y4);
+    c2.closePath(); c2.fill();
+  }
+
+  function roundRect(c2, x, y, w, h, r) {
+    c2.beginPath();
+    c2.moveTo(x + r, y);
+    c2.arcTo(x + w, y, x + w, y + h, r);
+    c2.arcTo(x + w, y + h, x, y + h, r);
+    c2.arcTo(x, y + h, x, y, r);
+    c2.arcTo(x, y, x + w, y, r);
+    c2.closePath();
+    c2.fill();
+  }
+
+  function updateRacePhysics(dt) {
+    // --- steering input: -1 (full left) .. +1 (full right) ---
+    let steerInput = 0;
+    if (tiltAvailable && tiltZero !== null) {
+      steerInput = clamp((lastRawGamma - tiltZero) / 32, -1, 1);
+    } else if (keyState.left || keyState.right) {
+      steerInput = (keyState.right ? 1 : 0) - (keyState.left ? 1 : 0);
+    } else {
+      steerInput = fallbackTargetX;
+    }
+
+    // The nose swings toward a heading angle instead of the car sliding
+    // sideways: lateral movement is a consequence of where the car points.
+    const headingTarget = steerInput * MAX_HEADING;
+    player.heading += (headingTarget - player.heading) * Math.min(1, HEADING_EASE * dt);
+    player.roll += (steerInput - player.roll) * Math.min(1, 7 * dt);
+
+    const speedRatio = player.speed / MAX_SPEED;
+    // Keep a floor under steering: if turning scaled all the way down with
+    // speed, a car stopped off-road could never point itself back at the road.
+    const steerAuthority = Math.max(MIN_STEER_AUTHORITY, speedRatio);
+    player.x += Math.sin(player.heading) * steerAuthority * STEER_TRAVEL * dt;
+
+    // centrifugal force scales with v², so bends must be taken slower
+    const curveHere = curveAt(player.position);
+    player.x -= curveHere * CURVE_PULL * speedRatio * speedRatio * dt;
+
+    // Driving through a bend genuinely rotates the car, so the horizon has to
+    // sweep the other way the whole time you are in the corner.
+    skyOffset -= curveHere * speedRatio * SKY_SCROLL * dt;
+
+    // No wall: you can still put all four wheels on the grass. It just costs
+    // you speed now, and only while you are out there.
+    player.x = clamp(player.x, -FIELD_LIMIT, FIELD_LIMIT);
+
+    let throttle = 0; // -1 = brake, +1 = full gas
+    if (keyState.up) throttle = 1;
+    else if (keyState.down) throttle = -1;
+    else if (pointerActive) throttle = throttleAxis;
+
+    if (throttle > 0) player.speed += THROTTLE_ACCEL * throttle * dt;
+    else if (throttle < 0) player.speed += BRAKE_DECEL * throttle * dt;
+    else player.speed -= COAST_FRICTION * dt;
+
+    player.speed = clamp(player.speed, 0, MAX_SPEED);
+
+    // Off the tarmac the car will not hold its speed. Scrubbed off gradually,
+    // not clamped: a hard cap would stop the car dead on the white line. The
+    // cap lifts the instant you are back on, so recovery is just acceleration.
+    const offroad = Math.max(0, Math.abs(player.x) - 1);
+    if (offroad > 0) {
+      const grip = 1 - clamp(offroad / OFFROAD_FULL, 0, 1) * OFFROAD_GRIP_LOSS;
+      const cap = MAX_SPEED * grip;
+      if (player.speed > cap) player.speed = Math.max(cap, player.speed - OFFROAD_DRAG * dt);
+    }
+
+    // angled across the track means less progress down it
+    player.position += Math.cos(player.heading) * player.speed * dt;
+
+    for (const o of opponents) {
+      const rubberband = 1 + clamp((player.speed - o.baseSpeed) / MAX_SPEED, -0.25, 0.25) * 0.4;
+      o.distance += o.baseSpeed * rubberband * dt;
+      o.x = o.centerX + Math.sin(performance.now() / 1000 * o.wobbleFreq + o.seed) * 0.15;
+
+      if (o.collideCooldown > 0) {
+        o.collideCooldown -= dt;
+      } else {
+        const dz = Math.abs(o.distance - player.position);
+        if (dz < COLLISION_Z && Math.abs(o.x - player.x) < COLLISION_X) {
+          if (settings.collisions === 'on') {
+            RaceHaptics.wallHit();
+            player.speed *= 0.55;
+            player.x += (player.x < o.x ? -1 : 1) * 0.2;
+          } else {
+            RaceHaptics.brush();
+          }
+          o.collideCooldown = 0.4;
+        }
+      }
+
+      const rel = o.distance - player.position;
+      if (o.prevRel !== undefined && o.prevRel > 0 && rel <= 0 && Math.abs(o.x - player.x) < 0.7) {
+        RaceHaptics.passOpponent(o.x < player.x ? -1 : 1);
+      }
+      o.prevRel = rel;
+    }
+
+    const newLap = Math.floor(player.position / trackWorldLength);
+    if (newLap > player.lap && newLap < settings.laps) { player.lap = newLap; RaceHaptics.lap(); }
+    else if (newLap > player.lap) player.lap = newLap;
+
+    if (!raceFinishedFlag && player.position >= raceTotalDistance) {
+      raceFinishedFlag = true;
+      finishRace();
+    }
+  }
+
+  let raceFinishedFlag = false;
+
+  function updateRaceHud() {
+    const lapShown = Math.min(player.lap + 1, settings.laps);
+    raceLapEl.textContent = 'Giro ' + lapShown + '/' + settings.laps;
+    const ahead = opponents.filter((o) => o.distance > player.position).length;
+    racePosEl.textContent = (ahead + 1) + 'º/' + (opponents.length + 1);
+    raceSpeedEl.textContent = Math.round((player.speed / MAX_SPEED) * 280) + ' km/h';
+    raceTimerEl.textContent = countingDown ? '00:00' : formatTime(Date.now() - raceStartTime);
+  }
+
+  function raceHapticTick() {
+    const ax = Math.abs(player.x);
+    if (ax > 1) RaceHaptics.offroad(clamp((ax - 1) / (FIELD_LIMIT - 1), 0, 1));
+    else if (ax > 0.55) RaceHaptics.edge((ax - 0.55) / 0.45);
+  }
+
+  function raceLoop(ts) {
+    if (!raceRunning) return;
+    const dt = Math.min(0.05, (ts - lastFrameTime) / 1000 || 0.016);
+    lastFrameTime = ts;
+
+    if (countingDown) {
+      // wall clock, not the rAF timestamp: the two use different time bases
+      const elapsed = Date.now() - countdownStart;
+      const step = Math.floor(elapsed / 1000);   // 0,1,2 = "3","2","1"; 3 = go
+      if (step !== lastCountdownStep) {
+        lastCountdownStep = step;
+        if (step < 3) RaceHaptics.countdownTick(); else RaceHaptics.countdownGo();
+      }
+      if (step >= 4) {                            // hold "VIA!" for one beat
+        countingDown = false;
+        raceStartTime = Date.now();
+      }
+      AudioFX.engineUpdate(0.06);                 // idling on the grid
+      if (!raceBlackoutActive) {
+        renderRace();
+        renderCountdown(step >= 3 ? 'VIA!' : String(3 - step), (elapsed % 1000) / 1000);
+      }
+      updateRaceHud();
+      raceRAF = requestAnimationFrame(raceLoop);
+      return;
+    }
+
+    updateRacePhysics(dt);
+    AudioFX.engineUpdate(player.speed / MAX_SPEED);
+    hapticTickAccum += dt;
+    if (hapticTickAccum >= 0.06) { hapticTickAccum = 0; raceHapticTick(); }
+    if (!raceBlackoutActive) renderRace();
+    updateRaceHud();
+    raceRAF = requestAnimationFrame(raceLoop);
+  }
+
+  function startRaceLoop() {
+    currentMode = 'gara';
+    buildTrack();
+    resetPlayer();
+    buildOpponents();
+    raceFinishedFlag = false;
+    raceTotalDistance = settings.laps * trackWorldLength;
+    raceStartTime = Date.now();
+    clearKeys();
+    setRaceBlackout(false);
+    showScreen('screen-race');
+    // the Parti! button is hidden with its screen, so move focus somewhere
+    // real — otherwise key events can be left without a home in the page
+    try { raceWrap.focus({ preventScroll: true }); } catch (e) { raceWrap.focus(); }
+    requestAnimationFrame(() => { resizeRaceCanvas(); });
+    AudioFX.ensure();
+    AudioFX.engineStart();
+    raceRunning = true;
+    steerActive = true;
+    lastFrameTime = performance.now();
+    countingDown = true;
+    countdownStart = Date.now();
+    lastCountdownStep = -1;
+    hapticTickAccum = 0;
+    raceRAF = requestAnimationFrame(raceLoop);
+  }
+
+  function stopRace() {
+    raceRunning = false;
+    steerActive = false;
+    if (raceRAF) cancelAnimationFrame(raceRAF);
+    stopOrientationListener();
+    AudioFX.engineStop();
+  }
+
+  function finishRace() {
+    raceRunning = false;
+    steerActive = false;
+    if (raceRAF) cancelAnimationFrame(raceRAF);
+    stopOrientationListener();
+    AudioFX.engineStop();
+    const elapsed = Date.now() - raceStartTime;
+    const placement = 1 + opponents.filter((o) => o.distance >= raceTotalDistance).length;
+    RaceHaptics.finish();
+    const key = 'garaCieca_best_' + settings.laps + '_' + settings.opponents;
+    const prevBest = parseInt(localStorage.getItem(key) || '0', 10);
+    let isBest = false;
+    if (placement === 1 && (!prevBest || elapsed < prevBest)) { localStorage.setItem(key, String(elapsed)); isBest = true; }
+    winTitleEl.textContent = placement === 1 ? 'Hai vinto la gara! 🏁' : 'Arrivato ' + placement + 'º su ' + (opponents.length + 1) + ' 🏁';
+    winTimeEl.textContent = 'Tempo: ' + formatTime(elapsed);
+    winBestEl.textContent = isBest ? '🏆 Nuovo record per questa gara!' : (prevBest ? 'Record: ' + formatTime(prevBest) : '');
+    setTimeout(() => showScreen('screen-win'), 900);
+  }
+
+  function restartRace() {
+    if (tiltAvailable) {
+      tiltZero = null; orientationReceived = false;
+      window.addEventListener('deviceorientation', onOrientation);
+    }
+    startRaceLoop();
+  }
+
+  btnRaceStart.addEventListener('click', () => {
+    AudioFX.ensure();
+    beginTilt().then(startRaceLoop);
+  });
+
+  btnRaceMenu.addEventListener('click', () => { stopRace(); showScreen('screen-mode'); });
+
+  /* ============================================================ */
+  /* =====================  PRATO ALLA CIECA  ==================== */
+  /* ============================================================ */
+  /* The two games crossed: the grid and the haptic vocabulary of Prato a
+     Spirale, seen from the seat with the pseudo-3D camera of Gara alla Cieca.
+
+     Two things are deliberately NOT like the race:
+     - there is no track, so the world is a plain 2D field the camera moves
+       across. No curve accumulation, no segment offsets — just a yaw.
+     - steering is a turn RATE applied to the heading, not a crab angle
+       relative to a road, and it keeps most of its authority at a standstill:
+       playing blind means stopping, pivoting and setting off again. */
+
+  const mowCanvas = document.getElementById('mow-field');
+  const mowCtx = mowCanvas.getContext('2d');
+  const mowWrap = document.getElementById('mow-wrap');
+  const mowBlackoutEl = document.getElementById('mow-blackout');
+  const btnMowStart = document.getElementById('btn-mow-start');
+  const btnMowBlackout = document.getElementById('btn-mow-blackout');
+  const btnMowRecenter = document.getElementById('btn-mow-recenter');
+  const btnMowMenu = document.getElementById('btn-mow-menu');
+  const mowProgressEl = document.getElementById('mow-progress');
+  const mowRemainingEl = document.getElementById('mow-remaining');
+  const mowTimerEl = document.getElementById('mow-timer');
+
+  const MOW_CELL = 500;             // world units per zolla
+  const MOW_BLADE = 250;            // half-width of the deck: the swath is one zolla wide,
+                                    // which is what makes your own passes legible by touch
+  const MOW_FOV = 92 * Math.PI / 180;
+  const MOW_CAM_DEPTH = 1 / Math.tan(MOW_FOV / 2);
+  const MOW_CAM_HEIGHT = 850;
+  const MOW_HORIZON = 0.42;         // horizon as a fraction of canvas height (camera pitched down)
+  const MOW_NEAR = 300;             // nearer than this a cell is off the bottom edge anyway
+  const MOW_VIEW = 14;              // cells drawn in every direction
+  // taller than MOW_CAM_HEIGHT on purpose: a hedge you can see over does not
+  // read as an enclosure, and this one is a boundary you genuinely cannot cross
+  const MOW_HEDGE_H = 1150;
+  /* A gravel border between the lawn and the hedge. Without it the outer turn
+     of the spiral runs a fraction of a zolla from the hedge, the machine's own
+     width leaves almost no play, and a rule built on "the further out, the
+     harder it buzzes" has nowhere to go: you are stopped dead before the buzz
+     has said anything. It is a little deeper than the corridor is wide, so the
+     invisible wall is always what you meet first and the hedge stays a
+     backstop. Nothing grows on the apron, so it is never cuttable. */
+  const MOW_APRON = MOW_CELL * 1.3;
+  const MOW_MAX_SPEED = 2400;       // world units/s ≈ 4.8 zolle a second
+  const MOW_ACCEL = 2100;
+  const MOW_BRAKE = 3200;
+  const MOW_FRICTION = 1400;
+  const MOW_REVERSE = 0.35;         // reverse is slow: it is for getting off the hedge
+  /* rad/s at full lock. Tuned against the spiral, not by feel: a 90° bend taken
+     at radius r pushes you 0.41·r off the ideal line, so to stay inside
+     MOW_LANE_FREE the machine must corner at r ≲ 550. At 2.6 rad/s that means
+     easing off to about two thirds throttle — flat out through a bend earns a
+     light buzz, backing off silences it. A slower rate made every corner buzz
+     however well you drove, which is the opposite of the point. */
+  const MOW_TURN_RATE = 2.6;
+  const MOW_TURN_MIN = 0.5;         // ...still half of that when stopped: pivot on the spot
+  const MOW_TALL_DRAG = 0.78;       // tall grass holds the machine back and bogs the engine
+  const MOW_ROLL = 0.07;            // the tractor leans a little; the bonnet below does not
+  const MOW_SKY_PER_RAD = 1 / MOW_FOV; // one screen width of scenery per FOV of yaw
+  /* The lane is a corridor with invisible walls. You cannot leave it, so you
+     cannot skip a zolla or take them out of order: the only thing precision
+     buys you is time, because a tidy line never pays the verge penalty.
+
+       0 .. FREE   silence, full speed — the lane proper
+       FREE .. WALL rising buzz, and speed lost as the SQUARE of how far out
+                    you are, so brushing the edge costs almost nothing and
+                    leaning on it costs a great deal
+       WALL        the wall itself: the position is pushed back onto it */
+  const MOW_LANE_FREE = MOW_CELL * 0.4;
+  const MOW_LANE_WALL = MOW_CELL;
+  const MOW_LOST = MOW_CELL * 0.8;        // past this you get told where the line went
+  const MOW_GUIDE_EVERY = 1.6;
+  const MOW_OFFLINE_GRIP_LOSS = 0.8;      // speed left against the wall: a fifth
+  const MOW_OFFLINE_DRAG = 2600;          // must beat MOW_ACCEL or the cap never holds
+  /* The lawn is an oval, so the spiral is a real spiral: one smooth tightening
+     curve instead of rings of 90° corners you had to crawl round. The pitch is
+     set from the LONG radius, so consecutive passes sit one swath apart across
+     the long axis and a little closer across the short one — a slight overlap,
+     never a gap, which is the only safe way round an ellipse. */
+  const MOW_OVAL = 1.15;                  // long radius / short radius
+  const MOW_SPIRAL_STEP = MOW_CELL * 0.35; // waypoint spacing along the curve
+  const MOW_HEDGE_SEGS = 72;              // how finely the oval hedge is drawn
+  const MOW_FOG = [18, 42, 34];
+  const MOW_ENGINE = { type: 'square', freq: 44, freqSpan: 52, filt: 220, filtSpan: 520, gain: 0.06, gainSpan: 0.07, gainMax: 0.15 };
+
+  // The cutting feedback is Prato a Spirale's, unchanged on purpose — the same
+  // hands should recognise the same lawn. Only what is new to the seat is here.
+  const MowHaptics = {
+    // "quasi impercettibile e vellutato": what already-cut ground sounds like
+    hiss() { AudioFX.noiseBurst({ freq: 5200, q: 0.6, duration: 0.05, volume: 0.035 }); },
+    /* The verge of the spiral lane. It grows with how far out you are and it is
+       panned to the side you have drifted onto, like scraping a hedge on your
+       right. It NEVER slows the machine: the buzz is the whole penalty, the
+       same deliberate choice as the free edges in Gara alla Cieca. */
+    offLine(intensity, side) {
+      vib([Math.round(4 + intensity * 26)]);
+      AudioFX.noiseBurst({
+        freq: 230 + intensity * 280, q: 1.1,
+        duration: 0.035 + intensity * 0.03,
+        volume: 0.05 + intensity * 0.2,
+        pan: side * 0.8,
+      });
+    },
+    // meeting the invisible wall: firmer and lower than the verge, so it reads
+    // as something solid rather than as more of the same rough grass
+    wall() {
+      vib([45]);
+      AudioFX.thud({ freq: 70, duration: 0.12, volume: 0.3 });
+    },
+    // another turn of the spiral closed. A semitone higher each time, so the
+    // pitch tells you how far in you are without any counting.
+    lap(n) {
+      vib([10, 26, 12]);
+      const freq = 460 * Math.pow(2, Math.min(n, 24) / 12);
+      AudioFX.tone({ freq, duration: 0.09, volume: 0.13, type: 'triangle' });
+    },
+    ignition() {
+      vib([30, 70, 30, 70, 140]);
+      AudioFX.noiseBurst({ freq: 170, q: 0.5, duration: 0.3, volume: 0.18 });
+      AudioFX.thud({ freq: 70, duration: 0.22, volume: 0.3, delay: 0.24 });
+    },
+    // lost: where the line went. pan = which side, pitch = how far
+    guideAhead(closeness) {
+      vib([6, 26, 6]);
+      AudioFX.tone({ freq: 760 + closeness * 420, duration: 0.07, volume: 0.13, type: 'triangle' });
+      AudioFX.tone({ freq: 760 + closeness * 420, duration: 0.07, volume: 0.13, type: 'triangle', delay: 0.1 });
+    },
+    guideSide(pan, closeness) {
+      vib([5]);
+      AudioFX.tone({ freq: 460 + closeness * 380, duration: 0.11, volume: 0.13, type: 'triangle', pan });
+    },
+    guideBehind(pan) {
+      vib([5, 40, 5]);
+      AudioFX.tone({ freq: 190, duration: 0.16, volume: 0.15, type: 'triangle', pan });
+      AudioFX.tone({ freq: 150, duration: 0.18, volume: 0.14, type: 'triangle', pan, delay: 0.15 });
+    },
+  };
+
+  let mowN = 8, mowCells = [], mowStripe = [], mowTotal = 0, mowCut = 0;
+  let mow = { x: 0, z: 0, heading: 0, speed: 0, roll: 0 };
+  let mowRunning = false, mowRAF = null, mowLastFrame = 0, mowFinished = false;
+  let mowStartTime = 0, mowDpr = 1, mowBlackoutActive = false;
+  let mowPointerActive = false, mowAnchorY = 0, mowThrottleAxis = 0, mowSteerTarget = 0;
+  let mowGrassAccum = 0, mowClickAccum = 0, mowHissAccum = 0, mowTickAccum = 0, mowGuideAccum = 0;
+  let mowRockCooldown = 0, mowHedgeFlag = false, mowCutting = 0, mowSinceFresh = 0;
+  let mowOnWall = false, mowWallCooldown = 0;
+  // the oval lawn: centre and the two radii of the grass itself
+  let mowCx = 0, mowCz = 0, mowRx = 0, mowRz = 0;
+  // the spiral you are meant to follow, and where you are against it
+  let mowPath = [], mowPathIdx = 0, mowLineX = 0, mowLineZ = 0;
+  let mowOff = 0, mowOffSide = 0;
+  let mowLapAngle = 0, mowLaps = 0, mowPrevAngle = 0;
+
+  function mowIdx(c, r) { return r * mowN + c; }
+  function mowInField(c, r) { return c >= 0 && c < mowN && r >= 0 && r < mowN; }
+  function mowCellAt(wx, wz) {
+    const c = Math.floor(wx / MOW_CELL), r = Math.floor(wz / MOW_CELL);
+    return mowInField(c, r) ? mowIdx(c, r) : -1;
+  }
+
+  // inside the grass, as opposed to the gravel apron round it
+  function mowOnLawn(c, r) {
+    if (!mowInField(c, r)) return false;
+    const dx = ((c + 0.5) * MOW_CELL - mowCx) / mowRx;
+    const dz = ((r + 0.5) * MOW_CELL - mowCz) / mowRz;
+    return dx * dx + dz * dz <= 1;
+  }
+
+  function buildMowField() {
+    mowN = settings.mowSize;
+    mowCells = new Array(mowN * mowN).fill(0);
+    mowStripe = new Array(mowN * mowN).fill(0);
+
+    // the oval is inscribed in the grid, long axis across
+    const span = mowN * MOW_CELL;
+    mowCx = mowCz = span / 2;
+    mowRx = span / 2 - MOW_CELL * 0.5;
+    mowRz = mowRx / MOW_OVAL;
+    for (let r = 0; r < mowN; r++) {
+      for (let c = 0; c < mowN; c++) {
+        if (!mowOnLawn(c, r)) mowCells[mowIdx(c, r)] = 3;   // 3 = apron, never grass
+      }
+    }
+
+    if (settings.mowTerrain === 'misto') {
+      // Never two rocks side by side: an isolated obstacle can always be driven
+      // around, so no zolla can end up walled in and the field stays winnable.
+      // Only on the grass, and never where the spiral starts.
+      const target = Math.round(mowN * mowN * 0.06);
+      for (let tries = 0, placed = 0; placed < target && tries < target * 40; tries++) {
+        const c = Math.floor(Math.random() * mowN), r = Math.floor(Math.random() * mowN);
+        if (mowCells[mowIdx(c, r)] !== 0) continue;
+        const px = (c + 0.5) * MOW_CELL, pz = (r + 0.5) * MOW_CELL;
+        if (Math.hypot(px - (mowCx + mowRx), pz - mowCz) < MOW_CELL * 2.5) continue;
+        const near = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(
+          ([dc, dr]) => mowInField(c + dc, r + dr) && mowCells[mowIdx(c + dc, r + dr)] === 2);
+        if (near) continue;
+        mowCells[mowIdx(c, r)] = 2;
+        placed++;
+      }
+    }
+
+    buildSpiralPath();
+
+    // sit on the outer end of the spiral, pointing along it
+    mow = { x: mowPath[0].x, z: mowPath[0].z, heading: 0, speed: 0, roll: 0 };
+    mow.heading = Math.atan2(mowPath[1].x - mowPath[0].x, mowPath[1].z - mowPath[0].z);
+
+    mowTotal = mowCells.reduce((n, v) => n + (v === 2 || v === 3 ? 0 : 1), 0);
+    mowCut = 0;
+    mowFinished = false;
+    mowHedgeFlag = false;
+    mowRockCooldown = 0;
+    mowCutting = 0; mowSinceFresh = 0;
+    mowOnWall = false; mowWallCooldown = 0;
+    mowGrassAccum = mowClickAccum = mowHissAccum = mowTickAccum = mowGuideAccum = 0;
+    mowSteerTarget = 0; mowThrottleAxis = 0; mowPointerActive = false;
+    mowPathIdx = 0; mowOff = 0; mowOffSide = 0;
+    mowLaps = 0; mowLapAngle = 0;
+    mowPrevAngle = Math.atan2(mow.z - mowCz, mow.x - mowCx);
+    mowLineX = mow.x; mowLineZ = mow.z;
+    cutSwath(mow.x, mow.z, mow.x, mow.z, mow.heading); // the zolla you are parked on
+  }
+
+  /* The spiral itself: an Archimedean curve in the oval's own coordinates,
+     winding from the outer edge to the exact centre — the shrinking loop and
+     its final zolla are the whole point of the original game, and here they
+     are the line you are asked to hold.
+
+     `s` is the normalised radius, 1 at the edge and 0 at the middle, and it
+     loses MOW_CELL/mowRx per revolution: that is what puts consecutive passes
+     one swath apart. The line sits half a swath inside the grass so the deck
+     sweeps lawn rather than half the apron.
+
+     THE FIRST REVOLUTION IS A CLOSED LOOP at that outer radius, and it is not
+     decoration. Winding inward from the very first degree opens a crescent
+     between the line and the rim that widens by a full swath over the first
+     turn, and the deck cannot reach across it: walking the line perfectly
+     still left zolle uncut at the edge (one on a medium lawn, two on a large
+     one), and with the corridor in place you cannot even drive out to them.
+     A closed entry lap puts a constant-radius pass round the whole rim, and
+     every pass after it is exactly one swath inside the one before.
+
+     Waypoints are sampled by arc length, not by angle: near the centre a
+     degree of angle is worth almost nothing, and evenly spaced angles would
+     leave the polyline coarse where the driving is hardest. Stones are simply
+     driven round — the line pays no attention to them. */
+  function buildSpiralPath() {
+    const TAU = Math.PI * 2;
+    /* The entry lap runs a fifth of a swath inside the rim, not half of one.
+       At half a swath the deck reached the rim EXACTLY, with no margin: drive
+       the perimeter even slightly wide of the line and the outermost zolle are
+       never swept — and the corridor then follows the spiral inward and
+       strands them. A fifth leaves a few hundred units of displacement to play
+       with, more than the whole silent part of the lane. The margin is taken
+       on the SHORT radius, which is the tighter of the two. */
+    const outer = 1 - (MOW_CELL * 0.2) / mowRz;
+    const perTurn = MOW_CELL / mowRx;          // radius given up each revolution
+    const thetaMax = TAU * (1 + outer / perTurn);   // entry lap, then the wind in
+    mowPath = [];
+    let theta = 0;
+    while (theta < thetaMax) {
+      const s = theta <= TAU ? outer : outer - perTurn * (theta - TAU) / TAU;
+      mowPath.push({
+        x: mowCx + mowRx * s * Math.cos(theta),
+        z: mowCz + mowRz * s * Math.sin(theta),
+      });
+      // step by arc length, using the long radius so the step is never longer
+      // than asked for; the floor keeps the last few turns from exploding
+      theta += MOW_SPIRAL_STEP / Math.max(MOW_CELL * 0.3, mowRx * s);
+    }
+    mowPath.push({ x: mowCx, z: mowCz });
+  }
+
+  /* Cuts everything the deck sweeps between two positions and returns what it
+     felt like. Sub-stepping matters: at full speed the machine crosses more
+     than one zolla per frame, and a skipped zolla is a hole you can only find
+     again by driving over the whole field. */
+  function cutSwath(fromX, fromZ, toX, toZ, heading) {
+    const rx = Math.cos(heading), rz = -Math.sin(heading); // deck axis, to the right
+    const steps = Math.max(1, Math.ceil(Math.hypot(toX - fromX, toZ - fromZ) / (MOW_CELL * 0.4)));
+    let fresh = 0, alongside = false;
+
+    for (let s = 1; s <= steps; s++) {
+      const t = s / steps;
+      const cx = lerp(fromX, toX, t), cz = lerp(fromZ, toZ, t);
+
+      // Look for an already-cut lane one zolla clear of the deck: that is the
+      // edge of the previous pass, and hugging it is the whole skill.
+      const reach = MOW_BLADE + MOW_CELL * 0.55;
+      let touching = false;
+      for (const side of [-1, 1]) {
+        const i = mowCellAt(cx + rx * side * reach, cz + rz * side * reach);
+        if (i >= 0 && mowCells[i] === 1) touching = true;
+      }
+
+      let cutHere = 0;
+      for (let b = -1; b <= 1; b++) {
+        const i = mowCellAt(cx + rx * b * MOW_BLADE * 0.92, cz + rz * b * MOW_BLADE * 0.92);
+        if (i < 0 || mowCells[i] !== 0) continue;
+        mowCells[i] = 1;
+        // Stripes follow the turns of the spiral, like a real mown lawn: they
+        // are the visual echo of the click you feel alongside your last pass.
+        const ringX = ((i % mowN) + 0.5) * MOW_CELL - mowCx;
+        const ringZ = (Math.floor(i / mowN) + 0.5) * MOW_CELL - mowCz;
+        const turn = Math.hypot(ringX / mowRx, ringZ / mowRz) * mowRx / MOW_CELL;
+        mowStripe[i] = Math.floor(turn) & 1;
+        mowCut++;
+        cutHere++;
+      }
+      fresh += cutHere;
+      if (cutHere && touching) alongside = true;
+    }
+    return { fresh, alongside };
+  }
+
+  // world point → how far in front of the seat it is, and how far to its right
+  function mowBearingTo(wx, wz) {
+    const dx = wx - mow.x, dz = wz - mow.z;
+    const s = Math.sin(mow.heading), c = Math.cos(mow.heading);
+    return { ahead: dx * s + dz * c, right: dx * c - dz * s, dist: Math.hypot(dx, dz) };
+  }
+
+  /* Where the machine sits against the spiral. The search is deliberately LOCAL,
+     a short window either side of the segment we were on last frame: the rings
+     are only one zolla apart, so a global nearest-point search would happily
+     snap onto the neighbouring ring and report you perfectly on line while you
+     are in fact a whole lane out. Only when you are hopelessly far — right
+     across the field — is a full re-acquisition allowed, so the buzz cannot
+     get stuck on for ever. */
+  function updatePathTracking() {
+    if (mowPath.length < 2) return;
+    const scan = (lo, hi) => {
+      let bd = Infinity, bi = mowPathIdx, bx = mow.x, bz = mow.z;
+      for (let i = lo; i <= hi; i++) {
+        const a = mowPath[i], b = mowPath[i + 1];
+        const vx = b.x - a.x, vz = b.z - a.z;
+        const len2 = vx * vx + vz * vz;
+        let t = len2 ? ((mow.x - a.x) * vx + (mow.z - a.z) * vz) / len2 : 0;
+        t = clamp(t, 0, 1);
+        const px = a.x + vx * t, pz = a.z + vz * t;
+        const d = Math.hypot(mow.x - px, mow.z - pz);
+        if (d < bd) { bd = d; bi = i; bx = px; bz = pz; }
+      }
+      return { d: bd, i: bi, x: bx, z: bz };
+    };
+
+    const last = mowPath.length - 2;
+    let best = scan(Math.max(0, mowPathIdx - 3), Math.min(last, mowPathIdx + 10));
+    if (best.d > MOW_CELL * 4) best = scan(0, last);
+
+    mowPathIdx = best.i;
+    mowOff = best.d;
+    mowLineX = best.x; mowLineZ = best.z;
+    // which side of the line the machine sits on, from the seat: positive right
+    const dx = mow.x - best.x, dz = mow.z - best.z;
+    const lateral = dx * Math.cos(mow.heading) - dz * Math.sin(mow.heading);
+    mowOffSide = mowOff > 1 ? clamp(lateral / mowOff, -1, 1) : 0;
+  }
+
+  /* Two things you can be told about the line without looking at it: that you
+     have closed another turn of the spiral, and — only once you are properly
+     lost — which way it went. Everything else is the verge buzz.
+
+     The lap tick is straight out of the brief: "centinaia di micro-impulsi
+     prima di sentire il click del giro completato". Because each turn is
+     shorter than the last, the ticks arrive faster and faster on their own —
+     the crescendo comes free from the geometry, with nothing driving it. */
+  function mowGuideCue(dt) {
+    const angle = Math.atan2(mow.z - mowCz, mow.x - mowCx);
+    let d = angle - mowPrevAngle;
+    while (d > Math.PI) d -= Math.PI * 2;
+    while (d < -Math.PI) d += Math.PI * 2;
+    mowPrevAngle = angle;
+    mowLapAngle += d;
+    if (Math.abs(mowLapAngle) >= Math.PI * 2) {
+      mowLapAngle -= Math.sign(mowLapAngle) * Math.PI * 2;
+      mowLaps++;
+      if (settings.mowRadar === 'on') MowHaptics.lap(mowLaps);
+    }
+
+    if (settings.mowRadar !== 'on') return;
+    mowGuideAccum += dt;
+    if (mowOff <= MOW_LOST || mowGuideAccum < MOW_GUIDE_EVERY) return;
+    mowGuideAccum = 0;
+    const b = mowBearingTo(mowLineX, mowLineZ);
+    const closeness = clamp(1 - b.dist / (mowN * MOW_CELL * 0.5), 0, 1);
+    const pan = clamp(b.right / Math.max(1, b.dist) * 1.2, -1, 1);
+    if (b.ahead < 0) MowHaptics.guideBehind(pan);
+    else if (Math.abs(b.right) < MOW_CELL * 0.7) MowHaptics.guideAhead(closeness);
+    else MowHaptics.guideSide(pan, closeness);
+  }
+
+  // how far out of the lane you are: 0 inside it, 1 hard against the wall
+  function mowStray() {
+    return clamp((mowOff - MOW_LANE_FREE) / (MOW_LANE_WALL - MOW_LANE_FREE), 0, 1);
+  }
+
+  /* The verge of the spiral lane: silent while you hold the line, then rising
+     the further out you are, panned to the side you have drifted onto. */
+  function mowHapticTick() {
+    // Against the wall it keeps buzzing however slow you are: the penalty can
+    // itself drag you below the speed threshold, and falling silent while you
+    // are still leaning on the wall would be exactly the wrong moment to stop
+    // telling you.
+    if (!mowOnWall && Math.abs(mow.speed) < 150) return;
+    if (mowOff <= MOW_LANE_FREE) return;
+    // Linear across the corridor. It used to be a square root, which was right
+    // when the scale ran out to two and a half zolle and small deviations would
+    // otherwise have registered as nothing; across a corridor only half a zolla
+    // wide the plain ramp already spreads the whole range where it is felt.
+    MowHaptics.offLine(mowStray(), mowOffSide);
+  }
+
+  function updateMowPhysics(dt) {
+    let steerInput = 0;
+    if (tiltAvailable && tiltZero !== null) {
+      steerInput = clamp((lastRawGamma - tiltZero) / 28, -1, 1);
+    } else if (keyState.left || keyState.right) {
+      steerInput = (keyState.right ? 1 : 0) - (keyState.left ? 1 : 0);
+    } else {
+      steerInput = mowSteerTarget;
+    }
+
+    const speedRatio = Math.abs(mow.speed) / MOW_MAX_SPEED;
+    // Keep most of the steering authority at a standstill: a blind player has
+    // to be able to stop, turn on the spot and set off down the next lane.
+    const authority = Math.min(1, Math.max(MOW_TURN_MIN, 0.45 + speedRatio * 0.55));
+    mow.heading += steerInput * MOW_TURN_RATE * authority * dt;
+    mow.roll += (steerInput - mow.roll) * Math.min(1, 7 * dt);
+
+    const fwdX = Math.sin(mow.heading), fwdZ = Math.cos(mow.heading);
+    /* The machine bogs down because the blades are CHEWING. Getting that from
+       the grid needs care: the zolla is 500 units and a frame moves 30, so
+       "did we cut something this frame" is a 4% spike, and "is the zolla ahead
+       tall" reads false 85% of the time because a deck sweeping a curve clips
+       the zolle in front of it early. Both measured near zero while mowing a
+       perfectly fresh lane. What is true continuously is the DISTANCE since
+       the last fresh zolla: on tall grass it never grows past a zolla or two,
+       on ground already cut it grows without bound. */
+    const wet = settings.mowTerrain === 'bagnato' ? 0.82 : 1;
+    // Off the lane the machine wades. SQUARED, so brushing the edge of the
+    // corridor costs almost nothing (a tenth of the way out is 1% of the
+    // penalty) while leaning on the wall costs nearly all of it — precision is
+    // paid back in time, which is the whole point of the corridor.
+    const stray = mowStray();
+    const grip = 1 - stray * stray * MOW_OFFLINE_GRIP_LOSS;
+    const load = (1 - mowCutting * (1 - MOW_TALL_DRAG)) * wet * grip;
+
+    let throttle = 0;
+    if (keyState.up) throttle = 1;
+    else if (keyState.down) throttle = -1;
+    else if (mowPointerActive) throttle = mowThrottleAxis;
+
+    if (throttle > 0) mow.speed += MOW_ACCEL * load * throttle * dt;
+    else if (throttle < 0) mow.speed += MOW_BRAKE * throttle * dt;
+    else {
+      const f = MOW_FRICTION * dt;
+      mow.speed = mow.speed > 0 ? Math.max(0, mow.speed - f) : Math.min(0, mow.speed + f);
+    }
+    mow.speed = clamp(mow.speed, -MOW_MAX_SPEED * MOW_REVERSE, MOW_MAX_SPEED);
+    // Scrubbed off gradually, never clamped: a hard cap would stop the machine
+    // dead the moment a wheel left the lane. The cap lifts again as soon as you
+    // are back on it, so getting your speed back is only acceleration.
+    const cap = MOW_MAX_SPEED * load;
+    if (mow.speed > cap) mow.speed = Math.max(cap, mow.speed - MOW_OFFLINE_DRAG * dt);
+
+    const fromX = mow.x, fromZ = mow.z;
+    const nx = mow.x + fwdX * mow.speed * dt;
+    const nz = mow.z + fwdZ * mow.speed * dt;
+
+    // The deck cannot climb a rock: the machine stops dead against it and
+    // bounces back a little, exactly like the obstacle in the flat game.
+    if (mowRockCooldown > 0) mowRockCooldown -= dt;
+    const dir = mow.speed >= 0 ? 1 : -1;
+    const bump = mowCellAt(nx + fwdX * dir * MOW_BLADE, nz + fwdZ * dir * MOW_BLADE);
+    if (bump >= 0 && mowCells[bump] === 2) {
+      if (mowRockCooldown <= 0) { Haptics.obstacle(); mowRockCooldown = 0.5; }
+      mow.speed = -mow.speed * 0.25;
+    } else {
+      mow.x = nx; mow.z = nz;
+    }
+
+    // The oval hedge, a hard stop announced by the same low thud as the fence
+    // in Prato a Spirale. With the corridor in place you can no longer reach
+    // it, but it stays: it is the enclosure you can see, and the backstop if a
+    // future change ever widens the lane.
+    const hx = mowRx + MOW_APRON - MOW_BLADE * 0.9;
+    const hz = mowRz + MOW_APRON - MOW_BLADE * 0.9;
+    const ex = (mow.x - mowCx) / hx, ez = (mow.z - mowCz) / hz;
+    const e = Math.hypot(ex, ez);
+    if (e > 1) {
+      if (!mowHedgeFlag && Math.abs(mow.speed) > 250) { Haptics.border(); mowHedgeFlag = true; }
+      mow.x = mowCx + (ex / e) * hx;
+      mow.z = mowCz + (ez / e) * hz;
+      mow.speed = 0;
+    } else if (mowHedgeFlag) {
+      mowHedgeFlag = false;
+    }
+
+    /* The invisible wall. Tracking has to run BEFORE the cut, so the machine is
+       already back inside the corridor when the blades are asked what they
+       swept — otherwise a frame's worth of grass outside the lane gets cut and
+       the promise that you cannot take the zolle out of order leaks.
+
+       Pushing the position straight back towards the nearest point on the line
+       removes only the outward component, so the machine slides along the wall
+       instead of sticking to it. */
+    updatePathTracking();
+    mowOnWall = false;
+    if (mowOff > MOW_LANE_WALL) {
+      const k = MOW_LANE_WALL / mowOff;
+      mow.x = mowLineX + (mow.x - mowLineX) * k;
+      mow.z = mowLineZ + (mow.z - mowLineZ) * k;
+      mowOff = MOW_LANE_WALL;
+      mowOnWall = true;
+      if (mowWallCooldown <= 0 && Math.abs(mow.speed) > 300) {
+        MowHaptics.wall();
+        mowWallCooldown = 0.45;
+      }
+    }
+    if (mowWallCooldown > 0) mowWallCooldown -= dt;
+
+    const { fresh, alongside } = cutSwath(fromX, fromZ, mow.x, mow.z, mow.heading);
+
+    // how hard the blades are working, for next frame's load and engine note
+    if (fresh > 0) mowSinceFresh = 0;
+    else mowSinceFresh += Math.abs(mow.speed) * dt;
+    const working = mowSinceFresh < MOW_CELL * 2 ? 1 : 0;
+    mowCutting += (working - mowCutting) * Math.min(1, 6 * dt);
+
+    mowGrassAccum += dt; mowClickAccum += dt; mowHissAccum += dt;
+    if (fresh > 0) {
+      // one crunch per zolla, so the rhythm speeds up with the machine by itself
+      if (mowGrassAccum >= 0.05) {
+        mowGrassAccum = 0;
+        Haptics.grass(settings.mowTerrain, mowTotal ? mowCut / mowTotal : 0);
+      }
+      if (alongside && mowClickAccum >= 0.12) { mowClickAccum = 0; Haptics.edgeClick(); }
+      mowHissAccum = 0;
+    } else if (Math.abs(mow.speed) > 400 && mowHissAccum >= 0.28) {
+      mowHissAccum = 0;
+      MowHaptics.hiss();     // near-silence over ground already cut: the contrast is the point
+    }
+
+    mowTickAccum += dt;
+    if (mowTickAccum >= 0.06) { mowTickAccum = 0; mowHapticTick(); }
+    mowGuideCue(dt);
+
+    // the engine bogs down in tall grass: an audible cue you can drive by alone
+    const rev = Math.abs(mow.speed) / MOW_MAX_SPEED;
+    AudioFX.engineUpdate(clamp(rev * (1 - mowCutting * 0.45) + 0.05, 0, 1));
+
+    if (!mowFinished && mowCut >= mowTotal) { mowFinished = true; finishMow(); }
+  }
+
+  // ---------- first-person renderer ----------
+
+  function mowProject(wx, wz, width, height) {
+    const dx = wx - mow.x, dz = wz - mow.z;
+    const s = Math.sin(mow.heading), c = Math.cos(mow.heading);
+    const zc = dx * s + dz * c;                    // straight ahead of the seat
+    const xc = dx * c - dz * s;                    // to its right
+    const scale = MOW_CAM_DEPTH / (zc < MOW_NEAR ? MOW_NEAR : zc);
+    return {
+      x: width / 2 + scale * xc * (width / 2),
+      y: height * MOW_HORIZON + scale * MOW_CAM_HEIGHT * (height / 2),
+      scale, z: zc,
+    };
+  }
+
+  function renderMow() {
+    const width = mowCanvas.width / mowDpr;
+    const height = mowCanvas.height / mowDpr;
+    mowCtx.save();
+    mowCtx.scale(mowDpr, mowDpr);
+
+    // The world leans into the turn; the bonnet drawn after restore() does not,
+    // which is what gives the eye something to see the lean against.
+    mowCtx.save();
+    mowCtx.translate(width / 2, height * 0.9);
+    mowCtx.rotate(mow.roll * MOW_ROLL);
+    mowCtx.translate(-width / 2, -height * 0.9);
+
+    const horizonY = height * MOW_HORIZON;
+    const sky = mowCtx.createLinearGradient(0, -height * 0.4, 0, horizonY);
+    sky.addColorStop(0, '#050d0b');
+    sky.addColorStop(1, '#14312a');
+    mowCtx.fillStyle = sky;
+    mowCtx.fillRect(-width * 0.7, -height * 0.7, width * 2.4, horizonY + height * 0.7);
+
+    // On an open field yaw is the ONLY thing that changes when you turn, and a
+    // featureless sky cannot show yaw. The tree line is what makes it visible.
+    const sweep = -mow.heading * MOW_SKY_PER_RAD;
+    drawRidge(mowCtx, sweep * 0.62, horizonY + height * 0.008, height * 0.075, '#0b1d16', width, 1.3);
+    drawRidge(mowCtx, sweep, horizonY + height * 0.002, height * 0.045, '#102b1f', width, 2.7);
+
+    mowCtx.fillStyle = '#0a2412';
+    mowCtx.fillRect(-width * 0.7, horizonY, width * 2.4, height * 1.3);
+
+    const pc = Math.floor(mow.x / MOW_CELL), pr = Math.floor(mow.z / MOW_CELL);
+    const fwdX = Math.sin(mow.heading), fwdZ = Math.cos(mow.heading);
+    const far = MOW_VIEW * MOW_CELL;
+    const bill = [];
+
+    // -1 and mowN are the apron ring: same tiles, nothing growing on them
+    for (let r = pr - MOW_VIEW; r <= pr + MOW_VIEW; r++) {
+      if (r < -1 || r > mowN) continue;
+      for (let c = pc - MOW_VIEW; c <= pc + MOW_VIEW; c++) {
+        if (c < -1 || c > mowN) continue;
+        const relX = (c + 0.5) * MOW_CELL - mow.x, relZ = (r + 0.5) * MOW_CELL - mow.z;
+        const depth = relX * fwdX + relZ * fwdZ;
+        if (depth < 0 || depth > far) continue;          // behind the seat, or past the fog
+        // ...and outside the cone the camera can see. Cheap enough to be worth
+        // it: without it a big field projects four corners of every cell behind
+        // you and to your sides. The margin covers the quad's own width.
+        // (the 1.15 leaves room for the lean, which swings the frame edges out)
+        if (Math.abs(relX * fwdZ - relZ * fwdX) > depth / MOW_CAM_DEPTH * 1.15 + MOW_CELL * 1.5) continue;
+        const x0 = c * MOW_CELL, z0 = r * MOW_CELL;
+        const a = mowProject(x0, z0, width, height);
+        const b = mowProject(x0 + MOW_CELL, z0, width, height);
+        const d = mowProject(x0 + MOW_CELL, z0 + MOW_CELL, width, height);
+        const e = mowProject(x0, z0 + MOW_CELL, width, height);
+        // y depends only on depth, so anything this close is below the bottom
+        // edge of the canvas and hidden by the bonnet: dropping it costs nothing
+        if (a.z < MOW_NEAR || b.z < MOW_NEAR || d.z < MOW_NEAR || e.z < MOW_NEAR) continue;
+
+        const inGrid = mowInField(c, r);
+        const i = inGrid ? mowIdx(c, r) : -1;
+        // 3 is the apron inside the grid, -1 the ground beyond its edge: the
+        // oval lawn leaves both, and neither is ever grass
+        const v = inGrid ? mowCells[i] : -1;
+        const fogT = clamp((depth - far * 0.4) / (far * 0.6), 0, 1);
+        let col;
+        if (v === -1 || v === 3) col = ((c + r) & 1) ? '#38352c' : '#333025';   // gravel
+        else if (v === 2) col = '#243021';               // trodden dirt round the stone
+        else if (v === 1) col = mowStripe[i] ? '#3b7c47' : '#2e6539';
+        else col = ((c + r) & 1) ? '#16351f' : '#133019';
+
+        // stroke as well as fill: adjacent quads would otherwise show hairlines
+        mowCtx.fillStyle = mowCtx.strokeStyle = fogMix(col, fogT, MOW_FOG);
+        mowCtx.lineWidth = 1;
+        mowCtx.beginPath();
+        mowCtx.moveTo(a.x, a.y); mowCtx.lineTo(b.x, b.y); mowCtx.lineTo(d.x, d.y); mowCtx.lineTo(e.x, e.y);
+        mowCtx.closePath();
+        mowCtx.fill(); mowCtx.stroke();
+
+        if (v === 2) { bill.push({ z: depth, kind: 'rock', c, r }); continue; }
+
+        // blades on the nearest uncut zolle: the picture of the buzz to come
+        if (v === 0 && depth < MOW_CELL * 5) {
+          const sNear = Math.max(a.scale, b.scale, d.scale, e.scale);
+          const bladeH = sNear * 210 * (height / 2);
+          mowCtx.strokeStyle = 'rgba(126,192,126,0.15)';
+          mowCtx.beginPath();
+          for (let n = 0; n < 5; n++) {
+            const u = speck(c, r, n), t = speck(c, r, n + 11);
+            const bx = lerp(lerp(a.x, b.x, u), lerp(e.x, d.x, u), t);
+            const by = lerp(lerp(a.y, b.y, u), lerp(e.y, d.y, u), t);
+            mowCtx.moveTo(bx, by);
+            mowCtx.lineTo(bx + (speck(c, r, n + 21) - 0.5) * bladeH * 0.4, by - bladeH * (0.5 + speck(c, r, n + 31) * 0.5));
+          }
+          mowCtx.stroke();
+        }
+      }
+    }
+
+    // The line you are asked to hold: the eye's version of the verge buzz.
+    // Drawn over the ground but under the hedge and the stones, because it is
+    // painted on the grass, not floating above it.
+    if (mowPath.length > 1) {
+      mowCtx.strokeStyle = 'rgba(150,240,175,0.55)';
+      mowCtx.lineWidth = 2;
+      mowCtx.beginPath();
+      let pen = false;
+      // far enough ahead to read the curve, and the spiral is sampled by arc
+      // length so this is a fixed distance however tight the turn has become
+      for (let i = Math.max(0, mowPathIdx); i < Math.min(mowPath.length, mowPathIdx + 26); i++) {
+        const p = mowProject(mowPath[i].x, mowPath[i].z, width, height);
+        if (p.z < MOW_NEAR) { pen = false; continue; }
+        if (pen) mowCtx.lineTo(p.x, p.y); else { mowCtx.moveTo(p.x, p.y); pen = true; }
+      }
+      mowCtx.stroke();
+    }
+
+    // The hedge: a solid oval wall round the lawn, and the strongest reference
+    // the eye has for where you are and which way you are pointing.
+    const hedgeRx = mowRx + MOW_APRON, hedgeRz = mowRz + MOW_APRON;
+    for (let k = 0; k < MOW_HEDGE_SEGS; k++) {
+      const t0 = (k / MOW_HEDGE_SEGS) * Math.PI * 2;
+      const t1 = ((k + 1) / MOW_HEDGE_SEGS) * Math.PI * 2;
+      const p1 = mowProject(mowCx + hedgeRx * Math.cos(t0), mowCz + hedgeRz * Math.sin(t0), width, height);
+      const p2 = mowProject(mowCx + hedgeRx * Math.cos(t1), mowCz + hedgeRz * Math.sin(t1), width, height);
+      if (p1.z < MOW_NEAR || p2.z < MOW_NEAR) continue;
+      const depth = (p1.z + p2.z) / 2;
+      if (depth > far * 1.7) continue;
+      bill.push({ z: depth, kind: 'hedge', p1, p2, shade: k & 1 });
+    }
+
+    bill.sort((x, y) => y.z - x.z);
+    for (const item of bill) {
+      const fogT = clamp((item.z - far * 0.4) / (far * 0.6), 0, 1);
+      if (item.kind === 'hedge') {
+        const { p1, p2 } = item;
+        const h1 = p1.scale * MOW_HEDGE_H * (height / 2);
+        const h2 = p2.scale * MOW_HEDGE_H * (height / 2);
+        mowCtx.fillStyle = fogMix(item.shade ? '#123020' : '#0f2a1b', fogT);
+        polygon(mowCtx, p1.x, p1.y, p2.x, p2.y, p2.x, p2.y - h2, p1.x, p1.y - h1);
+        mowCtx.fillStyle = fogMix('#1d4a2c', fogT);
+        polygon(mowCtx, p1.x, p1.y - h1, p2.x, p2.y - h2, p2.x, p2.y - h2 * 1.06, p1.x, p1.y - h1 * 1.06);
+      } else {
+        const p = mowProject((item.c + 0.5) * MOW_CELL, (item.r + 0.5) * MOW_CELL, width, height);
+        const rad = p.scale * 130 * (width / 2);       // a stone, not a boulder
+        mowCtx.fillStyle = fogMix('#5d5a51', fogT);
+        mowCtx.beginPath();
+        mowCtx.ellipse(p.x, p.y - rad * 0.35, rad, rad * 0.62, 0, 0, Math.PI * 2);
+        mowCtx.fill();
+        mowCtx.fillStyle = fogMix('#7b776c', fogT);
+        mowCtx.beginPath();
+        mowCtx.ellipse(p.x - rad * 0.28, p.y - rad * 0.6, rad * 0.38, rad * 0.24, 0, 0, Math.PI * 2);
+        mowCtx.fill();
+      }
+    }
+
+    mowCtx.restore(); // end the lean — everything below is bolted to the seat
+
+    // footwell and fenders
+    mowCtx.fillStyle = '#16210f';
+    polygon(mowCtx, -width * 0.05, height * 1.06, width * 0.14, height * 0.86, width * 0.86, height * 0.86, width * 1.05, height * 1.06);
+    mowCtx.fillStyle = '#26351a';
+    roundRect(mowCtx, -width * 0.06, height * 0.84, width * 0.26, height * 0.2, 14);
+    roundRect(mowCtx, width * 0.8, height * 0.84, width * 0.26, height * 0.2, 14);
+
+    // bonnet, grille and exhaust: the fixed silhouette you steer the field by
+    mowCtx.fillStyle = '#3f5f2b';
+    polygon(mowCtx, width * 0.26, height * 1.05, width * 0.32, height * 0.775, width * 0.68, height * 0.775, width * 0.74, height * 1.05);
+    mowCtx.fillStyle = '#335022';
+    polygon(mowCtx, width * 0.32, height * 0.775, width * 0.68, height * 0.775, width * 0.67, height * 0.80, width * 0.33, height * 0.80);
+    mowCtx.fillStyle = '#22331a';
+    roundRect(mowCtx, width * 0.42, height * 0.815, width * 0.16, height * 0.028, 3);
+    mowCtx.fillStyle = '#1a1d18';
+    roundRect(mowCtx, width * 0.295, height * 0.70, width * 0.03, height * 0.10, 3);
+
+    drawWheel(mowCtx, width * 0.5, height * 1.0, Math.min(width, height) * 0.19, mow.roll, '#2b3324');
+
+    mowCtx.restore();
+  }
+
+  function updateMowHud() {
+    mowProgressEl.textContent = Math.round((mowCut / mowTotal) * 100) + '%';
+    mowRemainingEl.textContent = (mowTotal - mowCut) + ' zolle';
+    mowTimerEl.textContent = formatTime(Date.now() - mowStartTime);
+  }
+
+  function resizeMowCanvas() {
+    const w = Math.floor(mowWrap.clientWidth);
+    const h = Math.floor(mowWrap.clientHeight);
+    mowDpr = window.devicePixelRatio || 1;
+    mowCanvas.style.width = w + 'px';
+    mowCanvas.style.height = h + 'px';
+    mowCanvas.width = Math.floor(w * mowDpr);
+    mowCanvas.height = Math.floor(h * mowDpr);
+  }
+
+  function mowLoop(ts) {
+    if (!mowRunning) return;
+    const dt = Math.min(0.05, (ts - mowLastFrame) / 1000 || 0.016);
+    mowLastFrame = ts;
+    updateMowPhysics(dt);
+    if (!mowBlackoutActive) renderMow();
+    updateMowHud();
+    mowRAF = requestAnimationFrame(mowLoop);
+  }
+
+  // ---------- input, same scheme as the race: tilt, then keys, then finger ----------
+
+  function updateMowSteer(clientX) {
+    const rect = mowCanvas.getBoundingClientRect();
+    const t = ((clientX - rect.left) / rect.width) * 2 - 1;
+    mowSteerTarget = clamp(t * 1.6, -1, 1);
+  }
+
+  mowWrap.addEventListener('pointerdown', (e) => {
+    if (!mowRunning) return;
+    AudioFX.ensure();
+    try { mowWrap.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+    mowPointerActive = true;
+    mowAnchorY = e.clientY;
+    mowThrottleAxis = 0;
+    if (!tiltAvailable) updateMowSteer(e.clientX);
+  });
+  mowWrap.addEventListener('pointermove', (e) => {
+    if (!mowRunning || !mowPointerActive) return;
+    mowThrottleAxis = clamp((mowAnchorY - e.clientY) / THROTTLE_RANGE, -1, 1);
+    if (!tiltAvailable) updateMowSteer(e.clientX);
+  });
+  function releaseMowPointer() { mowPointerActive = false; mowThrottleAxis = 0; mowSteerTarget = 0; }
+  mowWrap.addEventListener('pointerup', releaseMowPointer);
+  mowWrap.addEventListener('pointercancel', releaseMowPointer);
+
+  let lastMowBlackoutTap = 0;
+  mowBlackoutEl.addEventListener('pointerdown', () => {
+    const now = Date.now();
+    if (now - lastMowBlackoutTap < 350) setMowBlackout(false);
+    lastMowBlackoutTap = now;
+  });
+
+  function setMowBlackout(on) {
+    mowBlackoutActive = on;
+    mowBlackoutEl.classList.toggle('active', on);
+    document.body.classList.toggle('blackout-mode', on);
+  }
+  btnMowBlackout.addEventListener('click', () => setMowBlackout(!mowBlackoutActive));
+
+  btnMowRecenter.addEventListener('click', () => {
+    if (tiltAvailable) tiltZero = lastRawGamma;
+    mowSteerTarget = 0;
+  });
+
+  function startMowRun() {
+    currentMode = 'mow';
+    buildMowField();
+    clearKeys();
+    setMowBlackout(false);
+    showScreen('screen-mow');
+    // the start button goes away with its screen: give the keys a home
+    try { mowWrap.focus({ preventScroll: true }); } catch (e) { mowWrap.focus(); }
+    requestAnimationFrame(() => { resizeMowCanvas(); });
+    AudioFX.ensure();
+    AudioFX.engineStart(MOW_ENGINE);
+    MowHaptics.ignition();
+    mowStartTime = Date.now();
+    mowRunning = true;
+    steerActive = true;
+    mowLastFrame = performance.now();
+    mowRAF = requestAnimationFrame(mowLoop);
+  }
+
+  function stopMow() {
+    mowRunning = false;
+    steerActive = false;
+    if (mowRAF) cancelAnimationFrame(mowRAF);
+    stopOrientationListener();
+    AudioFX.engineStop();
+  }
+
+  function finishMow() {
+    stopMow();
+    const elapsed = Date.now() - mowStartTime;
+    Haptics.win();
+    const key = 'pratoCieca_best_' + settings.mowTerrain + '_' + mowN;
+    const prevBest = parseInt(localStorage.getItem(key) || '0', 10);
+    let isBest = false;
+    if (!prevBest || elapsed < prevBest) { localStorage.setItem(key, String(elapsed)); isBest = true; }
+    winTitleEl.textContent = 'Campo tagliato! 🚜';
+    winTimeEl.textContent = 'Tempo: ' + formatTime(elapsed);
+    winBestEl.textContent = isBest ? '🏆 Nuovo record per questo campo!' : 'Record: ' + formatTime(prevBest);
+    setTimeout(() => showScreen('screen-win'), 900);
+  }
+
+  function restartMow() {
+    if (tiltAvailable) {
+      tiltZero = null; orientationReceived = false;
+      window.addEventListener('deviceorientation', onOrientation);
+    }
+    startMowRun();
+  }
+
+  btnMowStart.addEventListener('click', () => {
+    AudioFX.ensure();
+    beginTilt().then(startMowRun);
+  });
+
+  btnMowMenu.addEventListener('click', () => { stopMow(); showScreen('screen-mode'); });
+
+  // ================= Shared win screen wiring =================
+  btnAgain.addEventListener('click', () => {
+    if (currentMode === 'prato') startGame();
+    else if (currentMode === 'gara') restartRace();
+    else restartMow();
+  });
+  btnBackMenu.addEventListener('click', () => showScreen('screen-mode'));
+
+  window.addEventListener('resize', () => {
+    if (screens['screen-game'].classList.contains('active')) resizeCanvas();
+    if (screens['screen-race'].classList.contains('active')) resizeRaceCanvas();
+    if (screens['screen-mow'].classList.contains('active')) resizeMowCanvas();
+  });
+  document.addEventListener('contextmenu', (e) => e.preventDefault());
+})();
+
+</script>
+</body>
+</html>

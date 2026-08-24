@@ -307,9 +307,6 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ══════════════════════════════════════════════════════════
 var iaCatExclByGroup = {}; // { id_cat: [nomi esclusi] }, popolato da fetchIaCatExclusions() in init()
 var iaCatFilter = ''; // stringa .or() calcolata da buildIaCatFilter(), scoped per id_cat/gruppo canale
-const LIKE_SCORE_SHOW_ANYWAY = 80; // like_score (percentile) sopra il quale un episodio si vede
-                                    // anche se il suo ia_cat e' escluso (ia_cats.view=0). Stessa
-                                    // soglia duplicata nella funzione Postgres get_categories_with_unread().
 
 const complete_template = '<span class="episode-complete d-flex justify-content-center align-items-center bg-success rounded-circle" style="width:30px;height:30px;display:inline-flex !important;"><i class="fa-solid fa-check" style="color:#fff;"></i></span> ';
 
@@ -413,7 +410,6 @@ function buildIaCatFilter() {
 		}
 	});
 	clauses.push('and(id_channel.eq.113,ia_cat.in.("Musica","Trasporti"))'); // eccezione ch113 Rivista Focus
-	clauses.push(`like_score.gte.${LIKE_SCORE_SHOW_ANYWAY}`); // probabilita' di gradimento alta: mostra anche se ia_cat e' escluso
 
 	return clauses.join(',');
 }

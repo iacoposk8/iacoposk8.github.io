@@ -453,7 +453,7 @@ body.blackout-mode .btn-blackout-toggle {
   <section id="screen-race-menu" class="screen">
     <button type="button" class="back-btn" data-back="screen-mode">← Giochi</button>
     <h1>🏎️ Gara alla Cieca</h1>
-    <p class="subtitle">Inclina il telefono per sterzare. Appoggia il dito e <strong>tienilo</strong> spostato in alto per accelerare, in basso per frenare: più lo allontani, più spingi. Stacca il dito e rallenta. Fuori pista si affonda: più vai largo, meno spinge — ma appena rientri riprendi tutto.</p>
+    <p class="subtitle">Inclina il telefono per sterzare. Appoggia il dito e <strong>tienilo</strong> spostato in alto per accelerare, in basso per frenare: più lo allontani, più spingi. Stacca il dito e rallenta. Fuori pista si affonda: più vai largo, meno spinge — ma appena rientri riprendi tutto. Se esci, la vibrazione ti dice anche da che parte: un colpo solo se sei andato a sinistra, due colpi rapidi se a destra.</p>
 
     <div class="option-group">
       <h2>Giri</h2>
@@ -548,7 +548,7 @@ body.blackout-mode .btn-blackout-toggle {
       </div>
     </div>
 
-    <p class="hint">🌀 Il prato è ovale e la pista è una spirale sola, dal bordo al centro. Bordi invisibili ti tengono dentro: non puoi saltare zolle né farle in ordine diverso. Sfiorare il bordo non costa quasi niente, ma più spingi fuori più il trattorino affonda — e appena rientri torna veloce. Più sei preciso, meno tempo ci metti. Ogni giro chiuso è un tocco più acuto del precedente.</p>
+    <p class="hint">🌀 Il prato è ovale e la pista è una spirale sola, dal bordo al centro. Bordi invisibili ti tengono dentro: non puoi saltare zolle né farle in ordine diverso. Sfiorare il bordo non costa quasi niente, ma più spingi fuori più il trattorino affonda — e appena rientri torna veloce. Più sei preciso, meno tempo ci metti. Ogni giro chiuso è un tocco più acuto del precedente. Anche qui la vibrazione dice da che parte sei uscito: un colpo solo a sinistra, due colpi rapidi a destra.</p>
     <p class="hint">🌱 Il taglio è largo una zolla: grattugia sull'erba alta, silenzio su quella già tagliata, click quando affianchi la passata precedente.</p>
 
     <button type="button" id="btn-mow-start" class="primary">Sali sul trattorino</button>
@@ -675,6 +675,24 @@ body.blackout-mode .btn-blackout-toggle {
   function vib(pattern) {
     if (hasVibration) {
       try { navigator.vibrate(pattern); } catch (e) { /* ignore */ }
+    }
+  }
+
+  /* Which side you left the path on, felt through the motor itself rather than
+     stereo audio: on a phone with a single vibration motor (the common case)
+     there is no left/right rumble to lean on, and playing "alla cieca" without
+     headphones is the whole point — so direction has to survive on vibration
+     alone. A steady single tap repeats toward the left; a quick one-two double
+     tap repeats toward the right. Same total on-time either way, so direction
+     never reads as more urgent one way than the other — only the duration
+     (set by the caller) says how far off you are. */
+  function sidedVib(totalMs, side) {
+    if (side > 0) {
+      const half = Math.max(4, Math.round(totalMs * 0.4));
+      const gap = Math.max(5, Math.round(totalMs * 0.3));
+      vib([half, gap, half]);
+    } else {
+      vib([totalMs]);
     }
   }
 
@@ -1244,15 +1262,15 @@ body.blackout-mode .btn-blackout-toggle {
   const OPP_COLORS = ['#e0555f', '#4fa8e0', '#e0b84f', '#8f5fe0', '#4fe0a0', '#e08f4f'];
 
   const RaceHaptics = {
-    edge(intensity) {
-      vib([Math.round(3 + intensity * 14)]);
-      AudioFX.noiseBurst({ freq: 500 + intensity * 300, q: 1, duration: 0.03, volume: 0.1 + intensity * 0.15 });
+    edge(intensity, side) {
+      sidedVib(Math.round(3 + intensity * 14), side);
+      AudioFX.noiseBurst({ freq: 500 + intensity * 300, q: 1, duration: 0.03, volume: 0.1 + intensity * 0.15, pan: side });
     },
     // grows with how far out you are, the same rule the mower's verge follows
-    offroad(intensity) {
+    offroad(intensity, side) {
       const n = Math.round(10 + intensity * 16);
-      vib([n, 10, n, 10, n]);
-      AudioFX.noiseBurst({ freq: 200 + intensity * 90, q: 0.8, duration: 0.05 + intensity * 0.03, volume: 0.16 + intensity * 0.16 });
+      sidedVib(n, side);
+      AudioFX.noiseBurst({ freq: 200 + intensity * 90, q: 0.8, duration: 0.05 + intensity * 0.03, volume: 0.16 + intensity * 0.16, pan: side });
     },
     brush() {
       vib([8, 12, 8]);
@@ -1800,8 +1818,9 @@ body.blackout-mode .btn-blackout-toggle {
 
   function raceHapticTick() {
     const ax = Math.abs(player.x);
-    if (ax > 1) RaceHaptics.offroad(clamp((ax - 1) / (FIELD_LIMIT - 1), 0, 1));
-    else if (ax > 0.55) RaceHaptics.edge((ax - 0.55) / 0.45);
+    const side = player.x > 0 ? 1 : -1; // positive x is the right-hand verge
+    if (ax > 1) RaceHaptics.offroad(clamp((ax - 1) / (FIELD_LIMIT - 1), 0, 1), side);
+    else if (ax > 0.55) RaceHaptics.edge((ax - 0.55) / 0.45, side);
   }
 
   function raceLoop(ts) {
@@ -2006,7 +2025,7 @@ body.blackout-mode .btn-blackout-toggle {
        right. It NEVER slows the machine: the buzz is the whole penalty, the
        same deliberate choice as the free edges in Gara alla Cieca. */
     offLine(intensity, side) {
-      vib([Math.round(4 + intensity * 26)]);
+      sidedVib(Math.round(4 + intensity * 26), side);
       AudioFX.noiseBurst({
         freq: 230 + intensity * 280, q: 1.1,
         duration: 0.035 + intensity * 0.03,
@@ -2016,8 +2035,8 @@ body.blackout-mode .btn-blackout-toggle {
     },
     // meeting the invisible wall: firmer and lower than the verge, so it reads
     // as something solid rather than as more of the same rough grass
-    wall() {
-      vib([45]);
+    wall(side) {
+      sidedVib(45, side);
       AudioFX.thud({ freq: 70, duration: 0.12, volume: 0.3 });
     },
     // another turn of the spiral closed. A semitone higher each time, so the
@@ -2428,7 +2447,7 @@ body.blackout-mode .btn-blackout-toggle {
       mowOff = MOW_LANE_WALL;
       mowOnWall = true;
       if (mowWallCooldown <= 0 && Math.abs(mow.speed) > 300) {
-        MowHaptics.wall();
+        MowHaptics.wall(mowOffSide);
         mowWallCooldown = 0.45;
       }
     }

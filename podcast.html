@@ -307,6 +307,9 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ══════════════════════════════════════════════════════════
 var iaCatExclByGroup = {}; // { id_cat: [nomi esclusi] }, popolato da fetchIaCatExclusions() in init()
 var iaCatFilter = ''; // stringa .or() calcolata da buildIaCatFilter(), scoped per id_cat/gruppo canale
+const LIKE_SCORE_SHOW_ANYWAY = 80; // like_score (percentile) sopra il quale un episodio si vede
+                                    // anche se il suo ia_cat e' escluso (ia_cats.view=0). Stessa
+                                    // soglia duplicata nella funzione Postgres get_categories_with_unread().
 
 const complete_template = '<span class="episode-complete d-flex justify-content-center align-items-center bg-success rounded-circle" style="width:30px;height:30px;display:inline-flex !important;"><i class="fa-solid fa-check" style="color:#fff;"></i></span> ';
 
@@ -410,6 +413,7 @@ function buildIaCatFilter() {
 		}
 	});
 	clauses.push('and(id_channel.eq.113,ia_cat.in.("Musica","Trasporti"))'); // eccezione ch113 Rivista Focus
+	clauses.push(`like_score.gte.${LIKE_SCORE_SHOW_ANYWAY}`); // probabilita' di gradimento alta: mostra anche se ia_cat e' escluso
 
 	return clauses.join(',');
 }
@@ -432,6 +436,29 @@ async function updateEpisode(id, k, v) {
 	await sb.from('episodes').update(upd).eq('id', id);
 }
 
+// Stesso filtro ia_cat di fetchEpisodes, per coerenza con gli episodi visibili.
+// totalUnreadAtLoad e' uno snapshot: senza un refresh periodico invecchia (nuovi
+// episodi caricati dal cron, episodi letti da un'altra sessione) e "(N rimanenti)"
+// nel player finisce per mostrare un numero non piu' vero. Richiamata sia in init()
+// che ad ogni apertura del player, cosi' si auto-corregge nel giro di una chiamata.
+async function refreshTotalUnread() {
+	try {
+		let cq = sb.from('episodes')
+			.select('*', { count: 'exact', head: true })
+			.in('id_channel', activeChannelIds)
+			.eq('view', 0)
+			.eq('complete', 0);
+		if (iaCatFilter) cq = cq.or(iaCatFilter);
+		if (hideShortsChannelIds.length) {
+			const idsTuple = '(' + hideShortsChannelIds.join(',') + ')';
+			cq = cq.or(`is_short.eq.0,id_channel.not.in.${idsTuple}`);
+		}
+		const { count } = await cq;
+		totalUnreadAtLoad = count || 0;
+		sessionViewedCount = 0; // il conteggio fresco include gia' tutte le visualizzazioni fin qui
+	} catch(e) { console.warn('totalUnread refresh failed', e); }
+}
+
 // ══════════════════════════════════════════════════════════
 // INIT (async)
 // ══════════════════════════════════════════════════════════
@@ -447,21 +474,7 @@ async function init() {
 	]);
 
 	// Conteggio totale non letti su tutti i canali attivi (inclusi MapPorn, cat 0, ecc.)
-	// Stesso filtro ia_cat di fetchEpisodes per coerenza con gli episodi visibili
-	try {
-		let cq = sb.from('episodes')
-			.select('*', { count: 'exact', head: true })
-			.in('id_channel', activeChannelIds)
-			.eq('view', 0)
-			.eq('complete', 0);
-		if (iaCatFilter) cq = cq.or(iaCatFilter);
-		if (hideShortsChannelIds.length) {
-			const idsTuple = '(' + hideShortsChannelIds.join(',') + ')';
-			cq = cq.or(`is_short.eq.0,id_channel.not.in.${idsTuple}`);
-		}
-		const { count } = await cq;
-		totalUnreadAtLoad = count || 0;
-	} catch(e) { console.warn('totalUnread fetch failed', e); }
+	await refreshTotalUnread();
 
 	player.speed = parseFloat(settings['speed'] || 1.0);
 	$("#currentSpeedDisplay").html(player.speed + "x");
@@ -558,6 +571,14 @@ function titleSuffix(ep) {
 // ══════════════════════════════════════════════════════════
 // PLAYER
 // ══════════════════════════════════════════════════════════
+function renderChannelTitleWithRemaining(item) {
+	const _remaining = Math.max(0, totalUnreadAtLoad - sessionViewedCount);
+	const _remainingHtml = _remaining > 0
+		? ` <span style="font-size:0.75em;opacity:0.6;font-weight:normal;">(${_remaining} non letti in tutta l'app)</span>`
+		: '';
+	$(".audioChannelTitle").html(item.channel_title + _remainingHtml);
+}
+
 function popupPLayer(id, params) {
 	for (var i in items) {
 		if (items[i].id == id) { index_array_episode = parseInt(i); item = items[i]; break; }
@@ -584,11 +605,13 @@ function popupPLayer(id, params) {
 	$(".container-cats").html('<div class="row">' + cats + '</div>');
 	$("#popup-player .playPauseBtn").data("id", id);
 	$(".audioTitle").html(`<a href="${item.url}" target="_blank">${item.title}${titleSuffix(item)}</a>`);
-	const _remaining = Math.max(0, totalUnreadAtLoad - sessionViewedCount);
-	const _remainingHtml = _remaining > 0
-		? ` <span style="font-size:0.75em;opacity:0.6;font-weight:normal;">(${_remaining} rimanenti)</span>`
-		: '';
-	$(".audioChannelTitle").html(item.channel_title + _remainingHtml);
+	renderChannelTitleWithRemaining(item);
+	// Il numero mostrato subito e' quello dell'ultimo refresh: puo' essere invecchiato
+	// (altri episodi caricati dal cron, letture da un'altra sessione). Lo si ricalcola
+	// in background e si ridisegna solo se il player mostra ancora questo episodio.
+	refreshTotalUnread().then(() => {
+		if (item && item.id === id) renderChannelTitleWithRemaining(item);
+	});
 	const imgSrc = (item.image || '').replaceAll('&amp;', '&');
 	$(".audioImage").attr("src", imgSrc);
 

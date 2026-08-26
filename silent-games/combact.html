@@ -454,6 +454,25 @@
         .difficulty-option input { margin-right: 8px; accent-color: var(--accent); }
         .difficulty-option small { display: block; margin: 4px 0 0 25px; color: var(--text-dim); }
         .start-btn { width: 100%; margin-top: 2px; }
+        .advanced-toggle {
+            margin: 4px 0 14px;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: transparent;
+            color: var(--text-dim);
+            cursor: pointer;
+        }
+        .advanced-panel {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 18px;
+            text-align: left;
+        }
+        .advanced-setting { display: grid; gap: 4px; font-size: 0.85rem; }
+        .advanced-setting span { display: flex; justify-content: space-between; color: var(--text-dim); }
+        .advanced-setting output { color: var(--accent); font-weight: bold; }
+        .advanced-setting input { width: 100%; accent-color: var(--accent); }
     </style>
 </head>
 <body>
@@ -517,6 +536,29 @@
                         <small>Meno margine d'errore e attacchi più rapidi.</small>
                     </label>
                 </div>
+                <button class="advanced-toggle" id="advancedToggle" type="button" aria-expanded="false">Opzioni avanzate</button>
+                <div class="advanced-panel" id="advancedPanel" hidden>
+                    <label class="advanced-setting">
+                        <span>Vita giocatore <output id="advancedHealthValue">100</output></span>
+                        <input id="advancedHealth" data-setting="health" type="range" min="40" max="140" step="5" value="100">
+                    </label>
+                    <label class="advanced-setting">
+                        <span>Danno nemico <output id="advancedDamageValue">30</output></span>
+                        <input id="advancedDamage" data-setting="damage" type="range" min="10" max="60" step="5" value="30">
+                    </label>
+                    <label class="advanced-setting">
+                        <span>Intervallo attacchi <output id="advancedIntervalValue">100%</output></span>
+                        <input id="advancedInterval" data-setting="interval" type="range" min="50" max="150" step="5" value="100">
+                    </label>
+                    <label class="advanced-setting">
+                        <span>Preavviso <output id="advancedWarningValue">1250 ms</output></span>
+                        <input id="advancedWarning" data-setting="warning" type="range" min="500" max="2200" step="50" value="1250">
+                    </label>
+                    <label class="advanced-setting">
+                        <span>Recupero stamina <output id="advancedRecoveryValue">12/s</output></span>
+                        <input id="advancedRecovery" data-setting="recovery" type="range" min="5" max="30" step="1" value="12">
+                    </label>
+                </div>
                 <button class="restart-btn start-btn" id="startGameBtn">Inizia partita</button>
             </div>
         </div>
@@ -575,6 +617,7 @@
                 this.score = 0;
                 this.isGameRunning = false;
                 this.settingsScreen = document.getElementById('settingsScreen');
+                this.advancedOverrides = {};
                 
                 // Sistema touch/swipe
                 this.touchStartX = 0;
@@ -660,21 +703,36 @@
                 document.addEventListener('visibilitychange', () => this.handleVisibilityChange());
 
                 document.getElementById('startGameBtn').addEventListener('click', () => this.startGame());
+                document.getElementById('advancedToggle').addEventListener('click', (e) => {
+                    const panel = document.getElementById('advancedPanel');
+                    panel.hidden = !panel.hidden;
+                    e.currentTarget.setAttribute('aria-expanded', String(!panel.hidden));
+                });
+                document.querySelectorAll('.advanced-setting input').forEach((input) => {
+                    input.addEventListener('input', () => {
+                        this.advancedOverrides[input.dataset.setting] = Number(input.value);
+                        document.getElementById(input.id + 'Value').textContent = input.dataset.setting === 'interval'
+                            ? input.value + '%'
+                            : input.dataset.setting === 'warning' ? input.value + ' ms'
+                            : input.dataset.setting === 'recovery' ? input.value + '/s' : input.value;
+                    });
+                });
             }
 
             startGame() {
                 const difficulty = document.querySelector('input[name="difficulty"]:checked').value;
                 const presets = {
-                    easy: { health: 140, damage: 15, moves: [3600, 4500, 3000, 5500, 4000], warning: 2100, recovery: 25, costs: [8, 24, 15] },
-                    normal: { health: 100, damage: 25, moves: [2500, 3500, 2000, 4500, 3000], warning: 1500, recovery: 15, costs: [10, 30, 20] },
-                    hard: { health: 80, damage: 35, moves: [1700, 2400, 1400, 3000, 2100], warning: 1000, recovery: 10, costs: [12, 35, 25] }
+                    easy: { health: 110, damage: 20, interval: 100, moves: [2800, 3600, 2400, 4300, 3200], warning: 1700, recovery: 20, costs: [10, 28, 18] },
+                    normal: { health: 95, damage: 30, interval: 90, moves: [2200, 3000, 1800, 3800, 2600], warning: 1250, recovery: 12, costs: [12, 32, 22] },
+                    hard: { health: 70, damage: 45, interval: 75, moves: [1300, 1900, 1100, 2400, 1600], warning: 800, recovery: 8, costs: [15, 38, 28] }
                 };
                 const preset = presets[difficulty];
-                this.maxPlayerHealth = preset.health;
-                this.enemyDamage = preset.damage;
-                this.enemyMoveset = preset.moves;
-                this.enemyWarningTime = preset.warning;
-                this.staminaRecoveryRate = preset.recovery;
+                const value = (key) => this.advancedOverrides[key] ?? preset[key];
+                this.maxPlayerHealth = value('health');
+                this.enemyDamage = value('damage');
+                this.enemyMoveset = preset.moves.map((delay) => delay * value('interval') / 100);
+                this.enemyWarningTime = value('warning');
+                this.staminaRecoveryRate = value('recovery');
                 [this.lightAttackCost, this.heavyAttackCost, this.dodgeCost] = preset.costs;
                 this.settingsScreen.style.display = 'none';
                 this.reset();

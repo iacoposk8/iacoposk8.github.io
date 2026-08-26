@@ -417,6 +417,43 @@
             0%, 100% { transform: translateX(-50%); }
             50% { transform: translateX(-30%); }
         }
+        .settings-screen {
+            position: absolute;
+            inset: 0;
+            z-index: 300;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: rgba(12, 20, 16, 0.96);
+        }
+
+        .settings-card {
+            width: min(100%, 420px);
+            padding: 26px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            text-align: center;
+        }
+
+        .settings-card h1 { margin-bottom: 8px; font-size: 1.7rem; }
+        .settings-card p { color: var(--text-dim); line-height: 1.4; margin-bottom: 20px; }
+        .difficulty-options { display: grid; gap: 9px; margin-bottom: 18px; text-align: left; }
+        .difficulty-option {
+            display: block;
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+        }
+        .difficulty-option:has(input:checked) {
+            border-color: var(--accent);
+            background: rgba(111, 208, 127, 0.12);
+        }
+        .difficulty-option input { margin-right: 8px; accent-color: var(--accent); }
+        .difficulty-option small { display: block; margin: 4px 0 0 25px; color: var(--text-dim); }
+        .start-btn { width: 100%; margin-top: 2px; }
     </style>
 </head>
 <body>
@@ -457,6 +494,31 @@
             <h2 id="gameOverText">Game Over!</h2>
             <p>Punteggio finale: <span id="finalScore">0</span></p>
             <button class="restart-btn" onclick="restartGame()">Rigioca</button>
+        </div>
+
+        <div class="settings-screen" id="settingsScreen">
+            <div class="settings-card">
+                <h1>Combat Arena</h1>
+                <p>Scegli quanto vuoi essere sfidato. Potrai rigiocare con questa scelta dopo ogni combattimento.</p>
+                <div class="difficulty-options" role="radiogroup" aria-label="Difficoltà">
+                    <label class="difficulty-option">
+                        <input type="radio" name="difficulty" value="easy" checked>
+                        <strong>Facile</strong>
+                        <small>Più vita, più stamina e molto preavviso.</small>
+                    </label>
+                    <label class="difficulty-option">
+                        <input type="radio" name="difficulty" value="normal">
+                        <strong>Normale</strong>
+                        <small>La sfida bilanciata.</small>
+                    </label>
+                    <label class="difficulty-option">
+                        <input type="radio" name="difficulty" value="hard">
+                        <strong>Difficile</strong>
+                        <small>Meno margine d'errore e attacchi più rapidi.</small>
+                    </label>
+                </div>
+                <button class="restart-btn start-btn" id="startGameBtn">Inizia partita</button>
+            </div>
         </div>
     </div>
 
@@ -508,9 +570,11 @@
                 
                 // Statistiche giocatore
                 this.playerHealth = 100;
+                this.maxPlayerHealth = 100;
                 this.enemyHealth = 100;
                 this.score = 0;
-                this.isGameRunning = true;
+                this.isGameRunning = false;
+                this.settingsScreen = document.getElementById('settingsScreen');
                 
                 // Sistema touch/swipe
                 this.touchStartX = 0;
@@ -526,6 +590,7 @@
                 this.enemyMoveset = [2500, 3500, 2000, 4500, 3000]; // Pattern degli attacchi nemici (in millisecondi) - adattato per mobile
                 this.currentMoveIndex = 0;
                 this.enemyWarningTime = 1500; // Tempo di preavviso prima dell'attacco nemico (in ms) - aumentato per mobile
+                this.enemyDamage = 25;
                 
                 // Sistema attacco pesante
                 this.isCharging = false;
@@ -555,7 +620,7 @@
             // Rimette in gioco l'istanza esistente senza ri-registrare i listener globali
             // (altrimenti ad ogni restart si accumulano gestori duplicati sullo stesso document).
             reset() {
-                this.playerHealth = 100;
+                this.playerHealth = this.maxPlayerHealth;
                 this.enemyHealth = 100;
                 this.score = 0;
                 this.isGameRunning = true;
@@ -594,10 +659,25 @@
                 // il giocatore subisce un colpo "alla cieca" senza aver visto/sentito l'avviso.
                 document.addEventListener('visibilitychange', () => this.handleVisibilityChange());
 
-                // Avvia il loop degli attacchi nemici
-                this.scheduleEnemyAttack();
+                document.getElementById('startGameBtn').addEventListener('click', () => this.startGame());
+            }
 
-                // Avvia il loop di recupero stamina
+            startGame() {
+                const difficulty = document.querySelector('input[name="difficulty"]:checked').value;
+                const presets = {
+                    easy: { health: 140, damage: 15, moves: [3600, 4500, 3000, 5500, 4000], warning: 2100, recovery: 25, costs: [8, 24, 15] },
+                    normal: { health: 100, damage: 25, moves: [2500, 3500, 2000, 4500, 3000], warning: 1500, recovery: 15, costs: [10, 30, 20] },
+                    hard: { health: 80, damage: 35, moves: [1700, 2400, 1400, 3000, 2100], warning: 1000, recovery: 10, costs: [12, 35, 25] }
+                };
+                const preset = presets[difficulty];
+                this.maxPlayerHealth = preset.health;
+                this.enemyDamage = preset.damage;
+                this.enemyMoveset = preset.moves;
+                this.enemyWarningTime = preset.warning;
+                this.staminaRecoveryRate = preset.recovery;
+                [this.lightAttackCost, this.heavyAttackCost, this.dodgeCost] = preset.costs;
+                this.settingsScreen.style.display = 'none';
+                this.reset();
                 this.staminaRecoveryLoop();
             }
 
@@ -985,7 +1065,7 @@
                         this.vibrate(500);
                         AudioFX.hit();
 
-                        this.playerHealth -= 25;
+                        this.playerHealth -= this.enemyDamage;
                         this.player.classList.add('hit');
                         this.updateHealthBars();
 
@@ -1041,7 +1121,7 @@
             }
 
             updateHealthBars() {
-                this.playerHealthBar.style.width = Math.max(0, this.playerHealth) + '%';
+                this.playerHealthBar.style.width = Math.max(0, this.playerHealth / this.maxPlayerHealth * 100) + '%';
                 this.enemyHealthBar.style.width = Math.max(0, this.enemyHealth) + '%';
             }
 

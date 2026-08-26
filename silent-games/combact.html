@@ -422,27 +422,29 @@
             inset: 0;
             z-index: 300;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: center;
-            padding: 24px;
+            padding: 12px;
+            overflow-y: auto;
             background: rgba(12, 20, 16, 0.96);
         }
 
         .settings-card {
             width: min(100%, 420px);
-            padding: 26px;
+            margin: auto 0;
+            padding: 18px;
             background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 18px;
             text-align: center;
         }
 
-        .settings-card h1 { margin-bottom: 8px; font-size: 1.7rem; }
-        .settings-card p { color: var(--text-dim); line-height: 1.4; margin-bottom: 20px; }
-        .difficulty-options { display: grid; gap: 9px; margin-bottom: 18px; text-align: left; }
+        .settings-card h1 { margin-bottom: 5px; font-size: 1.5rem; }
+        .settings-card p { color: var(--text-dim); line-height: 1.3; margin-bottom: 12px; }
+        .difficulty-options { display: grid; gap: 6px; margin-bottom: 10px; text-align: left; }
         .difficulty-option {
             display: block;
-            padding: 12px 14px;
+            padding: 8px 10px;
             border: 1px solid var(--border);
             border-radius: 12px;
             cursor: pointer;
@@ -452,11 +454,11 @@
             background: rgba(111, 208, 127, 0.12);
         }
         .difficulty-option input { margin-right: 8px; accent-color: var(--accent); }
-        .difficulty-option small { display: block; margin: 4px 0 0 25px; color: var(--text-dim); }
+        .difficulty-option small { display: block; margin: 2px 0 0 25px; color: var(--text-dim); }
         .start-btn { width: 100%; margin-top: 2px; }
         .advanced-toggle {
-            margin: 4px 0 14px;
-            padding: 8px 12px;
+            margin: 2px 0 8px;
+            padding: 6px 10px;
             border: 1px solid var(--border);
             border-radius: 10px;
             background: transparent;
@@ -465,8 +467,8 @@
         }
         .advanced-panel {
             display: grid;
-            gap: 10px;
-            margin-bottom: 18px;
+            gap: 6px;
+            margin-bottom: 10px;
             text-align: left;
         }
         .advanced-setting { display: grid; gap: 4px; font-size: 0.85rem; }
@@ -527,7 +529,7 @@
                     </label>
                     <label class="difficulty-option">
                         <input type="radio" name="difficulty" value="normal">
-                        <strong>Normale</strong>
+                        <strong>Medio</strong>
                         <small>La sfida bilanciata.</small>
                     </label>
                     <label class="difficulty-option">
@@ -717,16 +719,33 @@
                             : input.dataset.setting === 'recovery' ? input.value + '/s' : input.value;
                     });
                 });
+                document.querySelectorAll('input[name="difficulty"]').forEach((input) => {
+                    input.addEventListener('change', () => this.applyPresetToAdvanced(input.value));
+                });
+                this.applyPresetToAdvanced('easy');
+            }
+
+            getDifficultyPreset(difficulty) {
+                return {
+                    easy: { health: 110, damage: 20, interval: 100, moves: [2800, 3600, 2400, 4300, 3200], warning: 1700, recovery: 20, costs: [10, 28, 18] },
+                    normal: { health: 95, damage: 30, interval: 90, moves: [2200, 3000, 1800, 3800, 2600], warning: 1250, recovery: 12, costs: [12, 32, 22] },
+                    hard: { health: 70, damage: 45, interval: 75, moves: [1300, 1900, 1100, 2400, 1600], warning: 800, recovery: 8, costs: [15, 38, 28] }
+                }[difficulty];
+            }
+
+            applyPresetToAdvanced(difficulty) {
+                const preset = this.getDifficultyPreset(difficulty);
+                this.advancedOverrides = {};
+                for (const [setting, value] of Object.entries({ health: preset.health, damage: preset.damage, interval: preset.interval, warning: preset.warning, recovery: preset.recovery })) {
+                    const input = document.querySelector(`[data-setting="${setting}"]`);
+                    input.value = value;
+                    input.dispatchEvent(new Event('input'));
+                }
             }
 
             startGame() {
                 const difficulty = document.querySelector('input[name="difficulty"]:checked').value;
-                const presets = {
-                    easy: { health: 110, damage: 20, interval: 100, moves: [2800, 3600, 2400, 4300, 3200], warning: 1700, recovery: 20, costs: [10, 28, 18] },
-                    normal: { health: 95, damage: 30, interval: 90, moves: [2200, 3000, 1800, 3800, 2600], warning: 1250, recovery: 12, costs: [12, 32, 22] },
-                    hard: { health: 70, damage: 45, interval: 75, moves: [1300, 1900, 1100, 2400, 1600], warning: 800, recovery: 8, costs: [15, 38, 28] }
-                };
-                const preset = presets[difficulty];
+                const preset = this.getDifficultyPreset(difficulty);
                 const value = (key) => this.advancedOverrides[key] ?? preset[key];
                 this.maxPlayerHealth = value('health');
                 this.enemyDamage = value('damage');

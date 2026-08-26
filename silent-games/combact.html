@@ -594,6 +594,8 @@
             warning() { this.tone(880, 0.12, 'square', 0.1); },
             hit() { this.tone(120, 0.3, 'sawtooth', 0.18); },
             dodge() { this.tone(660, 0.15, 'sine', 0.12); },
+            staminaLow() { this.tone(260, 0.12, 'square', 0.1); },
+            staminaEmpty() { this.tone(110, 0.22, 'sawtooth', 0.14); },
             win() { [523, 659, 784].forEach((f, i) => setTimeout(() => this.tone(f, 0.25, 'triangle', 0.15), i * 120)); },
             lose() { [300, 220, 140].forEach((f, i) => setTimeout(() => this.tone(f, 0.35, 'sawtooth', 0.15), i * 150)); }
         };
@@ -939,12 +941,29 @@
 
             consumeStamina(amount) {
                 if (this.currentStamina >= amount) {
+                    const previousStamina = this.currentStamina;
                     this.currentStamina -= amount;
                     this.lastActionTime = Date.now();
                     this.updateStaminaBar();
+                    if (this.currentStamina <= 0) {
+                        this.notifyStaminaEmpty();
+                    } else if (previousStamina >= this.dodgeCost && this.currentStamina < this.dodgeCost) {
+                        this.notifyStaminaLow();
+                    }
                     return true;
                 }
+                if (this.currentStamina <= 0) this.notifyStaminaEmpty();
                 return false;
+            }
+
+            notifyStaminaLow() {
+                this.vibrate([45, 70, 45]);
+                AudioFX.staminaLow();
+            }
+
+            notifyStaminaEmpty() {
+                this.vibrate([120, 70, 120]);
+                AudioFX.staminaEmpty();
             }
 
             updateChargeBar() {

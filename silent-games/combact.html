@@ -653,6 +653,8 @@
                 this.dodgeCost = 20; // Quanta stamina consuma una schivata
                 this.lastActionTime = 0; // Timestamp dell'ultima azione eseguita
                 this.isRecoveringStamina = false; // Flag per controllare se la stamina si sta ricaricando
+                this.staminaLoopRunning = false;
+                this.lastStaminaFrame = 0;
 
                 // Timer pendenti dell'attacco nemico, tracciati per poterli sospendere
                 this.pendingWarningTimeout = null;
@@ -687,6 +689,7 @@
                 this.swipeIndicator.classList.remove('show');
 
                 this.scheduleEnemyAttack();
+                this.startStaminaRecovery();
             }
 
             init() {
@@ -755,7 +758,6 @@
                 [this.lightAttackCost, this.heavyAttackCost, this.dodgeCost] = preset.costs;
                 this.settingsScreen.style.display = 'none';
                 this.reset();
-                this.staminaRecoveryLoop();
             }
 
             handleVisibilityChange() {
@@ -892,15 +894,28 @@
                 }
             }
 
-            // Loop di recupero stamina
-            staminaRecoveryLoop() {
-                if (!this.isGameRunning) return;
-                
+            // Avvia un solo loop, anche quando si ricomincia dopo una sconfitta.
+            startStaminaRecovery() {
+                if (this.staminaLoopRunning) return;
+                this.staminaLoopRunning = true;
+                this.lastStaminaFrame = 0;
+                requestAnimationFrame((time) => this.staminaRecoveryLoop(time));
+            }
+
+            // Loop di recupero stamina, misurato in secondi reali e non in frame.
+            staminaRecoveryLoop(time) {
+                if (!this.isGameRunning) {
+                    this.staminaLoopRunning = false;
+                    return;
+                }
+
+                const elapsed = this.lastStaminaFrame ? Math.min((time - this.lastStaminaFrame) / 1000, 0.1) : 0;
+                this.lastStaminaFrame = time;
                 const now = Date.now();
                 const timeSinceLastAction = (now - this.lastActionTime) / 1000;
                 
                 if (timeSinceLastAction >= this.staminaRecoveryDelay && this.currentStamina < this.maxStamina) {
-                    const recoveryAmount = (this.staminaRecoveryRate / 60);
+                    const recoveryAmount = this.staminaRecoveryRate * elapsed;
                     this.currentStamina = Math.min(this.maxStamina, this.currentStamina + recoveryAmount);
                     this.updateStaminaBar();
                     this.isRecoveringStamina = true;
@@ -908,7 +923,7 @@
                     this.isRecoveringStamina = false;
                 }
                 
-                requestAnimationFrame(() => this.staminaRecoveryLoop());
+                requestAnimationFrame((nextTime) => this.staminaRecoveryLoop(nextTime));
             }
 
             updateStaminaBar() {

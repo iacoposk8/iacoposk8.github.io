@@ -545,6 +545,10 @@
                         <input id="advancedHealth" data-setting="health" type="range" min="40" max="140" step="5" value="100">
                     </label>
                     <label class="advanced-setting">
+                        <span>Vita nemico <output id="advancedEnemyHealthValue">100</output></span>
+                        <input id="advancedEnemyHealth" data-setting="enemyHealth" type="range" min="100" max="300" step="10" value="100">
+                    </label>
+                    <label class="advanced-setting">
                         <span>Danno nemico <output id="advancedDamageValue">30</output></span>
                         <input id="advancedDamage" data-setting="damage" type="range" min="10" max="60" step="5" value="30">
                     </label>
@@ -618,6 +622,7 @@
                 this.playerHealth = 100;
                 this.maxPlayerHealth = 100;
                 this.enemyHealth = 100;
+                this.maxEnemyHealth = 100;
                 this.score = 0;
                 this.isGameRunning = false;
                 this.settingsScreen = document.getElementById('settingsScreen');
@@ -670,7 +675,7 @@
             // (altrimenti ad ogni restart si accumulano gestori duplicati sullo stesso document).
             reset() {
                 this.playerHealth = this.maxPlayerHealth;
-                this.enemyHealth = 100;
+                this.enemyHealth = this.maxEnemyHealth;
                 this.score = 0;
                 this.isGameRunning = true;
                 this.currentStamina = this.maxStamina;
@@ -741,7 +746,7 @@
             applyPresetToAdvanced(difficulty) {
                 const preset = this.getDifficultyPreset(difficulty);
                 this.advancedOverrides = {};
-                for (const [setting, value] of Object.entries({ health: preset.health, damage: preset.damage, interval: preset.interval, warning: preset.warning, recovery: preset.recovery })) {
+                for (const [setting, value] of Object.entries({ health: preset.health, enemyHealth: 100, damage: preset.damage, interval: preset.interval, warning: preset.warning, recovery: preset.recovery })) {
                     const input = document.querySelector(`[data-setting="${setting}"]`);
                     input.value = value;
                     input.dispatchEvent(new Event('input'));
@@ -753,6 +758,7 @@
                 const preset = this.getDifficultyPreset(difficulty);
                 const value = (key) => this.advancedOverrides[key] ?? preset[key];
                 this.maxPlayerHealth = value('health');
+                this.maxEnemyHealth = value('enemyHealth');
                 this.enemyDamage = value('damage');
                 this.enemyMoveset = preset.moves.map((delay) => delay * value('interval') / 100);
                 this.enemyWarningTime = value('warning');
@@ -1233,7 +1239,7 @@
 
             updateHealthBars() {
                 this.playerHealthBar.style.width = Math.max(0, this.playerHealth / this.maxPlayerHealth * 100) + '%';
-                this.enemyHealthBar.style.width = Math.max(0, this.enemyHealth) + '%';
+                this.enemyHealthBar.style.width = Math.max(0, this.enemyHealth / this.maxEnemyHealth * 100) + '%';
             }
 
             endGame(playerWon) {

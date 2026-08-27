@@ -3045,7 +3045,7 @@ body.blackout-mode .btn-blackout-toggle {
     drift(intensity, side, correcting) {
       // A correction is a short, soft reminder. Pressing farther away is a
       // dense, longer warning, so a quick left/right sway reveals the way back.
-      const n = correcting ? Math.round(5 + intensity * 10) : Math.round(18 + intensity * 42);
+      const n = correcting ? Math.round(5 + intensity * 8) : Math.round(14 + intensity * 16);
       sidedVib(n, side);
       AudioFX.noiseBurst({
         freq: correcting ? 300 + intensity * 180 : 180 + intensity * 260,
@@ -3160,6 +3160,7 @@ body.blackout-mode .btn-blackout-toggle {
     const outward = (path.x - centre) * input > 0;
     PathHaptics.drift(intensity, path.x >= centre ? 1 : -1, !outward);
     pathStatusEl.textContent = outward ? 'Allontanati!' : 'Rientra';
+    return intensity;
   }
 
   function updatePathPhysics(dt) {
@@ -3174,7 +3175,13 @@ body.blackout-mode .btn-blackout-toggle {
     path.elapsed += dt;
     for (const opponent of pathOpponents) opponent.distance += opponent.speed * dt;
     pathFeedbackAccum += dt;
-    if (pathFeedbackAccum >= 0.09) {
+    const distanceFromLane = Math.abs(path.x - pathCenter(path.distance)) - level.width * 0.5;
+    const intensity = distanceFromLane > 0
+      ? clamp(distanceFromLane / (1 - level.width * 0.5), 0, 1) : 0;
+    // The further out, the faster the taps. Keeping each pulse shorter than
+    // its interval prevents Android from cancelling the previous vibration.
+    const hapticInterval = intensity ? lerp(0.28, 0.055, intensity) : 0.28;
+    if (intensity && pathFeedbackAccum >= hapticInterval) {
       pathFeedbackAccum = 0;
       pathHapticTick();
       pathTouchDirection = 0;

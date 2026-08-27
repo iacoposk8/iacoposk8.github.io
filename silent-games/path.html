@@ -1818,10 +1818,14 @@ body.blackout-mode .btn-blackout-toggle {
   }
 
   function raceHapticTick() {
-    const ax = Math.abs(player.x);
-    const side = player.x > 0 ? 1 : -1; // positive x is the right-hand verge
-    if (ax > 1) RaceHaptics.offroad(clamp((ax - 1) / (FIELD_LIMIT - 1), 0, 1), side);
-    else if (ax > 0.55) RaceHaptics.edge((ax - 0.55) / 0.45, side);
+     const ax = Math.abs(player.x);
+     const side = player.x > 0 ? 1 : -1; // positive x is the right-hand verge
+     // Tilting back toward the road should feel like recovery, not like an
+     // equally severe warning. The feedback fades before the wheels return.
+     const recovery = ax ? clamp(-player.x * player.heading / (ax * MAX_HEADING), 0, 1) : 0;
+     const relief = 1 - recovery * 0.7;
+     if (ax > 1) RaceHaptics.offroad(clamp((ax - 1) / (FIELD_LIMIT - 1), 0, 1) * relief, side);
+     else if (ax > 0.55) RaceHaptics.edge((ax - 0.55) / 0.45 * relief, side);
   }
 
   function raceLoop(ts) {
@@ -2353,7 +2357,19 @@ body.blackout-mode .btn-blackout-toggle {
     // when the scale ran out to two and a half zolle and small deviations would
     // otherwise have registered as nothing; across a corridor only half a zolla
     // wide the plain ramp already spreads the whole range where it is felt.
-    MowHaptics.offLine(mowStray(), mowOffSide);
+     // A heading error toward the line is a recovery manoeuvre. Reduce both
+     // vibration and its audio counterpart while the mower is coming back.
+     const path = mowPath[Math.min(mowPathIdx + 1, mowPath.length - 1)];
+     const pathPrev = mowPath[mowPathIdx];
+     let relief = 0;
+     if (path && pathPrev && mowOffSide) {
+       const pathHeading = Math.atan2(path.x - pathPrev.x, path.z - pathPrev.z);
+       let headingError = mow.heading - pathHeading;
+       while (headingError > Math.PI) headingError -= Math.PI * 2;
+       while (headingError < -Math.PI) headingError += Math.PI * 2;
+       relief = clamp(-mowOffSide * headingError / MOW_PATH_ANGLE, 0, 1);
+     }
+     MowHaptics.offLine(mowStray() * (1 - relief * 0.7), mowOffSide);
   }
 
   function updateMowPhysics(dt) {

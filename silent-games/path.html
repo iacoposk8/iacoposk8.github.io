@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>Prato a Spirale, Gara alla Cieca &amp; Prato alla Cieca</title>
+<title>Giochi Tattili &amp; Dentro la Linea</title>
 <style>
 :root {
   --bg: #0c1410;
@@ -60,6 +60,7 @@ body {
   align-items: stretch;
   justify-content: center;
   gap: 14px;
+  overflow-y: auto;
 }
 
 #screen-mode h1 {
@@ -321,6 +322,8 @@ body.blackout-mode .btn-blackout-toggle {
 #screen-race, #screen-mow { padding-left: 12px; padding-right: 12px; }
 #screen-mow-menu { overflow-y: auto; }
 #screen-mow-menu h1 { text-align: center; font-size: 1.8rem; margin: 12px 0 4px; }
+#screen-path-menu { overflow-y: auto; }
+#screen-path-menu h1 { text-align: center; font-size: 1.8rem; margin: 12px 0 4px; }
 
 #race-pos, #race-speed { color: var(--text-dim); font-size: 0.85rem; }
 #race-lap { font-size: 1.1rem; font-weight: 700; color: var(--accent); margin-right: 10px; }
@@ -334,6 +337,18 @@ body.blackout-mode .btn-blackout-toggle {
   overflow: hidden;
   box-shadow: 0 0 0 1px #24352a, 0 10px 30px rgba(0,0,0,0.5);
 }
+
+#screen-path { padding-left: 12px; padding-right: 12px; }
+#path-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px #24352a, 0 10px 30px rgba(0,0,0,0.5);
+}
+#path-wrap:focus { outline: none; }
+#path-field { display: block; width: 100%; height: 100%; touch-action: none; }
 
 #race-wrap:focus, #mow-wrap:focus { outline: none; }
 
@@ -373,8 +388,8 @@ body.blackout-mode .btn-blackout-toggle {
   <!-- ============ MODE SELECT ============ -->
   <section id="screen-mode" class="screen active">
     <a class="back-link" href="/silent-games/">← HaptiPlay</a>
-    <h1>🎮 Giochi Tattili</h1>
-    <p class="subtitle">Tre giochi pensati per essere sentiti, non solo visti. Provali anche a schermo spento.</p>
+  <h1>🎮 Giochi Tattili</h1>
+  <p class="subtitle">Quattro giochi pensati per essere sentiti, non solo visti. Provali anche a schermo spento.</p>
     <button type="button" class="mode-card" id="pick-prato">
       <span class="mode-emoji">🌀</span>
       <span class="mode-title">Prato a Spirale</span>
@@ -385,11 +400,55 @@ body.blackout-mode .btn-blackout-toggle {
       <span class="mode-title">Gara alla Cieca</span>
       <span class="mode-desc">Guida in prima persona: inclina per sterzare, trascina per accelerare.</span>
     </button>
-    <button type="button" class="mode-card" id="pick-mow">
+  <button type="button" class="mode-card" id="pick-mow">
       <span class="mode-emoji">🚜</span>
       <span class="mode-title">Prato alla Cieca</span>
       <span class="mode-desc">I due giochi incrociati: segui la spirale dal sedile del trattorino, guidato dalle vibrazioni.</span>
-    </button>
+  </button>
+  <button type="button" class="mode-card" id="pick-path">
+    <span class="mode-emoji">〰️</span>
+    <span class="mode-title">Dentro la Linea</span>
+    <span class="mode-desc">Inclina il telefono e resta dentro il percorso mentre scorre verso di te.</span>
+  </button>
+  </section>
+
+  <!-- ============ PATH: settings ============ -->
+  <section id="screen-path-menu" class="screen">
+    <button type="button" class="back-btn" data-back="screen-mode">← Giochi</button>
+    <h1>〰️ Dentro la Linea</h1>
+    <p class="subtitle">Il percorso scende dall’alto. Tu sei il punto in basso: inclina il telefono per restare tra i due bordi. La vibrazione cresce quando ti allontani e si alleggerisce quando torni verso il centro.</p>
+    <div class="option-group">
+      <h2>Difficoltà</h2>
+      <div class="options" data-group="pathDifficulty">
+        <button type="button" data-value="easy" class="opt selected">Facile<br><small>Largo e lento</small></button>
+        <button type="button" data-value="medium" class="opt">Medio<br><small>Equilibrato</small></button>
+        <button type="button" data-value="hard" class="opt">Difficile<br><small>Stretto e veloce</small></button>
+      </div>
+    </div>
+    <p class="hint">📱 Inclina a sinistra o destra. Su computer usa ← → o A/D. Puoi giocare a occhi chiusi: dentro le linee c’è silenzio, fuori senti da quale lato correggere.</p>
+    <button type="button" id="btn-path-start" class="primary">Segui il percorso</button>
+    <p class="hint" id="path-hint"></p>
+  </section>
+
+  <!-- ============ PATH: game ============ -->
+  <section id="screen-path" class="screen">
+    <header class="hud">
+      <div class="hud-left"><span id="path-score">0 m</span><span id="path-status">Dentro</span></div>
+      <div class="hud-right"><span id="path-timer">00:00</span></div>
+    </header>
+    <div id="path-wrap" tabindex="0">
+      <canvas id="path-field"></canvas>
+      <div id="path-blackout" class="blackout-panel">
+        <div class="blackout-dot"></div>
+        <p class="blackout-msg">Schermo spento — segui il percorso<br><span>Doppio tocco per riaccendere</span></p>
+      </div>
+    </div>
+    <footer class="controls">
+      <button type="button" id="btn-path-blackout" class="btn-blackout-toggle" title="Spegni schermo">🌑<span>Nero</span></button>
+      <button type="button" id="btn-path-recenter" title="Ricalibra sterzo">🎯<span>Centra</span></button>
+      <button type="button" id="btn-path-sound" title="Audio">🔊<span>Audio</span></button>
+      <button type="button" id="btn-path-menu" title="Menu">☰<span>Menu</span></button>
+    </footer>
   </section>
 
   <!-- ============ PRATO: settings ============ -->
@@ -617,6 +676,8 @@ body.blackout-mode .btn-blackout-toggle {
     'screen-race': document.getElementById('screen-race'),
     'screen-mow-menu': document.getElementById('screen-mow-menu'),
     'screen-mow': document.getElementById('screen-mow'),
+    'screen-path-menu': document.getElementById('screen-path-menu'),
+    'screen-path': document.getElementById('screen-path'),
     'screen-win': document.getElementById('screen-win'),
   };
   function showScreen(name) {
@@ -627,6 +688,7 @@ body.blackout-mode .btn-blackout-toggle {
   document.getElementById('pick-prato').addEventListener('click', () => showScreen('screen-menu'));
   document.getElementById('pick-gara').addEventListener('click', () => showScreen('screen-race-menu'));
   document.getElementById('pick-mow').addEventListener('click', () => showScreen('screen-mow-menu'));
+  document.getElementById('pick-path').addEventListener('click', () => showScreen('screen-path-menu'));
   document.querySelectorAll('.back-btn').forEach((b) => {
     b.addEventListener('click', () => showScreen(b.dataset.back));
   });
@@ -643,6 +705,7 @@ body.blackout-mode .btn-blackout-toggle {
     terrain: 'secco', size: 8,
     laps: 3, opponents: 4, collisions: 'off',
     mowTerrain: 'secco', mowSize: 10, mowRadar: 'on',
+    pathDifficulty: 'easy',
   };
   const NUMERIC_SETTINGS = ['size', 'laps', 'opponents', 'mowSize'];
 
@@ -825,7 +888,7 @@ body.blackout-mode .btn-blackout-toggle {
     };
   })();
 
-  const soundButtons = ['btn-sound', 'btn-race-sound', 'btn-mow-sound'].map((id) => document.getElementById(id));
+  const soundButtons = ['btn-sound', 'btn-race-sound', 'btn-mow-sound', 'btn-path-sound'].map((id) => document.getElementById(id));
   function syncSoundButtons() {
     const on = AudioFX.isEnabled();
     soundButtons.forEach((btn) => {
@@ -2818,11 +2881,196 @@ body.blackout-mode .btn-blackout-toggle {
 
   btnMowMenu.addEventListener('click', () => { stopMow(); showScreen('screen-mode'); });
 
+  /* ============================================================ */
+  /* ======================  DENTRO LA LINEA  ==================== */
+  /* A deliberately simple endless lane: the path moves toward the player,
+     while the phone tilt controls only the lateral position. This keeps the
+     rule audible even when the display is black. */
+  const pathCanvas = document.getElementById('path-field');
+  const pathCtx = pathCanvas.getContext('2d');
+  const pathWrap = document.getElementById('path-wrap');
+  const pathBlackoutEl = document.getElementById('path-blackout');
+  const btnPathStart = document.getElementById('btn-path-start');
+  const btnPathBlackout = document.getElementById('btn-path-blackout');
+  const btnPathRecenter = document.getElementById('btn-path-recenter');
+  const btnPathMenu = document.getElementById('btn-path-menu');
+  const pathScoreEl = document.getElementById('path-score');
+  const pathStatusEl = document.getElementById('path-status');
+  const pathTimerEl = document.getElementById('path-timer');
+
+  const PATH_LEVELS = {
+    easy: { width: 0.72, speed: 115 },
+    medium: { width: 0.53, speed: 165 },
+    hard: { width: 0.36, speed: 225 },
+  };
+  let path = { x: 0, distance: 0, elapsed: 0 };
+  let pathRunning = false, pathRAF = null, pathLastFrame = 0;
+  let pathBlackoutActive = false, pathPointerActive = false, pathPointerX = 0;
+  let pathFeedbackAccum = 0, pathDpr = 1;
+
+  const PathHaptics = {
+    drift(intensity, side, correcting) {
+      const n = Math.round(8 + intensity * 38);
+      sidedVib(n, side);
+      AudioFX.noiseBurst({
+        freq: correcting ? 300 + intensity * 180 : 180 + intensity * 260,
+        q: 1.1, duration: 0.035 + intensity * 0.055,
+        volume: 0.07 + intensity * 0.24, pan: side * 0.8,
+      });
+    },
+    start() {
+      vib([25, 45, 90]);
+      AudioFX.tone({ freq: 520, duration: 0.12, volume: 0.16 });
+      AudioFX.tone({ freq: 780, duration: 0.16, volume: 0.16, delay: 0.13 });
+    },
+  };
+
+  function pathCenter(distance) {
+    return Math.sin(distance / 260) * 0.42 + Math.sin(distance / 97 + 1.4) * 0.16;
+  }
+
+  function resizePathCanvas() {
+    const w = Math.floor(pathWrap.clientWidth), h = Math.floor(pathWrap.clientHeight);
+    pathDpr = window.devicePixelRatio || 1;
+    pathCanvas.width = Math.floor(w * pathDpr);
+    pathCanvas.height = Math.floor(h * pathDpr);
+  }
+
+  function renderPath() {
+    if (pathBlackoutActive) return;
+    const w = pathCanvas.width / pathDpr, h = pathCanvas.height / pathDpr;
+    const level = PATH_LEVELS[settings.pathDifficulty];
+    const playerY = h * 0.78;
+    pathCtx.save();
+    pathCtx.scale(pathDpr, pathDpr);
+    pathCtx.fillStyle = '#07130d';
+    pathCtx.fillRect(0, 0, w, h);
+    pathCtx.strokeStyle = 'rgba(96, 170, 108, 0.13)';
+    pathCtx.lineWidth = 1;
+    for (let y = 0; y < h; y += 42) {
+      pathCtx.beginPath(); pathCtx.moveTo(0, y); pathCtx.lineTo(w, y); pathCtx.stroke();
+    }
+    const centerAt = (y) => w / 2 + pathCenter(path.distance + (y - playerY) * 1.2) * w * 0.35;
+    pathCtx.beginPath();
+    for (let y = -20; y <= h + 20; y += 8) {
+      const x = centerAt(y) - level.width * w * 0.5;
+      if (y === -20) pathCtx.moveTo(x, y); else pathCtx.lineTo(x, y);
+    }
+    for (let y = h + 20; y >= -20; y -= 8) pathCtx.lineTo(centerAt(y) + level.width * w * 0.5, y);
+    pathCtx.closePath();
+    pathCtx.fillStyle = '#244d2e'; pathCtx.fill();
+    pathCtx.strokeStyle = '#82d28b'; pathCtx.lineWidth = 3;
+    for (const side of [-1, 1]) {
+      pathCtx.beginPath();
+      for (let y = -20; y <= h + 20; y += 8) {
+        const x = centerAt(y) + side * level.width * w * 0.5;
+        if (y === -20) pathCtx.moveTo(x, y); else pathCtx.lineTo(x, y);
+      }
+      pathCtx.stroke();
+    }
+    const px = w / 2 + path.x * w * 0.5;
+    pathCtx.fillStyle = '#e7f3ea';
+    pathCtx.beginPath(); pathCtx.arc(px, playerY, 12, 0, Math.PI * 2); pathCtx.fill();
+    pathCtx.fillStyle = '#6fd07f';
+    pathCtx.beginPath(); pathCtx.arc(px, playerY, 5, 0, Math.PI * 2); pathCtx.fill();
+    pathCtx.restore();
+  }
+
+  function pathInput() {
+    if (tiltAvailable && tiltZero !== null) return clamp((lastRawGamma - tiltZero) / 28, -1, 1);
+    if (keyState.left || keyState.right) return (keyState.right ? 1 : 0) - (keyState.left ? 1 : 0);
+    return pathPointerActive ? pathPointerX : 0;
+  }
+
+  function pathHapticTick() {
+    const level = PATH_LEVELS[settings.pathDifficulty];
+    const centre = pathCenter(path.distance);
+    const half = level.width * 0.5;
+    const error = Math.abs(path.x - centre) - half;
+    if (error <= 0) { pathStatusEl.textContent = 'Dentro'; return; }
+    const intensity = clamp(error / (1 - half), 0, 1);
+    const input = pathInput();
+    const outward = (path.x - centre) * input > 0;
+    PathHaptics.drift(intensity, path.x >= centre ? 1 : -1, !outward);
+    pathStatusEl.textContent = outward ? 'Allontanati!' : 'Rientra';
+  }
+
+  function updatePathPhysics(dt) {
+    const level = PATH_LEVELS[settings.pathDifficulty];
+    const centre = pathCenter(path.distance);
+    const input = pathInput();
+    path.x += input * (1.15 + level.speed / 240) * dt;
+    path.x = clamp(path.x, -1, 1);
+    path.distance += level.speed * dt;
+    path.elapsed += dt;
+    pathFeedbackAccum += dt;
+    if (pathFeedbackAccum >= 0.09) { pathFeedbackAccum = 0; pathHapticTick(); }
+    pathScoreEl.textContent = Math.floor(path.distance / 10) + ' m';
+    pathTimerEl.textContent = formatTime(path.elapsed * 1000);
+    if (!pathBlackoutActive) renderPath();
+  }
+
+  function pathLoop(ts) {
+    if (!pathRunning) return;
+    const dt = Math.min(0.05, (ts - pathLastFrame) / 1000 || 0.016);
+    pathLastFrame = ts;
+    updatePathPhysics(dt);
+    pathRAF = requestAnimationFrame(pathLoop);
+  }
+
+  function updatePathPointer(clientX) {
+    const rect = pathCanvas.getBoundingClientRect();
+    pathPointerX = clamp(((clientX - rect.left) / rect.width) * 2 - 1, -1, 1);
+  }
+  pathWrap.addEventListener('pointerdown', (e) => {
+    if (!pathRunning) return;
+    AudioFX.ensure(); pathPointerActive = true; updatePathPointer(e.clientX);
+    try { pathWrap.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+  });
+  pathWrap.addEventListener('pointermove', (e) => { if (pathPointerActive) updatePathPointer(e.clientX); });
+  function releasePathPointer() { pathPointerActive = false; pathPointerX = 0; }
+  pathWrap.addEventListener('pointerup', releasePathPointer);
+  pathWrap.addEventListener('pointercancel', releasePathPointer);
+
+  function setPathBlackout(on) {
+    pathBlackoutActive = on;
+    pathBlackoutEl.classList.toggle('active', on);
+    document.body.classList.toggle('blackout-mode', on);
+    if (!on) renderPath();
+  }
+  let lastPathBlackoutTap = 0;
+  pathBlackoutEl.addEventListener('pointerdown', () => {
+    const now = Date.now();
+    if (now - lastPathBlackoutTap < 350) setPathBlackout(false);
+    lastPathBlackoutTap = now;
+  });
+  btnPathBlackout.addEventListener('click', () => setPathBlackout(!pathBlackoutActive));
+  btnPathRecenter.addEventListener('click', () => { if (tiltAvailable) tiltZero = lastRawGamma; path.x = 0; pathPointerX = 0; });
+
+  function startPathRun() {
+    currentMode = 'path';
+    path = { x: 0, distance: 0, elapsed: 0 };
+    pathRunning = true; steerActive = true; clearKeys();
+    setPathBlackout(false); showScreen('screen-path');
+    try { pathWrap.focus({ preventScroll: true }); } catch (e) { pathWrap.focus(); }
+    requestAnimationFrame(() => { resizePathCanvas(); renderPath(); });
+    AudioFX.ensure(); PathHaptics.start(); pathLastFrame = performance.now(); pathFeedbackAccum = 0;
+    pathRAF = requestAnimationFrame(pathLoop);
+  }
+  function stopPath() {
+    pathRunning = false; steerActive = false;
+    if (pathRAF) cancelAnimationFrame(pathRAF);
+    stopOrientationListener();
+  }
+  btnPathStart.addEventListener('click', () => { AudioFX.ensure(); beginTilt().then(startPathRun); });
+  btnPathMenu.addEventListener('click', () => { stopPath(); showScreen('screen-mode'); });
+
   // ================= Shared win screen wiring =================
   btnAgain.addEventListener('click', () => {
     if (currentMode === 'prato') startGame();
     else if (currentMode === 'gara') restartRace();
-    else restartMow();
+    else if (currentMode === 'mow') restartMow();
+    else startPathRun();
   });
   btnBackMenu.addEventListener('click', () => showScreen('screen-mode'));
 
@@ -2830,6 +3078,7 @@ body.blackout-mode .btn-blackout-toggle {
     if (screens['screen-game'].classList.contains('active')) resizeCanvas();
     if (screens['screen-race'].classList.contains('active')) resizeRaceCanvas();
     if (screens['screen-mow'].classList.contains('active')) resizeMowCanvas();
+    if (screens['screen-path'].classList.contains('active')) { resizePathCanvas(); renderPath(); }
   });
   document.addEventListener('contextmenu', (e) => e.preventDefault());
 })();

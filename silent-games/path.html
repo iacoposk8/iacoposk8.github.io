@@ -324,6 +324,10 @@ body.blackout-mode .btn-blackout-toggle {
 #screen-mow-menu h1 { text-align: center; font-size: 1.8rem; margin: 12px 0 4px; }
 #screen-path-menu { overflow-y: auto; }
 #screen-path-menu h1 { text-align: center; font-size: 1.8rem; margin: 12px 0 4px; }
+.path-sliders { display: grid; gap: 7px; }
+.path-sliders label { color: var(--text-dim); font-size: 0.82rem; }
+.path-sliders output { float: right; color: var(--accent); font-variant-numeric: tabular-nums; }
+.path-sliders input { width: 100%; accent-color: var(--accent); margin: 0 0 7px; }
 
 #race-pos, #race-speed { color: var(--text-dim); font-size: 0.85rem; }
 #race-lap { font-size: 1.1rem; font-weight: 700; color: var(--accent); margin-right: 10px; }
@@ -425,6 +429,12 @@ body.blackout-mode .btn-blackout-toggle {
         <button type="button" data-value="hard" class="opt">Difficile<br><small>Stretto e veloce</small></button>
       </div>
     </div>
+    <div class="option-group path-sliders">
+      <label for="path-width">Larghezza percorso <output id="path-width-value">72%</output></label>
+      <input id="path-width" type="range" min="28" max="78" value="72">
+      <label for="path-speed">Velocità discesa <output id="path-speed-value">115 m/s</output></label>
+      <input id="path-speed" type="range" min="70" max="300" value="115">
+    </div>
     <p class="hint">📱 Inclina a sinistra o destra. Su computer usa ← → o A/D. Puoi giocare a occhi chiusi: dentro le linee c’è silenzio, fuori senti da quale lato correggere.</p>
     <button type="button" id="btn-path-start" class="primary">Segui il percorso</button>
     <p class="hint" id="path-hint"></p>
@@ -438,13 +448,8 @@ body.blackout-mode .btn-blackout-toggle {
     </header>
     <div id="path-wrap" tabindex="0">
       <canvas id="path-field"></canvas>
-      <div id="path-blackout" class="blackout-panel">
-        <div class="blackout-dot"></div>
-        <p class="blackout-msg">Schermo spento — segui il percorso<br><span>Doppio tocco per riaccendere</span></p>
-      </div>
     </div>
     <footer class="controls">
-      <button type="button" id="btn-path-blackout" class="btn-blackout-toggle" title="Spegni schermo">🌑<span>Nero</span></button>
       <button type="button" id="btn-path-recenter" title="Ricalibra sterzo">🎯<span>Centra</span></button>
       <button type="button" id="btn-path-sound" title="Audio">🔊<span>Audio</span></button>
       <button type="button" id="btn-path-menu" title="Menu">☰<span>Menu</span></button>
@@ -705,9 +710,9 @@ body.blackout-mode .btn-blackout-toggle {
     terrain: 'secco', size: 8,
     laps: 3, opponents: 4, collisions: 'off',
     mowTerrain: 'secco', mowSize: 10, mowRadar: 'on',
-    pathDifficulty: 'easy',
+    pathDifficulty: 'easy', pathWidth: 72, pathSpeed: 115,
   };
-  const NUMERIC_SETTINGS = ['size', 'laps', 'opponents', 'mowSize'];
+  const NUMERIC_SETTINGS = ['size', 'laps', 'opponents', 'mowSize', 'pathWidth', 'pathSpeed'];
 
   document.querySelectorAll('.options').forEach((group) => {
     const key = group.dataset.group;
@@ -720,6 +725,38 @@ body.blackout-mode .btn-blackout-toggle {
       settings[key] = numeric ? parseInt(btn.dataset.value, 10) : btn.dataset.value;
     });
   });
+
+  const pathWidthRange = document.getElementById('path-width');
+  const pathSpeedRange = document.getElementById('path-speed');
+  const pathWidthValue = document.getElementById('path-width-value');
+  const pathSpeedValue = document.getElementById('path-speed-value');
+  const pathPresets = {
+    easy: { width: 72, speed: 115 }, medium: { width: 53, speed: 165 }, hard: { width: 36, speed: 225 },
+  };
+  function syncPathSettings() {
+    pathWidthRange.value = settings.pathWidth;
+    pathSpeedRange.value = settings.pathSpeed;
+    pathWidthValue.textContent = settings.pathWidth + '%';
+    pathSpeedValue.textContent = settings.pathSpeed + ' m/s';
+  }
+  document.querySelectorAll('[data-group="pathDifficulty"] .opt').forEach((button) => {
+    button.addEventListener('click', () => {
+      const preset = pathPresets[button.dataset.value];
+      settings.pathWidth = preset.width; settings.pathSpeed = preset.speed;
+      syncPathSettings();
+    });
+  });
+  pathWidthRange.addEventListener('input', () => {
+    settings.pathWidth = parseInt(pathWidthRange.value, 10);
+    document.querySelectorAll('[data-group="pathDifficulty"] .opt').forEach((b) => b.classList.remove('selected'));
+    syncPathSettings();
+  });
+  pathSpeedRange.addEventListener('input', () => {
+    settings.pathSpeed = parseInt(pathSpeedRange.value, 10);
+    document.querySelectorAll('[data-group="pathDifficulty"] .opt').forEach((b) => b.classList.remove('selected'));
+    syncPathSettings();
+  });
+  syncPathSettings();
 
   const hasVibration = 'vibrate' in navigator;
   const vibeMsg = hasVibration
@@ -2889,33 +2926,29 @@ body.blackout-mode .btn-blackout-toggle {
   const pathCanvas = document.getElementById('path-field');
   const pathCtx = pathCanvas.getContext('2d');
   const pathWrap = document.getElementById('path-wrap');
-  const pathBlackoutEl = document.getElementById('path-blackout');
   const btnPathStart = document.getElementById('btn-path-start');
-  const btnPathBlackout = document.getElementById('btn-path-blackout');
   const btnPathRecenter = document.getElementById('btn-path-recenter');
   const btnPathMenu = document.getElementById('btn-path-menu');
   const pathScoreEl = document.getElementById('path-score');
   const pathStatusEl = document.getElementById('path-status');
   const pathTimerEl = document.getElementById('path-timer');
 
-  const PATH_LEVELS = {
-    easy: { width: 0.72, speed: 115 },
-    medium: { width: 0.53, speed: 165 },
-    hard: { width: 0.36, speed: 225 },
-  };
   let path = { x: 0, distance: 0, elapsed: 0 };
   let pathRunning = false, pathRAF = null, pathLastFrame = 0;
-  let pathBlackoutActive = false, pathPointerActive = false, pathPointerX = 0;
+  let pathPointerActive = false, pathPointerX = 0;
   let pathFeedbackAccum = 0, pathDpr = 1;
 
   const PathHaptics = {
     drift(intensity, side, correcting) {
-      const n = Math.round(8 + intensity * 38);
+      // A correction is a short, soft reminder. Pressing farther away is a
+      // dense, longer warning, so a quick left/right sway reveals the way back.
+      const n = correcting ? Math.round(5 + intensity * 10) : Math.round(18 + intensity * 42);
       sidedVib(n, side);
       AudioFX.noiseBurst({
         freq: correcting ? 300 + intensity * 180 : 180 + intensity * 260,
         q: 1.1, duration: 0.035 + intensity * 0.055,
-        volume: 0.07 + intensity * 0.24, pan: side * 0.8,
+        volume: correcting ? 0.045 + intensity * 0.08 : 0.14 + intensity * 0.25,
+        pan: side * 0.8,
       });
     },
     start() {
@@ -2937,9 +2970,8 @@ body.blackout-mode .btn-blackout-toggle {
   }
 
   function renderPath() {
-    if (pathBlackoutActive) return;
     const w = pathCanvas.width / pathDpr, h = pathCanvas.height / pathDpr;
-    const level = PATH_LEVELS[settings.pathDifficulty];
+    const level = { width: settings.pathWidth / 100, speed: settings.pathSpeed };
     const playerY = h * 0.78;
     pathCtx.save();
     pathCtx.scale(pathDpr, pathDpr);
@@ -2983,7 +3015,7 @@ body.blackout-mode .btn-blackout-toggle {
   }
 
   function pathHapticTick() {
-    const level = PATH_LEVELS[settings.pathDifficulty];
+    const level = { width: settings.pathWidth / 100, speed: settings.pathSpeed };
     const centre = pathCenter(path.distance);
     const half = level.width * 0.5;
     const error = Math.abs(path.x - centre) - half;
@@ -2996,8 +3028,7 @@ body.blackout-mode .btn-blackout-toggle {
   }
 
   function updatePathPhysics(dt) {
-    const level = PATH_LEVELS[settings.pathDifficulty];
-    const centre = pathCenter(path.distance);
+    const level = { width: settings.pathWidth / 100, speed: settings.pathSpeed };
     const input = pathInput();
     path.x += input * (1.15 + level.speed / 240) * dt;
     path.x = clamp(path.x, -1, 1);
@@ -3007,7 +3038,7 @@ body.blackout-mode .btn-blackout-toggle {
     if (pathFeedbackAccum >= 0.09) { pathFeedbackAccum = 0; pathHapticTick(); }
     pathScoreEl.textContent = Math.floor(path.distance / 10) + ' m';
     pathTimerEl.textContent = formatTime(path.elapsed * 1000);
-    if (!pathBlackoutActive) renderPath();
+    renderPath();
   }
 
   function pathLoop(ts) {
@@ -3032,26 +3063,13 @@ body.blackout-mode .btn-blackout-toggle {
   pathWrap.addEventListener('pointerup', releasePathPointer);
   pathWrap.addEventListener('pointercancel', releasePathPointer);
 
-  function setPathBlackout(on) {
-    pathBlackoutActive = on;
-    pathBlackoutEl.classList.toggle('active', on);
-    document.body.classList.toggle('blackout-mode', on);
-    if (!on) renderPath();
-  }
-  let lastPathBlackoutTap = 0;
-  pathBlackoutEl.addEventListener('pointerdown', () => {
-    const now = Date.now();
-    if (now - lastPathBlackoutTap < 350) setPathBlackout(false);
-    lastPathBlackoutTap = now;
-  });
-  btnPathBlackout.addEventListener('click', () => setPathBlackout(!pathBlackoutActive));
   btnPathRecenter.addEventListener('click', () => { if (tiltAvailable) tiltZero = lastRawGamma; path.x = 0; pathPointerX = 0; });
 
   function startPathRun() {
     currentMode = 'path';
     path = { x: 0, distance: 0, elapsed: 0 };
     pathRunning = true; steerActive = true; clearKeys();
-    setPathBlackout(false); showScreen('screen-path');
+    showScreen('screen-path');
     try { pathWrap.focus({ preventScroll: true }); } catch (e) { pathWrap.focus(); }
     requestAnimationFrame(() => { resizePathCanvas(); renderPath(); });
     AudioFX.ensure(); PathHaptics.start(); pathLastFrame = performance.now(); pathFeedbackAccum = 0;

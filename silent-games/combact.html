@@ -475,6 +475,13 @@
         .advanced-setting span { display: flex; justify-content: space-between; color: var(--text-dim); }
         .advanced-setting output { color: var(--accent); font-weight: bold; }
         .advanced-setting input { width: 100%; accent-color: var(--accent); }
+        .enemy-count {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            color: var(--text-dim);
+            font-size: 0.8rem;
+        }
     </style>
 </head>
 <body>
@@ -498,6 +505,7 @@
             <div class="health-bar enemy-health">
                 <div class="health-fill" id="enemyHealth" style="width: 100%"></div>
             </div>
+            <div class="enemy-count" id="enemyCount">Nemico 1/1</div>
 
             <div class="stamina-bar">
                 <div class="stamina-fill" id="staminaBar" style="width: 100%"></div>
@@ -564,6 +572,10 @@
                         <span>Recupero stamina <output id="advancedRecoveryValue">12/s</output></span>
                         <input id="advancedRecovery" data-setting="recovery" type="range" min="5" max="30" step="1" value="12">
                     </label>
+                    <label class="advanced-setting">
+                        <span>Numero di nemici <output id="advancedEnemiesValue">1</output></span>
+                        <input id="advancedEnemies" data-setting="enemies" type="range" min="1" max="10" step="1" value="1">
+                    </label>
                 </div>
                 <button class="restart-btn start-btn" id="startGameBtn">Inizia partita</button>
             </div>
@@ -600,6 +612,7 @@
             dodge() { this.tone(660, 0.15, 'sine', 0.12); },
             staminaLow() { this.tone(260, 0.12, 'square', 0.1); },
             staminaEmpty() { this.tone(110, 0.22, 'sawtooth', 0.14); },
+            nextEnemy() { this.tone(440, 0.12, 'triangle', 0.1); },
             win() { [523, 659, 784].forEach((f, i) => setTimeout(() => this.tone(f, 0.25, 'triangle', 0.15), i * 120)); },
             lose() { [300, 220, 140].forEach((f, i) => setTimeout(() => this.tone(f, 0.35, 'sawtooth', 0.15), i * 150)); }
         };
@@ -611,6 +624,7 @@
                 this.warning = document.getElementById('warning');
                 this.playerHealthBar = document.getElementById('playerHealth');
                 this.enemyHealthBar = document.getElementById('enemyHealth');
+                this.enemyCountElement = document.getElementById('enemyCount');
                 this.scoreElement = document.getElementById('score');
                 this.gameOverScreen = document.getElementById('gameOver');
                 this.chargeBarContainer = document.getElementById('chargeBarContainer');
@@ -624,6 +638,8 @@
                 this.enemyHealth = 100;
                 this.maxEnemyHealth = 100;
                 this.score = 0;
+                this.totalEnemies = 1;
+                this.defeatedEnemies = 0;
                 this.isGameRunning = false;
                 this.settingsScreen = document.getElementById('settingsScreen');
                 this.advancedOverrides = {};
@@ -677,12 +693,14 @@
                 this.playerHealth = this.maxPlayerHealth;
                 this.enemyHealth = this.maxEnemyHealth;
                 this.score = 0;
+                this.defeatedEnemies = 0;
                 this.isGameRunning = true;
                 this.currentStamina = this.maxStamina;
                 this.currentMoveIndex = 0;
                 this.dodgeWindow = false;
                 this.canAttack = true;
                 this.isCharging = false;
+                this.enemyTransitioning = false;
                 this.lastActionTime = 0;
                 this.clearPendingAttack();
 
@@ -694,6 +712,7 @@
                 this.enemy.className = 'character enemy';
                 this.warning.style.display = 'none';
                 this.swipeIndicator.classList.remove('show');
+                this.updateEnemyCount();
 
                 this.scheduleEnemyAttack();
                 this.startStaminaRecovery();
@@ -746,7 +765,7 @@
             applyPresetToAdvanced(difficulty) {
                 const preset = this.getDifficultyPreset(difficulty);
                 this.advancedOverrides = {};
-                for (const [setting, value] of Object.entries({ health: preset.health, enemyHealth: 100, damage: preset.damage, interval: preset.interval, warning: preset.warning, recovery: preset.recovery })) {
+                for (const [setting, value] of Object.entries({ health: preset.health, enemyHealth: 100, damage: preset.damage, interval: preset.interval, warning: preset.warning, recovery: preset.recovery, enemies: 1 })) {
                     const input = document.querySelector(`[data-setting="${setting}"]`);
                     input.value = value;
                     input.dispatchEvent(new Event('input'));
@@ -763,6 +782,7 @@
                 this.enemyMoveset = preset.moves.map((delay) => delay * value('interval') / 100);
                 this.enemyWarningTime = value('warning');
                 this.staminaRecoveryRate = value('recovery');
+                this.totalEnemies = value('enemies');
                 [this.lightAttackCost, this.heavyAttackCost, this.dodgeCost] = preset.costs;
                 this.settingsScreen.style.display = 'none';
                 this.reset();
@@ -987,6 +1007,7 @@
             }
 
             playerLightAttack() {
+                if (this.enemyTransitioning) return;
                 if (!this.consumeStamina(this.lightAttackCost)) {
                     this.showStaminaWarning();
                     return;
@@ -996,15 +1017,14 @@
                 this.player.classList.add('attacking');
                 
                 setTimeout(() => {
+                    if (!this.isGameRunning || this.enemyTransitioning) return;
                     this.enemyHealth -= 15;
                     this.enemy.classList.add('hit');
                     this.updateHealthBars();
                     this.score += 8;
                     this.scoreElement.textContent = this.score;
                     
-                    if (this.enemyHealth <= 0) {
-                        this.endGame(true);
-                    }
+                    if (this.enemyHealth <= 0) this.enemyDefeated();
                     
                     setTimeout(() => {
                         this.enemy.classList.remove('hit');
@@ -1018,6 +1038,7 @@
             }
 
             playerHeavyAttack(chargeDuration) {
+                if (this.enemyTransitioning) return;
                 if (!this.consumeStamina(this.heavyAttackCost)) {
                     this.showStaminaWarning();
                     return;
@@ -1032,6 +1053,7 @@
                 const totalDamage = baseDamage + bonusDamage;
                 
                 setTimeout(() => {
+                    if (!this.isGameRunning || this.enemyTransitioning) return;
                     this.enemyHealth -= totalDamage;
                     this.enemy.classList.add('hit');
                     this.updateHealthBars();
@@ -1040,9 +1062,7 @@
                     
                     this.createHeavyAttackEffect(totalDamage);
                     
-                    if (this.enemyHealth <= 0) {
-                        this.endGame(true);
-                    }
+                    if (this.enemyHealth <= 0) this.enemyDefeated();
                     
                     setTimeout(() => {
                         this.enemy.classList.remove('hit');
@@ -1237,6 +1257,39 @@
                 }
             }
 
+            enemyDefeated() {
+                if (this.enemyTransitioning) return;
+                this.enemyTransitioning = true;
+                this.clearPendingAttack();
+                this.warning.style.display = 'none';
+                this.swipeIndicator.classList.remove('show');
+                this.dodgeWindow = false;
+                this.defeatedEnemies++;
+
+                if (this.defeatedEnemies >= this.totalEnemies) {
+                    this.endGame(true);
+                    return;
+                }
+
+                this.canAttack = false;
+                this.vibrate([80, 60, 80]);
+                AudioFX.nextEnemy();
+                setTimeout(() => {
+                    if (!this.isGameRunning) return;
+                    this.enemyHealth = this.maxEnemyHealth;
+                    this.enemy.classList.remove('hit');
+                    this.enemyTransitioning = false;
+                    this.canAttack = true;
+                    this.updateHealthBars();
+                    this.updateEnemyCount();
+                    this.scheduleEnemyAttack();
+                }, 700);
+            }
+
+            updateEnemyCount() {
+                this.enemyCountElement.textContent = `Nemico ${Math.min(this.defeatedEnemies + 1, this.totalEnemies)}/${this.totalEnemies}`;
+            }
+
             updateHealthBars() {
                 this.playerHealthBar.style.width = Math.max(0, this.playerHealth / this.maxPlayerHealth * 100) + '%';
                 this.enemyHealthBar.style.width = Math.max(0, this.enemyHealth / this.maxEnemyHealth * 100) + '%';
@@ -1244,6 +1297,7 @@
 
             endGame(playerWon) {
                 this.isGameRunning = false;
+                this.clearPendingAttack();
                 this.warning.style.display = 'none';
                 this.swipeIndicator.classList.remove('show');
                 

@@ -62,6 +62,7 @@ body {
   gap: 14px;
   overflow-y: auto;
 }
+#pick-prato, #pick-gara, #pick-mow, #pick-path { display: none; }
 
 #screen-mode h1 {
   text-align: center;
@@ -393,7 +394,7 @@ body.blackout-mode .btn-blackout-toggle {
   <section id="screen-mode" class="screen active">
     <a class="back-link" href="/silent-games/">← HaptiPlay</a>
   <h1>🎮 Giochi Tattili</h1>
-  <p class="subtitle">Quattro giochi pensati per essere sentiti, non solo visti. Provali anche a schermo spento.</p>
+  <p class="subtitle">Un gioco pensato per essere sentito, non solo visto.</p>
     <button type="button" class="mode-card" id="pick-prato">
       <span class="mode-emoji">🌀</span>
       <span class="mode-title">Prato a Spirale</span>
@@ -440,8 +441,20 @@ body.blackout-mode .btn-blackout-toggle {
       <label for="path-touch-speed">Velocità discesa <output id="path-touch-speed-value">115 m/s</output></label>
       <input id="path-touch-speed" type="range" min="70" max="300" value="115">
     </div>
-    <p class="hint">Tieni il dito sul pallino e trascinalo orizzontalmente. Se esci dal percorso, la vibrazione ti segnala il lato e se stai correggendo oppure peggiorando.</p>
-    <button type="button" id="btn-path-touch-start" class="primary">Inizia a trascinare</button>
+    <div class="option-group">
+      <h2>Concorrenti virtuali</h2>
+      <div class="options" data-group="pathOpponents">
+        <button type="button" data-value="0" class="opt selected">Nessuno</button>
+        <button type="button" data-value="3" class="opt">3 concorrenti</button>
+        <button type="button" data-value="5" class="opt">5 concorrenti</button>
+      </div>
+    </div>
+    <div class="option-group path-sliders">
+      <label for="path-opponent-speed">Velocità concorrenti <output id="path-opponent-speed-value">100%</output></label>
+      <input id="path-opponent-speed" type="range" min="60" max="140" value="100">
+    </div>
+    <p class="hint">Trascina il pallino a destra e sinistra per sterzare. Tieni il dito spostato verso l’alto per aumentare la velocità. Se esci dal percorso rallenti.</p>
+    <button type="button" id="btn-path-touch-start" class="primary">Inizia la gara</button>
   </section>
 
   <!-- ============ PATH: settings ============ -->
@@ -471,7 +484,7 @@ body.blackout-mode .btn-blackout-toggle {
   <!-- ============ PATH: game ============ -->
   <section id="screen-path" class="screen">
     <header class="hud">
-      <div class="hud-left"><span id="path-score">0 m</span><span id="path-status">Dentro</span></div>
+      <div class="hud-left"><span id="path-score">0 m</span><span id="path-status">Dentro</span><span id="path-race">Solo</span></div>
       <div class="hud-right"><span id="path-timer">00:00</span></div>
     </header>
     <div id="path-wrap" tabindex="0">
@@ -741,8 +754,9 @@ body.blackout-mode .btn-blackout-toggle {
     laps: 3, opponents: 4, collisions: 'off',
     mowTerrain: 'secco', mowSize: 10, mowRadar: 'on',
     pathDifficulty: 'easy', pathWidth: 72, pathSpeed: 115,
+    pathOpponents: 0, pathOpponentSpeed: 100,
   };
-  const NUMERIC_SETTINGS = ['size', 'laps', 'opponents', 'mowSize', 'pathWidth', 'pathSpeed'];
+  const NUMERIC_SETTINGS = ['size', 'laps', 'opponents', 'mowSize', 'pathWidth', 'pathSpeed', 'pathOpponents', 'pathOpponentSpeed'];
 
   document.querySelectorAll('.options').forEach((group) => {
     const key = group.dataset.group;
@@ -773,11 +787,15 @@ body.blackout-mode .btn-blackout-toggle {
   const touchPathSpeedRange = document.getElementById('path-touch-speed');
   const touchPathWidthValue = document.getElementById('path-touch-width-value');
   const touchPathSpeedValue = document.getElementById('path-touch-speed-value');
+  const pathOpponentSpeedRange = document.getElementById('path-opponent-speed');
+  const pathOpponentSpeedValue = document.getElementById('path-opponent-speed-value');
   function syncTouchPathSettings() {
     touchPathWidthRange.value = settings.pathWidth;
     touchPathSpeedRange.value = settings.pathSpeed;
     touchPathWidthValue.textContent = settings.pathWidth + '%';
     touchPathSpeedValue.textContent = settings.pathSpeed + ' m/s';
+    pathOpponentSpeedRange.value = settings.pathOpponentSpeed;
+    pathOpponentSpeedValue.textContent = settings.pathOpponentSpeed + '%';
   }
   document.querySelectorAll('[data-group="pathDifficulty"] .opt').forEach((button) => {
     button.addEventListener('click', () => {
@@ -812,6 +830,10 @@ body.blackout-mode .btn-blackout-toggle {
     settings.pathSpeed = parseInt(touchPathSpeedRange.value, 10);
     document.querySelectorAll('[data-group="pathDifficulty"] .opt, [data-group="pathTouchDifficulty"] .opt').forEach((b) => b.classList.remove('selected'));
     syncPathSettings(); syncTouchPathSettings();
+  });
+  pathOpponentSpeedRange.addEventListener('input', () => {
+    settings.pathOpponentSpeed = parseInt(pathOpponentSpeedRange.value, 10);
+    syncTouchPathSettings();
   });
   syncPathSettings();
   syncTouchPathSettings();
@@ -2990,11 +3012,13 @@ body.blackout-mode .btn-blackout-toggle {
   const btnPathMenu = document.getElementById('btn-path-menu');
   const pathScoreEl = document.getElementById('path-score');
   const pathStatusEl = document.getElementById('path-status');
+  const pathRaceEl = document.getElementById('path-race');
   const pathTimerEl = document.getElementById('path-timer');
 
-  let path = { x: 0, distance: 0, elapsed: 0 };
+  let path = { x: 0, distance: 0, elapsed: 0, speed: 0 };
+  let pathOpponents = [];
   let pathRunning = false, pathRAF = null, pathLastFrame = 0;
-  let pathPointerActive = false, pathPointerX = 0;
+  let pathPointerActive = false, pathPointerX = 0, pathPointerLastX = 0, pathTouchDirection = 0, pathPointerAnchorY = 0, pathThrottle = 0;
   let pathFeedbackAccum = 0, pathDpr = 1;
   let pathTiltCalibratingUntil = 0, pathTiltSamples = [];
   let pathControl = 'tilt';
@@ -3082,7 +3106,7 @@ body.blackout-mode .btn-blackout-toggle {
   }
 
   function pathInput() {
-    if (pathControl === 'touch') return 0;
+    if (pathControl === 'touch') return pathPointerActive ? pathTouchDirection : 0;
     if (tiltAvailable) {
       // Calibrate after the start tap: the hand often tilts the phone while
       // pressing the button, so using that single event would create a false
@@ -3121,13 +3145,27 @@ body.blackout-mode .btn-blackout-toggle {
   function updatePathPhysics(dt) {
     const level = { width: settings.pathWidth / 100, speed: settings.pathSpeed };
     const input = pathInput();
-    path.x += input * (1.15 + level.speed / 240) * dt;
+    if (pathControl !== 'touch') path.x += input * (1.15 + level.speed / 240) * dt;
     path.x = clamp(path.x, -1, 1);
-    path.distance += level.speed * dt;
+    const offroad = Math.max(0, Math.abs(path.x - pathCenter(path.distance)) - level.width * 0.5);
+    const grip = 1 - clamp(offroad / (1 - level.width * 0.5), 0, 1) * 0.72;
+    path.speed = level.speed * (1 + pathThrottle * 0.9) * grip;
+    path.distance += path.speed * dt;
     path.elapsed += dt;
+    for (const opponent of pathOpponents) opponent.distance += opponent.speed * dt;
     pathFeedbackAccum += dt;
-    if (pathFeedbackAccum >= 0.09) { pathFeedbackAccum = 0; pathHapticTick(); }
+    if (pathFeedbackAccum >= 0.09) {
+      pathFeedbackAccum = 0;
+      pathHapticTick();
+      pathTouchDirection = 0;
+    }
     pathScoreEl.textContent = Math.floor(path.distance / 10) + ' m';
+    if (pathOpponents.length) {
+      const ahead = pathOpponents.filter((opponent) => opponent.distance > path.distance).length;
+      pathRaceEl.textContent = (ahead + 1) + '°/' + (pathOpponents.length + 1);
+    } else {
+      pathRaceEl.textContent = 'Solo';
+    }
     pathTimerEl.textContent = formatTime(path.elapsed * 1000);
     renderPath();
   }
@@ -3146,16 +3184,22 @@ body.blackout-mode .btn-blackout-toggle {
   }
   pathWrap.addEventListener('pointerdown', (e) => {
     if (!pathRunning) return;
-    AudioFX.ensure(); pathPointerActive = true; updatePathPointer(e.clientX);
+    AudioFX.ensure(); pathPointerActive = true; pathPointerAnchorY = e.clientY; updatePathPointer(e.clientX);
+    pathPointerLastX = pathPointerX;
+    pathTouchDirection = 0; pathThrottle = 0;
     if (pathControl === 'touch') path.x = pathPointerX;
     try { pathWrap.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
   });
   pathWrap.addEventListener('pointermove', (e) => {
     if (!pathPointerActive) return;
+    const previousX = pathPointerX;
     updatePathPointer(e.clientX);
     if (pathControl === 'touch') path.x = pathPointerX;
+    pathThrottle = clamp((pathPointerAnchorY - e.clientY) / 100, 0, 1);
+    pathTouchDirection = clamp((pathPointerX - previousX) * 8, -1, 1);
+    pathPointerLastX = pathPointerX;
   });
-  function releasePathPointer() { pathPointerActive = false; pathPointerX = 0; }
+  function releasePathPointer() { pathPointerActive = false; pathPointerX = 0; pathPointerLastX = 0; pathTouchDirection = 0; pathThrottle = 0; }
   pathWrap.addEventListener('pointerup', releasePathPointer);
   pathWrap.addEventListener('pointercancel', releasePathPointer);
 
@@ -3170,7 +3214,12 @@ body.blackout-mode .btn-blackout-toggle {
   function startPathRun(control) {
     currentMode = 'path';
     pathControl = control || 'tilt';
-    path = { x: 0, distance: 0, elapsed: 0 };
+    path = { x: 0, distance: 0, elapsed: 0, speed: settings.pathSpeed };
+    pathOpponents = Array.from({ length: settings.pathOpponents }, (_, index) => ({
+      distance: 0,
+      speed: settings.pathSpeed * (settings.pathOpponentSpeed / 100) * (0.92 + index * 0.035),
+    }));
+    pathThrottle = 0;
     pathRunning = true; steerActive = true; clearKeys();
     pathTiltSamples = [];
     pathTiltCalibratingUntil = pathControl === 'tilt' && tiltAvailable ? performance.now() + 650 : 0;

@@ -1251,7 +1251,7 @@ body.blackout-mode .btn-blackout-toggle {
                                   // out-runs the cap and the verge costs nothing
   const COLLISION_Z = 260;
   const COLLISION_X = 0.5;
-  const MAX_HEADING = 0.45;       // rad — full steering lock relative to the track
+   const MAX_HEADING = 30 * Math.PI / 180; // never point more than 30° away from the road
   const HEADING_EASE = 4.5;       // how fast the nose swings toward the target heading
   const STEER_TRAVEL = 3.0;       // lateral travel per second at full lock, top speed
   const MAX_ROLL = 0.36;          // how far the horizon banks at full lock
@@ -1722,7 +1722,8 @@ body.blackout-mode .btn-blackout-toggle {
     // The nose swings toward a heading angle instead of the car sliding
     // sideways: lateral movement is a consequence of where the car points.
     const headingTarget = steerInput * MAX_HEADING;
-    player.heading += (headingTarget - player.heading) * Math.min(1, HEADING_EASE * dt);
+     player.heading += (headingTarget - player.heading) * Math.min(1, HEADING_EASE * dt);
+     player.heading = clamp(player.heading, -MAX_HEADING, MAX_HEADING);
     player.roll += (steerInput - player.roll) * Math.min(1, 7 * dt);
 
     const speedRatio = player.speed / MAX_SPEED;
@@ -1973,37 +1974,26 @@ body.blackout-mode .btn-blackout-toggle {
      invisible wall is always what you meet first and the hedge stays a
      backstop. Nothing grows on the apron, so it is never cuttable. */
   const MOW_APRON = MOW_CELL * 1.3;
-  const MOW_MAX_SPEED = 2400;       // world units/s ≈ 4.8 zolle a second
-  const MOW_ACCEL = 2100;
-  const MOW_BRAKE = 3200;
-  const MOW_FRICTION = 1400;
-  const MOW_REVERSE = 0.35;         // reverse is slow: it is for getting off the hedge
-  /* rad/s at full lock. Tuned against the spiral, not by feel: a 90° bend taken
-     at radius r pushes you 0.41·r off the ideal line, so to stay inside
-     MOW_LANE_FREE the machine must corner at r ≲ 550. At 2.6 rad/s that means
-     easing off to about two thirds throttle — flat out through a bend earns a
-     light buzz, backing off silences it. A slower rate made every corner buzz
-     however well you drove, which is the opposite of the point. */
-  const MOW_TURN_RATE = 2.6;
-  const MOW_TURN_MIN = 0.5;         // ...still half of that when stopped: pivot on the spot
-  const MOW_TALL_DRAG = 0.78;       // tall grass holds the machine back and bogs the engine
-  const MOW_ROLL = 0.07;            // the tractor leans a little; the bonnet below does not
+   const MOW_MAX_SPEED = 2400;       // world units/s ≈ 4.8 zolle a second
+   const MOW_CRUISE_SPEED = 1800;    // fixed pace: vertical finger movement is not a throttle
+   const MOW_PATH_ANGLE = 30 * Math.PI / 180; // maximum heading error from the spiral
+   /* rad/s at full lock. Tuned against the spiral, not by feel: the angle limit
+      keeps a quick tilt reversal from pointing the machine across the lane. */
+   const MOW_TURN_RATE = 2.6;
+   const MOW_TURN_MIN = 0.5;         // ...still half of that when stopped: pivot on the spot
+   const MOW_ROLL = 0.07;            // the tractor leans a little; the bonnet below does not
   const MOW_SKY_PER_RAD = 1 / MOW_FOV; // one screen width of scenery per FOV of yaw
   /* The lane is a corridor with invisible walls. You cannot leave it, so you
      cannot skip a zolla or take them out of order: the only thing precision
      buys you is time, because a tidy line never pays the verge penalty.
 
        0 .. FREE   silence, full speed — the lane proper
-       FREE .. WALL rising buzz, and speed lost as the SQUARE of how far out
-                    you are, so brushing the edge costs almost nothing and
-                    leaning on it costs a great deal
+       FREE .. WALL rising buzz as you move away from the line
        WALL        the wall itself: the position is pushed back onto it */
   const MOW_LANE_FREE = MOW_CELL * 0.4;
   const MOW_LANE_WALL = MOW_CELL;
   const MOW_LOST = MOW_CELL * 0.8;        // past this you get told where the line went
   const MOW_GUIDE_EVERY = 1.6;
-  const MOW_OFFLINE_GRIP_LOSS = 0.8;      // speed left against the wall: a fifth
-  const MOW_OFFLINE_DRAG = 2600;          // must beat MOW_ACCEL or the cap never holds
   /* The lawn is an oval, so the spiral is a real spiral: one smooth tightening
      curve instead of rings of 90° corners you had to crawl round. The pitch is
      set from the LONG radius, so consecutive passes sit one swath apart across
@@ -2072,7 +2062,7 @@ body.blackout-mode .btn-blackout-toggle {
   let mow = { x: 0, z: 0, heading: 0, speed: 0, roll: 0 };
   let mowRunning = false, mowRAF = null, mowLastFrame = 0, mowFinished = false;
   let mowStartTime = 0, mowDpr = 1, mowBlackoutActive = false;
-  let mowPointerActive = false, mowAnchorY = 0, mowThrottleAxis = 0, mowSteerTarget = 0;
+   let mowPointerActive = false, mowSteerTarget = 0;
   let mowGrassAccum = 0, mowClickAccum = 0, mowHissAccum = 0, mowTickAccum = 0, mowGuideAccum = 0;
   let mowRockCooldown = 0, mowHedgeFlag = false, mowCutting = 0, mowSinceFresh = 0;
   let mowOnWall = false, mowWallCooldown = 0;
@@ -2146,7 +2136,7 @@ body.blackout-mode .btn-blackout-toggle {
     mowCutting = 0; mowSinceFresh = 0;
     mowOnWall = false; mowWallCooldown = 0;
     mowGrassAccum = mowClickAccum = mowHissAccum = mowTickAccum = mowGuideAccum = 0;
-    mowSteerTarget = 0; mowThrottleAxis = 0; mowPointerActive = false;
+     mowSteerTarget = 0; mowPointerActive = false;
     mowPathIdx = 0; mowOff = 0; mowOffSide = 0;
     mowLaps = 0; mowLapAngle = 0;
     mowPrevAngle = Math.atan2(mow.z - mowCz, mow.x - mowCx);
@@ -2345,7 +2335,15 @@ body.blackout-mode .btn-blackout-toggle {
   }
 
   function updateMowPhysics(dt) {
-    let steerInput = 0;
+     // The limit is relative to the current spiral tangent, not to the world:
+     // the machine may follow every turn but cannot be pointed across the lane.
+     updatePathTracking();
+     const path = mowPath[Math.min(mowPathIdx + 1, mowPath.length - 1)];
+     const pathPrev = mowPath[mowPathIdx];
+     const pathHeading = path && pathPrev
+       ? Math.atan2(path.x - pathPrev.x, path.z - pathPrev.z)
+       : mow.heading;
+     let steerInput = 0;
     if (tiltAvailable && tiltZero !== null) {
       steerInput = clamp((lastRawGamma - tiltZero) / 28, -1, 1);
     } else if (keyState.left || keyState.right) {
@@ -2357,9 +2355,13 @@ body.blackout-mode .btn-blackout-toggle {
     const speedRatio = Math.abs(mow.speed) / MOW_MAX_SPEED;
     // Keep most of the steering authority at a standstill: a blind player has
     // to be able to stop, turn on the spot and set off down the next lane.
-    const authority = Math.min(1, Math.max(MOW_TURN_MIN, 0.45 + speedRatio * 0.55));
-    mow.heading += steerInput * MOW_TURN_RATE * authority * dt;
-    mow.roll += (steerInput - mow.roll) * Math.min(1, 7 * dt);
+     const authority = Math.min(1, Math.max(MOW_TURN_MIN, 0.45 + speedRatio * 0.55));
+     mow.heading += steerInput * MOW_TURN_RATE * authority * dt;
+     let headingError = mow.heading - pathHeading;
+     while (headingError > Math.PI) headingError -= Math.PI * 2;
+     while (headingError < -Math.PI) headingError += Math.PI * 2;
+     mow.heading = pathHeading + clamp(headingError, -MOW_PATH_ANGLE, MOW_PATH_ANGLE);
+     mow.roll += (steerInput - mow.roll) * Math.min(1, 7 * dt);
 
     const fwdX = Math.sin(mow.heading), fwdZ = Math.cos(mow.heading);
     /* The machine bogs down because the blades are CHEWING. Getting that from
@@ -2370,34 +2372,10 @@ body.blackout-mode .btn-blackout-toggle {
        perfectly fresh lane. What is true continuously is the DISTANCE since
        the last fresh zolla: on tall grass it never grows past a zolla or two,
        on ground already cut it grows without bound. */
-    const wet = settings.mowTerrain === 'bagnato' ? 0.82 : 1;
-    // Off the lane the machine wades. SQUARED, so brushing the edge of the
-    // corridor costs almost nothing (a tenth of the way out is 1% of the
-    // penalty) while leaning on the wall costs nearly all of it — precision is
-    // paid back in time, which is the whole point of the corridor.
-    const stray = mowStray();
-    const grip = 1 - stray * stray * MOW_OFFLINE_GRIP_LOSS;
-    const load = (1 - mowCutting * (1 - MOW_TALL_DRAG)) * wet * grip;
-
-    let throttle = 0;
-    if (keyState.up) throttle = 1;
-    else if (keyState.down) throttle = -1;
-    else if (mowPointerActive) throttle = mowThrottleAxis;
-
-    if (throttle > 0) mow.speed += MOW_ACCEL * load * throttle * dt;
-    else if (throttle < 0) mow.speed += MOW_BRAKE * throttle * dt;
-    else {
-      const f = MOW_FRICTION * dt;
-      mow.speed = mow.speed > 0 ? Math.max(0, mow.speed - f) : Math.min(0, mow.speed + f);
-    }
-    mow.speed = clamp(mow.speed, -MOW_MAX_SPEED * MOW_REVERSE, MOW_MAX_SPEED);
-    // Scrubbed off gradually, never clamped: a hard cap would stop the machine
-    // dead the moment a wheel left the lane. The cap lifts again as soon as you
-    // are back on it, so getting your speed back is only acceleration.
-    const cap = MOW_MAX_SPEED * load;
-    if (mow.speed > cap) mow.speed = Math.max(cap, mow.speed - MOW_OFFLINE_DRAG * dt);
-
-    const fromX = mow.x, fromZ = mow.z;
+     // Pace is deliberately constant. Moving a finger up or down must not
+     // change speed; only the path and obstacle rules can slow the machine.
+     mow.speed = MOW_CRUISE_SPEED;
+     const fromX = mow.x, fromZ = mow.z;
     const nx = mow.x + fwdX * mow.speed * dt;
     const nz = mow.z + fwdZ * mow.speed * dt;
 
@@ -2455,7 +2433,7 @@ body.blackout-mode .btn-blackout-toggle {
 
     const { fresh, alongside } = cutSwath(fromX, fromZ, mow.x, mow.z, mow.heading);
 
-    // how hard the blades are working, for next frame's load and engine note
+     // Track fresh grass for the engine note and the mowing feedback.
     if (fresh > 0) mowSinceFresh = 0;
     else mowSinceFresh += Math.abs(mow.speed) * dt;
     const working = mowSinceFresh < MOW_CELL * 2 ? 1 : 0;
@@ -2479,7 +2457,7 @@ body.blackout-mode .btn-blackout-toggle {
     if (mowTickAccum >= 0.06) { mowTickAccum = 0; mowHapticTick(); }
     mowGuideCue(dt);
 
-    // the engine bogs down in tall grass: an audible cue you can drive by alone
+     // The engine note still reflects mowing effort, without changing the pace.
     const rev = Math.abs(mow.speed) / MOW_MAX_SPEED;
     AudioFX.engineUpdate(clamp(rev * (1 - mowCutting * 0.45) + 0.05, 0, 1));
 
@@ -2715,18 +2693,15 @@ body.blackout-mode .btn-blackout-toggle {
   mowWrap.addEventListener('pointerdown', (e) => {
     if (!mowRunning) return;
     AudioFX.ensure();
-    try { mowWrap.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
-    mowPointerActive = true;
-    mowAnchorY = e.clientY;
-    mowThrottleAxis = 0;
-    if (!tiltAvailable) updateMowSteer(e.clientX);
+     try { mowWrap.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+     mowPointerActive = true;
+     if (!tiltAvailable) updateMowSteer(e.clientX);
   });
   mowWrap.addEventListener('pointermove', (e) => {
     if (!mowRunning || !mowPointerActive) return;
-    mowThrottleAxis = clamp((mowAnchorY - e.clientY) / THROTTLE_RANGE, -1, 1);
-    if (!tiltAvailable) updateMowSteer(e.clientX);
-  });
-  function releaseMowPointer() { mowPointerActive = false; mowThrottleAxis = 0; mowSteerTarget = 0; }
+     if (!tiltAvailable) updateMowSteer(e.clientX);
+   });
+   function releaseMowPointer() { mowPointerActive = false; mowSteerTarget = 0; }
   mowWrap.addEventListener('pointerup', releaseMowPointer);
   mowWrap.addEventListener('pointercancel', releaseMowPointer);
 

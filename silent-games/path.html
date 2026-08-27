@@ -1990,7 +1990,7 @@ body.blackout-mode .btn-blackout-toggle {
        0 .. FREE   silence, full speed — the lane proper
        FREE .. WALL rising buzz as you move away from the line
        WALL        the wall itself: the position is pushed back onto it */
-  const MOW_LANE_FREE = MOW_CELL * 0.4;
+   const MOW_LANE_FREE = MOW_CELL * 0.6;       // wider silent zone for tilt steering
   const MOW_LANE_WALL = MOW_CELL;
   const MOW_LOST = MOW_CELL * 0.8;        // past this you get told where the line went
   const MOW_GUIDE_EVERY = 1.6;
@@ -2203,7 +2203,7 @@ body.blackout-mode .btn-blackout-toggle {
     const steps = Math.max(1, Math.ceil(Math.hypot(toX - fromX, toZ - fromZ) / (MOW_CELL * 0.4)));
     let fresh = 0, alongside = false;
 
-    for (let s = 1; s <= steps; s++) {
+     for (let s = 1; s <= steps; s++) {
       const t = s / steps;
       const cx = lerp(fromX, toX, t), cz = lerp(fromZ, toZ, t);
 
@@ -2230,10 +2230,32 @@ body.blackout-mode .btn-blackout-toggle {
         mowCut++;
         cutHere++;
       }
-      fresh += cutHere;
-      if (cutHere && touching) alongside = true;
-    }
-    return { fresh, alongside };
+       fresh += cutHere;
+       if (cutHere && touching) alongside = true;
+     }
+
+     // Always sweep the tracked spiral line as well as the deck position. This
+     // keeps a quick left/right correction from jumping over a zolla while the
+     // wider silent zone makes the correct tilt easier to find.
+     const line = mowPath[Math.min(mowPathIdx + 1, mowPath.length - 1)];
+     const linePrev = mowPath[mowPathIdx];
+     if (line && linePrev) {
+       const lineHeading = Math.atan2(line.x - linePrev.x, line.z - linePrev.z);
+       const lineRx = Math.cos(lineHeading), lineRz = -Math.sin(lineHeading);
+       for (let b = -1; b <= 1; b++) {
+         const i = mowCellAt(mowLineX + lineRx * b * MOW_BLADE * 0.92,
+           mowLineZ + lineRz * b * MOW_BLADE * 0.92);
+         if (i < 0 || mowCells[i] !== 0) continue;
+         mowCells[i] = 1;
+         const ringX = ((i % mowN) + 0.5) * MOW_CELL - mowCx;
+         const ringZ = (Math.floor(i / mowN) + 0.5) * MOW_CELL - mowCz;
+         const turn = Math.hypot(ringX / mowRx, ringZ / mowRz) * mowRx / MOW_CELL;
+         mowStripe[i] = Math.floor(turn) & 1;
+         mowCut++;
+         fresh++;
+       }
+     }
+     return { fresh, alongside };
   }
 
   // world point → how far in front of the seat it is, and how far to its right

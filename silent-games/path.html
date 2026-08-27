@@ -2937,6 +2937,7 @@ body.blackout-mode .btn-blackout-toggle {
   let pathRunning = false, pathRAF = null, pathLastFrame = 0;
   let pathPointerActive = false, pathPointerX = 0;
   let pathFeedbackAccum = 0, pathDpr = 1;
+  let pathTiltCalibratingUntil = 0, pathTiltSamples = [];
 
   const PathHaptics = {
     drift(intensity, side, correcting) {
@@ -3009,7 +3010,24 @@ body.blackout-mode .btn-blackout-toggle {
   }
 
   function pathInput() {
-    if (tiltAvailable && tiltZero !== null) return clamp((lastRawGamma - tiltZero) / 28, -1, 1);
+    if (tiltAvailable) {
+      // Calibrate after the start tap: the hand often tilts the phone while
+      // pressing the button, so using that single event would create a false
+      // permanent steering command.
+      if (pathTiltCalibratingUntil) {
+        if (orientationReceived) pathTiltSamples.push(lastRawGamma);
+        if (performance.now() < pathTiltCalibratingUntil) return 0;
+        if (pathTiltSamples.length) {
+          tiltZero = pathTiltSamples.reduce((sum, value) => sum + value, 0) / pathTiltSamples.length;
+        }
+        pathTiltCalibratingUntil = 0;
+      }
+      if (tiltZero === null) return 0;
+      const delta = lastRawGamma - tiltZero;
+      const deadzone = 3; // ignore sensor noise and tiny natural hand tremors
+      if (Math.abs(delta) <= deadzone) return 0;
+      return clamp((delta - Math.sign(delta) * deadzone) / 25, -1, 1);
+    }
     if (keyState.left || keyState.right) return (keyState.right ? 1 : 0) - (keyState.left ? 1 : 0);
     return pathPointerActive ? pathPointerX : 0;
   }
@@ -3063,12 +3081,20 @@ body.blackout-mode .btn-blackout-toggle {
   pathWrap.addEventListener('pointerup', releasePathPointer);
   pathWrap.addEventListener('pointercancel', releasePathPointer);
 
-  btnPathRecenter.addEventListener('click', () => { if (tiltAvailable) tiltZero = lastRawGamma; path.x = 0; pathPointerX = 0; });
+  btnPathRecenter.addEventListener('click', () => {
+    if (tiltAvailable) {
+      pathTiltSamples = [];
+      pathTiltCalibratingUntil = performance.now() + 450;
+    }
+    path.x = 0; pathPointerX = 0;
+  });
 
   function startPathRun() {
     currentMode = 'path';
     path = { x: 0, distance: 0, elapsed: 0 };
     pathRunning = true; steerActive = true; clearKeys();
+    pathTiltSamples = [];
+    pathTiltCalibratingUntil = tiltAvailable ? performance.now() + 650 : 0;
     showScreen('screen-path');
     try { pathWrap.focus({ preventScroll: true }); } catch (e) { pathWrap.focus(); }
     requestAnimationFrame(() => { resizePathCanvas(); renderPath(); });

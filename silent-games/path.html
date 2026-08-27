@@ -325,6 +325,12 @@ body.blackout-mode .btn-blackout-toggle {
 #screen-mow-menu h1 { text-align: center; font-size: 1.8rem; margin: 12px 0 4px; }
 #screen-path-menu { overflow-y: auto; }
 #screen-path-menu h1 { text-align: center; font-size: 1.8rem; margin: 12px 0 4px; }
+#screen-path-touch-menu {
+  overflow-y: auto;
+  min-height: 0;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
 .path-sliders { display: grid; gap: 7px; }
 .path-sliders label { color: var(--text-dim); font-size: 0.82rem; }
 .path-sliders output { float: right; color: var(--accent); font-variant-numeric: tabular-nums; }
@@ -391,7 +397,7 @@ body.blackout-mode .btn-blackout-toggle {
 <div id="app">
 
   <!-- ============ MODE SELECT ============ -->
-  <section id="screen-mode" class="screen active">
+  <section id="screen-mode" class="screen">
     <a class="back-link" href="/silent-games/">← HaptiPlay</a>
   <h1>🎮 Giochi Tattili</h1>
   <p class="subtitle">Un gioco pensato per essere sentito, non solo visto.</p>
@@ -423,8 +429,7 @@ body.blackout-mode .btn-blackout-toggle {
   </section>
 
   <!-- ============ PATH TOUCH: settings ============ -->
-  <section id="screen-path-touch-menu" class="screen">
-    <button type="button" class="back-btn" data-back="screen-mode">← Giochi</button>
+  <section id="screen-path-touch-menu" class="screen active">
     <h1>☝️ Dentro la Linea: Touch</h1>
     <p class="subtitle">Trascina il pallino a destra e sinistra per seguire il percorso. Qui non servono inclinazione o sensori: il dito controlla direttamente la posizione.</p>
     <div class="option-group">

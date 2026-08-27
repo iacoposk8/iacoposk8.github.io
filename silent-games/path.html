@@ -3027,6 +3027,7 @@ body.blackout-mode .btn-blackout-toggle {
   let pathFeedbackAccum = 0, pathDpr = 1;
   let pathTiltCalibratingUntil = 0, pathTiltSamples = [];
   let pathControl = 'tilt';
+  const PATH_OPP_COLORS = ['#e06f6f', '#6fa8e0', '#e0b85f', '#b47ce0', '#65d39a'];
   let pathWakeLock = null;
 
   async function requestPathWakeLock() {
@@ -3084,7 +3085,9 @@ body.blackout-mode .btn-blackout-toggle {
     for (let y = 0; y < h; y += 42) {
       pathCtx.beginPath(); pathCtx.moveTo(0, y); pathCtx.lineTo(w, y); pathCtx.stroke();
     }
-    const centerAt = (y) => w / 2 + pathCenter(path.distance + (y - playerY) * 1.2) * w * 0.35;
+    // Positive distance now travels down the screen: the road arrives from
+    // above and moves toward the player at the bottom.
+    const centerAt = (y) => w / 2 + pathCenter(path.distance - (y - playerY) * 1.2) * w * 0.35;
     pathCtx.beginPath();
     for (let y = -20; y <= h + 20; y += 8) {
       const x = centerAt(y) - level.width * w * 0.5;
@@ -3100,6 +3103,18 @@ body.blackout-mode .btn-blackout-toggle {
         const x = centerAt(y) + side * level.width * w * 0.5;
         if (y === -20) pathCtx.moveTo(x, y); else pathCtx.lineTo(x, y);
       }
+      pathCtx.stroke();
+    }
+    for (let i = 0; i < pathOpponents.length; i++) {
+      const opponent = pathOpponents[i];
+      const y = playerY - (opponent.distance - path.distance) / 1.2;
+      if (y < -20 || y > h + 20) continue;
+      const x = centerAt(y);
+      pathCtx.fillStyle = 'rgba(0,0,0,0.35)';
+      pathCtx.beginPath(); pathCtx.arc(x, y + 2, 9, 0, Math.PI * 2); pathCtx.fill();
+      pathCtx.fillStyle = PATH_OPP_COLORS[i % PATH_OPP_COLORS.length];
+      pathCtx.beginPath(); pathCtx.arc(x, y, 7, 0, Math.PI * 2); pathCtx.fill();
+      pathCtx.strokeStyle = '#e7f3ea'; pathCtx.lineWidth = 1;
       pathCtx.stroke();
     }
     const px = w / 2 + path.x * w * 0.5;
@@ -3221,7 +3236,7 @@ body.blackout-mode .btn-blackout-toggle {
     pathControl = control || 'tilt';
     path = { x: 0, distance: 0, elapsed: 0, speed: settings.pathSpeed };
     pathOpponents = Array.from({ length: settings.pathOpponents }, (_, index) => ({
-      distance: 0,
+      distance: -index * 90,
       speed: settings.pathSpeed * (settings.pathOpponentSpeed / 100) * (0.92 + index * 0.035),
     }));
     pathThrottle = 0;

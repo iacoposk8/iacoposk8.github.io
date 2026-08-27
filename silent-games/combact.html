@@ -433,6 +433,11 @@
             width: min(100%, 420px);
             margin: 0 auto;
             padding: 18px;
+            max-height: calc(100vh - 24px);
+            max-height: calc(100dvh - 24px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            touch-action: pan-y;
             background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 18px;
@@ -470,11 +475,6 @@
             gap: 6px;
             margin-bottom: 10px;
             text-align: left;
-            max-height: 45vh;
-            overflow-y: auto;
-            padding-right: 6px;
-            scrollbar-gutter: stable;
-            touch-action: pan-y;
         }
         .advanced-setting { display: grid; gap: 4px; font-size: 0.85rem; }
         .advanced-setting span { display: flex; justify-content: space-between; color: var(--text-dim); }

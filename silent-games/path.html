@@ -2938,6 +2938,18 @@ body.blackout-mode .btn-blackout-toggle {
   let pathPointerActive = false, pathPointerX = 0;
   let pathFeedbackAccum = 0, pathDpr = 1;
   let pathTiltCalibratingUntil = 0, pathTiltSamples = [];
+  let pathWakeLock = null;
+
+  async function requestPathWakeLock() {
+    if (!('wakeLock' in navigator) || !pathRunning || document.visibilityState !== 'visible') return;
+    try { pathWakeLock = await navigator.wakeLock.request('screen'); } catch (e) { pathWakeLock = null; }
+  }
+
+  function releasePathWakeLock() {
+    if (!pathWakeLock) return;
+    pathWakeLock.release().catch(() => {});
+    pathWakeLock = null;
+  }
 
   const PathHaptics = {
     drift(intensity, side, correcting) {
@@ -3096,6 +3108,7 @@ body.blackout-mode .btn-blackout-toggle {
     pathTiltSamples = [];
     pathTiltCalibratingUntil = tiltAvailable ? performance.now() + 650 : 0;
     showScreen('screen-path');
+    requestPathWakeLock();
     try { pathWrap.focus({ preventScroll: true }); } catch (e) { pathWrap.focus(); }
     requestAnimationFrame(() => { resizePathCanvas(); renderPath(); });
     AudioFX.ensure(); PathHaptics.start(); pathLastFrame = performance.now(); pathFeedbackAccum = 0;
@@ -3105,9 +3118,13 @@ body.blackout-mode .btn-blackout-toggle {
     pathRunning = false; steerActive = false;
     if (pathRAF) cancelAnimationFrame(pathRAF);
     stopOrientationListener();
+    releasePathWakeLock();
   }
   btnPathStart.addEventListener('click', () => { AudioFX.ensure(); beginTilt().then(startPathRun); });
   btnPathMenu.addEventListener('click', () => { stopPath(); showScreen('screen-mode'); });
+  document.addEventListener('visibilitychange', () => {
+    if (pathRunning && document.visibilityState === 'visible') requestPathWakeLock();
+  });
 
   // ================= Shared win screen wiring =================
   btnAgain.addEventListener('click', () => {

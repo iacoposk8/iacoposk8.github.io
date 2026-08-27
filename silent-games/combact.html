@@ -617,6 +617,8 @@
             dodge() { this.tone(660, 0.15, 'sine', 0.12); },
             staminaLow() { this.tone(260, 0.12, 'square', 0.1); },
             staminaEmpty() { this.tone(110, 0.22, 'sawtooth', 0.14); },
+            staminaReady() { this.tone(520, 0.1, 'triangle', 0.1); },
+            staminaFull() { [620, 780].forEach((f, i) => setTimeout(() => this.tone(f, 0.12, 'triangle', 0.1), i * 100)); },
             nextEnemy() { this.tone(440, 0.12, 'triangle', 0.1); },
             win() { [523, 659, 784].forEach((f, i) => setTimeout(() => this.tone(f, 0.25, 'triangle', 0.15), i * 120)); },
             lose() { [300, 220, 140].forEach((f, i) => setTimeout(() => this.tone(f, 0.35, 'sawtooth', 0.15), i * 150)); }
@@ -948,9 +950,11 @@
                 const timeSinceLastAction = (now - this.lastActionTime) / 1000;
                 
                 if (timeSinceLastAction >= this.staminaRecoveryDelay && this.currentStamina < this.maxStamina) {
+                    const previousStamina = this.currentStamina;
                     const recoveryAmount = this.staminaRecoveryRate * elapsed;
                     this.currentStamina = Math.min(this.maxStamina, this.currentStamina + recoveryAmount);
                     this.updateStaminaBar();
+                    this.notifyStaminaMilestones(previousStamina);
                     this.isRecoveringStamina = true;
                 } else {
                     this.isRecoveringStamina = false;
@@ -993,8 +997,19 @@
             }
 
             notifyStaminaEmpty() {
-                this.vibrate([120, 70, 120]);
+                this.vibrate([180, 45, 180]);
                 AudioFX.staminaEmpty();
+            }
+
+            notifyStaminaMilestones(previousStamina) {
+                if (previousStamina < this.dodgeCost && this.currentStamina >= this.dodgeCost) {
+                    this.vibrate([35, 45, 35]);
+                    AudioFX.staminaReady();
+                }
+                if (previousStamina < this.maxStamina && this.currentStamina >= this.maxStamina) {
+                    this.vibrate([70, 50, 70, 50, 140]);
+                    AudioFX.staminaFull();
+                }
             }
 
             updateChargeBar() {

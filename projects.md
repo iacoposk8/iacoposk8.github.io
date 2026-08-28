@@ -3,6 +3,14 @@ layout: default
 title: Projects
 ---
 
+## Learn Braille
+
+A playful web game for learning Braille letters through progressive levels, timed sentence challenges, falling letters, and Braille pairs.
+
+<a href="/projects/learn-braille.html" target="_blank" class="btn btn-primary btn-xl">Learn it!</a>
+
+---
+
 ## Dragon Ball Ages
 
 Ever wondered how old Goku and the Z Fighters are throughout their journey? Explore our comprehensive guide tracking every character's age from the Original Dragon Ball all the way to Dragon Ball Super!

@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Braille Master - Practice and Time Challenge</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --success: #10b981;
+      --error: #ef4444;
+      --warning: #f59e0b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --dot-inactive: #334155;
+      --dot-active: #38bdf8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      color: #38bdf8;
+      margin-bottom: 5px;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 800px;
+    }
+
+    /* VIEW: LEVEL SELECTOR */
+    #view-levels {
+      display: block;
+    }
+
+    .levels-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .level-card {
+      background-color: var(--card-bg);
+      border: 2px solid #334155;
+      border-radius: 12px;
+      padding: 15px 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      user-select: none;
+    }
+
+    .level-card.unlocked:hover {
+      transform: translateY(-3px);
+      border-color: var(--primary);
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
+
+    .level-card.locked {
+      opacity: 0.45;
+      cursor: not-allowed;
+      filter: grayscale(1);
+    }
+
+    .level-card.completed {
+      border-color: var(--success);
+    }
+
+    .level-number {
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    .level-letter {
+      font-size: 1.8rem;
+      color: #38bdf8;
+      margin: 5px 0;
+      font-weight: bold;
+    }
+
+    .level-status {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .star-icon {
+      color: #fbbf24;
+      font-size: 0.9rem;
+    }
+
+    /* VIEW: GAME */
+    #view-game {
+      display: none;
+    }
+
+    .game-card {
+      background-color: var(--card-bg);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .top-bar {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      background-color: #334155;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.2s;
+    }
+
+    .btn:hover {
+      background-color: #475569;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .stats-badge {
+      font-size: 0.95rem;
+      background: #0f172a;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid #334155;
+    }
+
+    .error-count {
+      color: var(--error);
+      font-weight: bold;
+    }
+
+    /* Progress bar */
+    .progress-container {
+      width: 100%;
+      height: 10px;
+      background-color: #0f172a;
+      border-radius: 5px;
+      margin-bottom: 25px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #6366f1, #38bdf8);
+      transition: width 0.2s ease;
+    }
+
+    /* Target letter and Braille cell */
+    .target-box {
+      display: flex;
+      align-items: center;
+      gap: 35px;
+      margin: 15px 0;
+    }
+
+    .target-letter {
+      font-size: 7.5rem;
+      font-weight: 900;
+      color: #f8fafc;
+      width: 140px;
+      height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0f172a;
+      border-radius: 20px;
+      border: 3px solid #334155;
+      text-transform: uppercase;
+      box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    .pair-mode .target-letter {
+      width: 180px;
+      font-size: 4.5rem;
+      letter-spacing: 0.04em;
+    }
+
+    /* Six-dot Braille display */
+    .braille-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .braille-cell {
+      display: grid;
+      grid-template-columns: repeat(2, 24px);
+      grid-template-rows: repeat(3, 24px);
+      gap: 12px;
+      background: #0f172a;
+      padding: 16px;
+      border-radius: 16px;
+      border: 2px dashed #334155;
+      transition: border-color 0.3s;
+    }
+
+    .braille-cell.revealed {
+      border-style: solid;
+      border-color: var(--warning);
+      animation: pulse-border 0.4s;
+    }
+
+    @keyframes pulse-border {
+      50% { border-color: var(--error); transform: scale(1.05); }
+    }
+
+    .dot {
+      width: 24px;
+      height: 24px;
+      background-color: var(--dot-inactive);
+      border-radius: 50%;
+      transition: all 0.25s ease;
+    }
+
+    .dot.active {
+      background-color: var(--dot-active);
+      box-shadow: 0 0 14px var(--dot-active);
+    }
+
+    /* Text hint box */
+    .hint-banner {
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      margin-top: 10px;
+      text-align: center;
+      transition: all 0.3s ease;
+      color: var(--text-muted);
+    }
+
+    .hint-banner.error-state {
+      background-color: rgba(239, 68, 68, 0.15);
+      border: 1px solid var(--error);
+      color: #fca5a5;
+    }
+
+    /* Feedback animations */
+    .shake {
+      animation: shake 0.3s;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+
+    .correct-pop {
+      animation: pop 0.25s ease;
+    }
+
+    @keyframes pop {
+      50% { transform: scale(1.08); border-color: var(--success); }
+    }
+
+    /* LEVEL COMPLETION MODAL */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-card {
+      background-color: var(--card-bg);
+      border-radius: 20px;
+      padding: 35px;
+      text-align: center;
+      max-width: 420px;
+      width: 90%;
+      border: 2px solid #334155;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+    }
+
+    .modal-card h2 {
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+    }
+
+    .modal-card p {
+      color: var(--text-muted);
+      margin-bottom: 25px;
+      line-height: 1.5;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .reset-progress {
+      margin-top: 30px;
+      background: transparent;
+      color: #64748b;
+      border: 1px dashed #475569;
+      font-size: 0.8rem;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .reset-progress:hover {
+      color: #ef4444;
+      border-color: #ef4444;
+    }
+
+    .mode-card {
+      background: linear-gradient(135deg, #1e293b, #172554);
+      border: 2px solid #334155;
+      border-radius: 16px;
+      padding: 22px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .mode-card h2 { margin-bottom: 6px; }
+    .mode-card p { color: var(--text-muted); margin-bottom: 15px; }
+    .phrase-target {
+      width: 100%;
+      min-height: 90px;
+      padding: 20px;
+      margin: 15px 0;
+      background: #0f172a;
+      border: 2px solid #334155;
+      border-radius: 14px;
+      font-size: 1.35rem;
+      line-height: 1.6;
+      letter-spacing: 0.03em;
+      text-align: left;
+    }
+    .phrase-target .typed { color: var(--success); }
+    .phrase-target .current { color: var(--dot-active); text-decoration: underline; }
+    .phrase-target .pending { color: var(--text-muted); }
+    .phrase-input-help { color: var(--text-muted); font-size: 0.9rem; }
+    .phrase-stats { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin: 10px 0; }
+    .phrase-result { color: var(--text-muted); min-height: 24px; margin-top: 12px; }
+
+    .rush-card { width: 100%; }
+    .rush-arena {
+      position: relative;
+      width: 100%;
+      height: 460px;
+      margin: 10px 0 15px;
+      overflow: hidden;
+      background: linear-gradient(#0f172a, #172554);
+      border: 2px solid #334155;
+      border-radius: 14px;
+    }
+    .rush-arena::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+       bottom: 20px;
+      border-top: 3px solid var(--warning);
+      box-shadow: 0 0 14px rgba(245, 158, 11, 0.7);
+    }
+    .rush-note {
+      position: absolute;
+      left: 50%;
+      width: 62px;
+      height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background: var(--primary);
+      border: 3px solid #a5b4fc;
+      box-shadow: 0 0 18px rgba(99, 102, 241, 0.75);
+      font-size: 1.7rem;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+    .rush-countdown {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 23, 42, 0.55);
+      color: var(--dot-active);
+      font-size: 6rem;
+      font-weight: 900;
+      text-shadow: 0 0 25px rgba(56, 189, 248, 0.8);
+    }
+    .rush-key { color: var(--dot-active); font-weight: 800; }
+    .rush-status { color: var(--text-muted); text-align: center; min-height: 24px; }
+
+    @media (max-width: 600px) {
+      .game-card { padding: 18px; }
+      .phrase-target { font-size: 1.1rem; padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Braille Master</h1>
+    <p>Practice letters, write sentences, or chase the high score with falling letters.</p>
+  </header>
+
+  <div class="container">
+    
+    <!-- SCHERMATA 1: MENU DEI LIVELLI -->
+    <div id="view-levels">
+      <div class="mode-card">
+        <h2>⚡ Time Challenge</h2>
+        <p>Write a complete sentence as fast as possible.</p>
+        <button class="btn btn-primary" onclick="startPhraseMode()">Start Challenge</button>
+        <div id="phrase-record-menu" class="phrase-result"></div>
+      </div>
+      <div class="mode-card">
+        <h2>🎸 Falling Letters</h2>
+         <p>Press the letter before it hits the ground. Build the longest combo!</p>
+        <button class="btn btn-primary" onclick="startLetterRush()">Start Game</button>
+        <div id="rush-record-menu" class="phrase-result"></div>
+      </div>
+      <div class="mode-card">
+        <h2>🔗 Braille Pairs</h2>
+        <p>Practice ordered pairs: at level F, for example, you will find FA and AF.</p>
+        <button class="btn btn-primary" onclick="scrollToPairLevels()">Choose a Level</button>
+      </div>
+      <h2 id="single-levels-heading">Letter Levels</h2>
+      <div class="levels-grid" id="levels-container"></div>
+      <h2 id="pair-levels-heading" style="margin-top: 30px;">Pair Levels</h2>
+      <div class="levels-grid" id="pair-levels-container"></div>
+      <div style="text-align: center;">
+        <button class="reset-progress" onclick="resetAllProgress()">Reset Progress and Records</button>
+      </div>
+    </div>
+
+    <!-- SCHERMATA 2: GIOCO -->
+    <div id="view-game">
+      <div class="game-card" id="game-card">
+        
+        <div class="top-bar">
+          <button class="btn" onclick="showLevelsMenu()">← Levels</button>
+          <div style="font-weight: bold; font-size: 1.1rem;" id="game-level-title">Level 1</div>
+          <div class="stats-badge">
+            Errors: <span id="error-counter" class="error-count">0</span>
+          </div>
+        </div>
+
+        <div class="progress-container">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+
+        <div style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 5px;">
+          Progress: <span id="step-counter" style="color: white; font-weight: bold;">1</span> / 30
+        </div>
+
+        <div class="target-box">
+          <div class="target-letter" id="target-letter">A</div>
+          
+          <!-- Six-dot Braille pattern (hidden by default, shown after an error) -->
+          <div class="braille-container">
+            <div class="braille-cell" id="braille-cell" title="Braille combination">
+              <div class="dot" id="dot-1" title="Dot 1"></div>
+              <div class="dot" id="dot-4" title="Dot 4"></div>
+              <div class="dot" id="dot-2" title="Dot 2"></div>
+              <div class="dot" id="dot-5" title="Dot 5"></div>
+              <div class="dot" id="dot-3" title="Dot 3"></div>
+              <div class="dot" id="dot-6" title="Dot 6"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hint-banner" id="hint-banner">
+          Type the Braille combination from memory
+        </div>
+      </div>
+    </div>
+
+    <div id="view-phrase" style="display: none;">
+      <div class="game-card">
+        <div class="top-bar">
+          <button class="btn" onclick="showLevelsMenu()">← Menu</button>
+          <div style="font-weight: bold; font-size: 1.1rem;">Time Challenge</div>
+          <div class="stats-badge">Best: <span id="phrase-record">--</span></div>
+        </div>
+        <div class="phrase-stats">
+          <div class="stats-badge">Time: <span id="phrase-timer">0.00 s</span></div>
+          <div class="stats-badge">Errors: <span id="phrase-errors" class="error-count">0</span></div>
+        </div>
+        <div class="phrase-target" id="phrase-target"></div>
+        <div class="phrase-input-help">Type with the keyboard or use Braille chords. Space: <b>0</b> on the numeric keypad.</div>
+        <div class="phrase-result" id="phrase-status">The timer starts with the first character.</div>
+      </div>
+    </div>
+
+    <div id="view-rush" style="display: none;">
+      <div class="game-card rush-card">
+        <div class="top-bar">
+          <button class="btn" onclick="showLevelsMenu()">← Menu</button>
+          <div style="font-weight: bold; font-size: 1.1rem;">Falling Letters</div>
+          <div class="stats-badge">Best: <span id="rush-record">0</span></div>
+        </div>
+        <div class="phrase-stats">
+          <div class="stats-badge">Score: <span id="rush-score">0</span></div>
+          <div class="stats-badge">Combo: <span id="rush-combo">0</span></div>
+          <div class="stats-badge">Errors: <span id="rush-errors" class="error-count">0</span></div>
+          <div class="stats-badge">Lives: <span id="rush-lives">3</span></div>
+        </div>
+        <div class="rush-arena" id="rush-arena"></div>
+        <div class="rush-status" id="rush-status">Use the keyboard or Braille chords. The game starts right away!</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MODALE RISULTATI FINE LIVELLO -->
+  <div class="modal-overlay" id="result-modal">
+    <div class="modal-card">
+      <div id="modal-icon" style="font-size: 3.5rem; margin-bottom: 10px;">🏆</div>
+      <h2 id="modal-title">Level Complete!</h2>
+      <p id="modal-msg">You made 0 errors! The next level is unlocked.</p>
+      <div class="modal-actions" id="modal-actions"></div>
+    </div>
+  </div>
+
+  <script>
+    const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'.split('');
+    
+    // Braille dot mapping for each letter (1 to 6)
+    const BRAILLE_DOTS = {
+      'a': [1],
+      'b': [1, 2],
+      'c': [1, 4],
+      'd': [1, 4, 5],
+      'e': [1, 5],
+      'f': [1, 2, 4],
+      'g': [1, 2, 4, 5],
+      'h': [1, 2, 5],
+      'i': [2, 4],
+      'j': [2, 4, 5],
+      'k': [1, 3],
+      'l': [1, 2, 3],
+      'm': [1, 3, 4],
+      'n': [1, 3, 4, 5],
+      'o': [1, 3, 5],
+      'p': [1, 2, 3, 4],
+      'q': [1, 2, 3, 4, 5],
+      'r': [1, 2, 3, 5],
+      's': [2, 3, 4],
+      't': [2, 3, 4, 5],
+      'u': [1, 3, 6],
+      'v': [1, 2, 3, 6],
+      'w': [2, 4, 5, 6],
+      'x': [1, 3, 4, 6],
+      'y': [1, 3, 4, 5, 6],
+      'z': [1, 3, 5, 6]
+    };
+
+    // Numeric keypad -> Braille dot mapping (standard 7-8 / 4-5 / 1-2 layout)
+    const NUMPAD_CODE_TO_DOT = {
+      'Numpad7': 1, 'Numpad8': 4,
+      'Numpad4': 2, 'Numpad5': 5,
+      'Numpad1': 3, 'Numpad2': 6
+    };
+
+    // Reverse table: dot combination -> letter (derived from BRAILLE_DOTS)
+    const DOTS_TO_LETTER = {};
+    for (const letter in BRAILLE_DOTS) {
+      const signature = BRAILLE_DOTS[letter].slice().sort((a, b) => a - b).join(',');
+      DOTS_TO_LETTER[signature] = letter;
+    }
+
+    // State of the Braille chord currently being typed on the numeric keypad
+    const pressedNumpadCodes = new Set();
+    const currentChordDots = new Set();
+    let chordTimer = null;
+    const CHORD_GRACE_MS = 250; // Tolerance for fingers that are not perfectly synchronized.
+    const PHRASE_RECORD_KEY = 'braille_phrase_record_ms';
+    const PAIR_MAX_UNLOCKED_KEY = 'braille_pair_max_unlocked';
+    const PAIR_COMPLETED_KEY = 'braille_pair_completed';
+    const PHRASES = [
+      'the moon lights up the silent forest',
+      'the wind gently moves the green leaves',
+      'every morning I read a book of fairy tales',
+      'a star shines over the very blue lake',
+      'a warm cup remains on the table',
+      'music fills the entire blue room',
+      'the cat sleeps on the large blue sofa',
+      'a dog runs along the trail today'
+    ];
+    const PHRASE_LENGTH = 36;
+    const RUSH_RECORD_KEY = 'braille_rush_record';
+    const RUSH_TOTAL_NOTES = 30;
+    const RUSH_FALL_START_MS = 3200;
+    const RUSH_FALL_END_MS = 1900;
+    const RUSH_NOTE_GAP_START_MS = 1250;
+    const RUSH_NOTE_GAP_END_MS = 700;
+
+    function getRushDifficulty() {
+      return Math.min(rushSpawned / Math.max(RUSH_TOTAL_NOTES - 1, 1), 1);
+    }
+
+    function getRushFallMs() {
+      return RUSH_FALL_START_MS + (RUSH_FALL_END_MS - RUSH_FALL_START_MS) * getRushDifficulty();
+    }
+
+    function getRushNoteGapMs() {
+      return RUSH_NOTE_GAP_START_MS + (RUSH_NOTE_GAP_END_MS - RUSH_NOTE_GAP_START_MS) * getRushDifficulty();
+    }
+
+    function scheduleChordCommit() {
+      if (chordTimer) clearTimeout(chordTimer);
+      chordTimer = setTimeout(commitChord, CHORD_GRACE_MS);
+    }
+
+    function commitChord() {
+      chordTimer = null;
+      if (currentChordDots.size === 0) return;
+      const signature = Array.from(currentChordDots).sort((a, b) => a - b).join(',');
+      currentChordDots.clear();
+      const letter = DOTS_TO_LETTER[signature];
+      if (letter) {
+        if (isLetterRushActive) processLetterRushCharacter(letter);
+        else if (isPhraseActive) processPhraseCharacter(letter);
+        else processTypedLetter(letter);
+      }
+    }
+
+    function resetChordState() {
+      if (chordTimer) {
+        clearTimeout(chordTimer);
+        chordTimer = null;
+      }
+      currentChordDots.clear();
+      pressedNumpadCodes.clear();
+    }
+
+    const TOTAL_STEPS = 30; // 30 characters per level
+
+    // Saved state
+    let maxUnlockedLevel = parseInt(localStorage.getItem('braille_max_unlocked') || '1');
+    let completedLevels = JSON.parse(localStorage.getItem('braille_completed') || '[]');
+    let pairMaxUnlockedLevel = parseInt(localStorage.getItem(PAIR_MAX_UNLOCKED_KEY) || '1');
+    let pairCompletedLevels = JSON.parse(localStorage.getItem(PAIR_COMPLETED_KEY) || '[]');
+
+    let currentLevel = 1;
+    let currentStep = 0;
+    let errorsCount = 0;
+    let levelQueue = [];
+    let isPairMode = false;
+    let pairPosition = 0;
+    let isGameActive = false;
+    let isPhraseActive = false;
+    let currentPhrase = '';
+    let phrasePosition = 0;
+    let phraseErrors = 0;
+    let phraseStartedAt = 0;
+    let phraseTimer = null;
+    let phraseRestartTimer = null;
+    let isLetterRushActive = false;
+    let rushNotes = [];
+    let rushNextSpawn = 0;
+    let rushSpawned = 0;
+    let rushScore = 0;
+    let rushCombo = 0;
+    let rushErrors = 0;
+    let rushLives = 3;
+    let rushFrame = null;
+    let rushCountdownTimer = null;
+    let rushReady = false;
+    let lastPhraseIndex = -1;
+
+    // Audio synthesizer (Web Audio API)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playSound(type) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (type === 'correct') {
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.12);
+      } else if (type === 'error') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.2);
+      } else if (type === 'win') {
+        [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+          const o = audioCtx.createOscillator();
+          const g = audioCtx.createGain();
+          o.connect(g);
+          g.connect(audioCtx.destination);
+          o.frequency.value = freq;
+          g.gain.setValueAtTime(0.12, audioCtx.currentTime + idx * 0.08);
+          g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + idx * 0.08 + 0.2);
+          o.start(audioCtx.currentTime + idx * 0.08);
+          o.stop(audioCtx.currentTime + idx * 0.08 + 0.2);
+        });
+      }
+    }
+
+    // Initialize level grids
+    function renderLevelsGrid() {
+      const container = document.getElementById('levels-container');
+      container.innerHTML = '';
+      const pairContainer = document.getElementById('pair-levels-container');
+      pairContainer.innerHTML = '';
+      renderPhraseRecord();
+      renderRushRecord();
+
+      for (let i = 1; i <= 26; i++) {
+        const isUnlocked = i <= maxUnlockedLevel;
+        const isCompleted = completedLevels.includes(i);
+        const letter = ALPHABET[i - 1].toUpperCase();
+
+        const card = document.createElement('div');
+        card.className = `level-card ${isUnlocked ? 'unlocked' : 'locked'} ${isCompleted ? 'completed' : ''}`;
+        
+        card.innerHTML = `
+          <div class="level-number">Lvl ${i} ${isCompleted ? '<span class="star-icon">⭐</span>' : ''}</div>
+          <div class="level-letter">${letter}</div>
+          <div class="level-status">${isUnlocked ? (isCompleted ? 'Perfect' : 'Unlocked') : '🔒 Locked'}</div>
+        `;
+
+        if (isUnlocked) {
+          card.onclick = () => startLevel(i);
+        }
+        container.appendChild(card);
+      }
+
+      for (let i = 1; i <= 26; i++) {
+        const isUnlocked = i <= pairMaxUnlockedLevel;
+        const isCompleted = pairCompletedLevels.includes(i);
+        const letter = ALPHABET[i - 1].toUpperCase();
+        const card = document.createElement('div');
+        card.className = `level-card ${isUnlocked ? 'unlocked' : 'locked'} ${isCompleted ? 'completed' : ''}`;
+        card.innerHTML = `
+          <div class="level-number">Lvl ${i} ${isCompleted ? '<span class="star-icon">⭐</span>' : ''}</div>
+          <div class="level-letter">${letter}</div>
+          <div class="level-status">${isUnlocked ? (isCompleted ? 'Perfect' : 'Unlocked') : '🔒 Locked'}</div>
+        `;
+        if (isUnlocked) card.onclick = () => startPairLevel(i);
+        pairContainer.appendChild(card);
+      }
+    }
+
+    function scrollToPairLevels() {
+      document.getElementById('pair-levels-heading').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function getPhraseRecord() {
+      return parseInt(localStorage.getItem(PHRASE_RECORD_KEY) || '0', 10);
+    }
+
+    function formatTime(ms) { return `${(ms / 1000).toFixed(2)} s`; }
+
+    function renderPhraseRecord() {
+      const record = getPhraseRecord();
+      document.getElementById('phrase-record-menu').innerText = record ? `Personal best: ${formatTime(record)}` : 'No record yet';
+    }
+
+    function startPhraseMode() {
+      let index;
+      do { index = Math.floor(Math.random() * PHRASES.length); } while (PHRASES.length > 1 && index === lastPhraseIndex);
+      lastPhraseIndex = index;
+      currentPhrase = PHRASES[index];
+      phrasePosition = 0;
+      phraseErrors = 0;
+      phraseStartedAt = 0;
+      isPhraseActive = true;
+      isGameActive = false;
+      resetChordState();
+      document.getElementById('view-levels').style.display = 'none';
+      document.getElementById('view-game').style.display = 'none';
+      document.getElementById('view-phrase').style.display = 'block';
+      document.getElementById('phrase-record').innerText = getPhraseRecord() ? formatTime(getPhraseRecord()) : '--';
+      document.getElementById('phrase-errors').innerText = '0';
+      document.getElementById('phrase-timer').innerText = '0.00 s';
+      document.getElementById('phrase-status').innerText = 'The timer starts with the first character.';
+      renderPhraseTarget();
+    }
+
+    function renderPhraseTarget() {
+      const target = currentPhrase;
+      const typed = target.slice(0, phrasePosition);
+      const current = target.slice(phrasePosition, phrasePosition + 1);
+      const pending = target.slice(phrasePosition + 1);
+      document.getElementById('phrase-target').innerHTML = `<span class="typed">${typed.replace(/ /g, '&nbsp;')}</span><span class="current">${(current || ' ').replace(/ /g, '&nbsp;')}</span><span class="pending">${pending.replace(/ /g, '&nbsp;')}</span>`;
+    }
+
+    function processPhraseCharacter(character) {
+      if (!isPhraseActive || character.length !== 1) return;
+      if (!phraseStartedAt) {
+        phraseStartedAt = performance.now();
+        phraseTimer = setInterval(updatePhraseTimer, 30);
+      }
+      if (character !== currentPhrase[phrasePosition]) {
+        phraseErrors++;
+        document.getElementById('phrase-errors').innerText = phraseErrors;
+        document.getElementById('phrase-status').innerText = 'Wrong character: try again.';
+        playSound('error');
+        return;
+      }
+      phrasePosition++;
+      renderPhraseTarget();
+      if (phrasePosition === currentPhrase.length) endPhraseMode();
+    }
+
+    function updatePhraseTimer() {
+      if (phraseStartedAt) document.getElementById('phrase-timer').innerText = formatTime(performance.now() - phraseStartedAt);
+    }
+
+    function endPhraseMode() {
+      isPhraseActive = false;
+      clearInterval(phraseTimer);
+      const elapsed = Math.round(performance.now() - phraseStartedAt);
+      const oldRecord = getPhraseRecord();
+      const isRecord = !oldRecord || elapsed < oldRecord;
+      if (isRecord) localStorage.setItem(PHRASE_RECORD_KEY, elapsed);
+      playSound('win');
+      document.getElementById('phrase-record').innerText = formatTime(isRecord ? elapsed : oldRecord);
+      document.getElementById('phrase-status').innerText = isRecord ? `New record: ${formatTime(elapsed)}!` : `Sentence completed in ${formatTime(elapsed)}.`;
+      renderPhraseRecord();
+      phraseRestartTimer = setTimeout(() => {
+        phraseRestartTimer = null;
+        if (document.getElementById('view-phrase').style.display !== 'block') return;
+        startPhraseMode();
+      }, 1800);
+    }
+
+    function getRushRecord() {
+      return parseInt(localStorage.getItem(RUSH_RECORD_KEY) || '0', 10);
+    }
+
+    function renderRushRecord() {
+      const record = getRushRecord();
+      document.getElementById('rush-record-menu').innerText = record ? `Personal best: ${record} points` : 'No record yet';
+    }
+
+    function startLetterRush() {
+      clearTimeout(phraseRestartTimer);
+      phraseRestartTimer = null;
+      clearInterval(rushCountdownTimer);
+      rushCountdownTimer = null;
+      isGameActive = false;
+      isPhraseActive = false;
+      isLetterRushActive = true;
+      rushReady = false;
+      resetChordState();
+      rushNotes = [];
+      rushNextSpawn = Infinity;
+      rushSpawned = 0;
+      rushScore = 0;
+      rushCombo = 0;
+      rushErrors = 0;
+      rushLives = 3;
+      document.getElementById('view-levels').style.display = 'none';
+      document.getElementById('view-game').style.display = 'none';
+      document.getElementById('view-phrase').style.display = 'none';
+      document.getElementById('view-rush').style.display = 'block';
+      document.getElementById('rush-record').innerText = getRushRecord();
+      document.getElementById('rush-score').innerText = '0';
+      document.getElementById('rush-combo').innerText = '0';
+      document.getElementById('rush-errors').innerText = '0';
+      document.getElementById('rush-lives').innerText = '3';
+      document.getElementById('rush-status').innerText = 'Get ready...';
+      document.getElementById('rush-arena').innerHTML = '';
+      const countdown = document.createElement('div');
+      countdown.className = 'rush-countdown';
+      countdown.innerText = '3';
+      document.getElementById('rush-arena').appendChild(countdown);
+      let countdownValue = 3;
+      rushCountdownTimer = setInterval(() => {
+        countdownValue--;
+        if (countdownValue === 0) {
+          clearInterval(rushCountdownTimer);
+          rushCountdownTimer = null;
+          countdown.remove();
+          rushReady = true;
+          rushNextSpawn = performance.now() + 250;
+          document.getElementById('rush-status').innerHTML = 'Press the <span class="rush-key">letter</span> before it hits the ground.';
+          return;
+        }
+        countdown.innerText = countdownValue;
+      }, 700);
+      rushFrame = requestAnimationFrame(updateLetterRush);
+    }
+
+    function spawnRushNote(now) {
+      const letter = ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
+      const element = document.createElement('div');
+      element.className = 'rush-note';
+      element.innerText = letter;
+      document.getElementById('rush-arena').appendChild(element);
+      const fallMs = getRushFallMs();
+      rushNotes.push({ letter, element, spawnedAt: now, hitAt: now + fallMs, fallMs });
+      rushSpawned++;
+    }
+
+    function updateLetterRush(now) {
+      if (!isLetterRushActive) return;
+      while (rushSpawned < RUSH_TOTAL_NOTES && now >= rushNextSpawn) {
+        spawnRushNote(now);
+        rushNextSpawn += getRushNoteGapMs();
+      }
+      const hitY = document.getElementById('rush-arena').clientHeight - 82;
+      rushNotes = rushNotes.filter(note => {
+        const progress = (now - note.spawnedAt) / note.fallMs;
+        note.element.style.top = `${Math.min(progress, 1) * hitY}px`;
+        if (now >= note.hitAt) {
+          note.element.remove();
+          rushCombo = 0;
+          rushErrors++;
+          rushLives--;
+          updateRushStats();
+          return false;
+        }
+        return true;
+      });
+      if (rushLives <= 0) return endLetterRush();
+      if (rushSpawned >= RUSH_TOTAL_NOTES && rushNotes.length === 0) return endLetterRush();
+      rushFrame = requestAnimationFrame(updateLetterRush);
+    }
+
+    function processLetterRushCharacter(character) {
+      if (!isLetterRushActive || !rushReady || !ALPHABET.includes(character)) return;
+      const now = performance.now();
+      const candidates = rushNotes.filter(note => note.letter === character);
+      const note = candidates.sort((a, b) => Math.abs(a.hitAt - now) - Math.abs(b.hitAt - now))[0];
+      if (!note || now >= note.hitAt) {
+        rushCombo = 0;
+        rushErrors++;
+        rushLives--;
+        document.getElementById('rush-status').innerText = 'Wrong letter: combo lost.';
+        playSound('error');
+        updateRushStats();
+        if (rushLives <= 0) endLetterRush();
+        return;
+      }
+      note.element.remove();
+      rushNotes.splice(rushNotes.indexOf(note), 1);
+      rushCombo++;
+      rushScore += 100 + (rushCombo - 1) * 25;
+      document.getElementById('rush-status').innerHTML = `Caught! <span class="rush-key">Combo x${rushCombo}</span>`;
+      playSound('correct');
+      updateRushStats();
+    }
+
+    function updateRushStats() {
+      document.getElementById('rush-score').innerText = rushScore;
+      document.getElementById('rush-combo').innerText = rushCombo;
+      document.getElementById('rush-errors').innerText = rushErrors;
+      document.getElementById('rush-lives').innerText = rushLives;
+    }
+
+    function endLetterRush() {
+      isLetterRushActive = false;
+      rushReady = false;
+      cancelAnimationFrame(rushFrame);
+      rushNotes.forEach(note => note.element.remove());
+      rushNotes = [];
+      const oldRecord = getRushRecord();
+      const isRecord = rushScore > oldRecord;
+      if (isRecord) localStorage.setItem(RUSH_RECORD_KEY, rushScore);
+      if (isRecord) playSound('win');
+      document.getElementById('rush-record').innerText = isRecord ? rushScore : oldRecord;
+      document.getElementById('rush-status').innerText = isRecord ? `New record: ${rushScore} points! (${rushErrors} errors)` : `Game over: ${rushScore} points, ${rushErrors} errors.`;
+      renderRushRecord();
+    }
+
+    // Anti-streak shuffle algorithm (prevents more than 2 identical consecutive letters)
+    function shuffleAntiStreak(arr, maxConsecutive = 2) {
+      // 1. Standard Fisher-Yates shuffle
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+
+      // 2. Fix repeated sequences
+      for (let i = maxConsecutive; i < arr.length; i++) {
+        let isStreak = true;
+        for (let k = 1; k <= maxConsecutive; k++) {
+          if (arr[i] !== arr[i - k]) {
+            isStreak = false;
+            break;
+          }
+        }
+
+        if (isStreak) {
+          // Find a different later element to swap with
+          let swapIndex = -1;
+          for (let s = i + 1; s < arr.length; s++) {
+            if (arr[s] !== arr[i]) {
+              swapIndex = s;
+              break;
+            }
+          }
+          if (swapIndex !== -1) {
+            [arr[i], arr[swapIndex]] = [arr[swapIndex], arr[i]];
+          }
+        }
+      }
+      return arr;
+    }
+
+    // Balanced level sequence generator
+    function generateLevelQueue(lvl) {
+      const queue = [];
+      const availableLetters = ALPHABET.slice(0, lvl);
+      const newLetter = ALPHABET[lvl - 1];
+
+      if (lvl === 1) {
+        // Level 1: 30 instances of 'a'
+        for (let i = 0; i < TOTAL_STEPS; i++) queue.push('a');
+        return queue;
+      }
+
+      // 1. REQUIRED: every letter from 'A' through the current level at least once
+      for (let i = 0; i < lvl; i++) {
+        queue.push(availableLetters[i]);
+      }
+
+      // 2. Remaining slots needed to reach 30
+      const remainingSlots = TOTAL_STEPS - queue.length;
+      
+      // Give the new letter a few extra occurrences for practice (~25% of remaining slots, max 6)
+      const extraNewLetterSlots = Math.min(Math.floor(remainingSlots * 0.25), 6);
+      for (let i = 0; i < extraNewLetterSlots; i++) {
+        queue.push(newLetter);
+      }
+
+      // 3. Distribute the remaining slots evenly among ALL letters unlocked so far
+      while (queue.length < TOTAL_STEPS) {
+        const rnd = availableLetters[Math.floor(Math.random() * availableLetters.length)];
+        queue.push(rnd);
+      }
+
+      // 4. Shuffle while preventing long runs of the same letter
+      return shuffleAntiStreak(queue, 2);
+    }
+
+    // Generate ordered pairs containing the letter introduced at this level.
+    function generatePairLevelQueue(lvl) {
+      const focusLetter = ALPHABET[lvl - 1];
+      const availableLetters = ALPHABET.slice(0, lvl);
+      const pairs = [];
+      availableLetters.forEach(letter => {
+        pairs.push(focusLetter + letter);
+        if (letter !== focusLetter) pairs.push(letter + focusLetter);
+      });
+      const queue = [];
+      pairs.forEach(pair => queue.push(pair));
+      while (queue.length < TOTAL_STEPS) {
+        queue.push(pairs[Math.floor(Math.random() * pairs.length)]);
+      }
+      return shuffleAntiStreak(queue, 2);
+    }
+
+    // Start level
+    function startLevel(lvl) {
+      currentLevel = lvl;
+      isPairMode = false;
+      currentStep = 0;
+      errorsCount = 0;
+      levelQueue = generateLevelQueue(lvl);
+      isGameActive = true;
+      resetChordState();
+      document.getElementById('game-card').classList.remove('pair-mode');
+
+      document.getElementById('game-level-title').innerText = `Level ${lvl} (${ALPHABET[lvl - 1].toUpperCase()})`;
+      document.getElementById('error-counter').innerText = '0';
+      document.getElementById('view-levels').style.display = 'none';
+      document.getElementById('view-game').style.display = 'block';
+
+      updateGameUI();
+    }
+
+    function startPairLevel(lvl) {
+      currentLevel = lvl;
+      isPairMode = true;
+      currentStep = 0;
+      pairPosition = 0;
+      errorsCount = 0;
+      levelQueue = generatePairLevelQueue(lvl);
+      isGameActive = true;
+      resetChordState();
+      document.getElementById('game-card').classList.remove('pair-mode');
+      const gameCard = document.getElementById('game-card');
+      gameCard.classList.add('pair-mode');
+      document.getElementById('game-level-title').innerText = `Pairs - Level ${lvl} (${ALPHABET[lvl - 1].toUpperCase()})`;
+      document.getElementById('error-counter').innerText = '0';
+      document.getElementById('view-levels').style.display = 'none';
+      document.getElementById('view-game').style.display = 'block';
+      updateGameUI();
+    }
+
+    // Update game interface (hide Braille dots for the new letter)
+    function updateGameUI() {
+      const target = levelQueue[currentStep];
+      document.getElementById('target-letter').innerText = target.toUpperCase();
+      document.getElementById('step-counter').innerText = currentStep + 1;
+      
+      const progressPct = (currentStep / TOTAL_STEPS) * 100;
+      document.getElementById('progress-bar').style.width = `${progressPct}%`;
+
+      // Hide Braille dots (turn all dots off)
+      const cellEl = document.getElementById('braille-cell');
+      cellEl.classList.remove('revealed');
+      for (let d = 1; d <= 6; d++) {
+        document.getElementById(`dot-${d}`).classList.remove('active');
+      }
+
+      // Reset the hint message
+      const banner = document.getElementById('hint-banner');
+      banner.className = 'hint-banner';
+      banner.innerHTML = isPairMode ? 'Type the two letters of the pair in sequence' : 'Type the Braille combination from memory';
+    }
+
+    // Show the correct combination only after an error
+    function revealBrailleHint(targetChar, wrongChar) {
+      const activeDots = BRAILLE_DOTS[targetChar] || [];
+      const cellEl = document.getElementById('braille-cell');
+      cellEl.classList.add('revealed');
+
+      for (let d = 1; d <= 6; d++) {
+        const dotEl = document.getElementById(`dot-${d}`);
+        if (activeDots.includes(d)) {
+          dotEl.classList.add('active');
+        } else {
+          dotEl.classList.remove('active');
+        }
+      }
+
+      const banner = document.getElementById('hint-banner');
+      banner.className = 'hint-banner error-state';
+       banner.innerHTML = `⚠️ You typed <b>"${wrongChar.toUpperCase()}"</b>. To make <b>"${targetChar.toUpperCase()}"</b>, use dots: <b>[ ${activeDots.join(', ')} ]</b>`;
+    }
+
+    // Evaluate the typed letter (from a direct key or a Braille keypad chord)
+    function processTypedLetter(key) {
+      if (!isGameActive) return;
+      if (!ALPHABET.includes(key)) return;
+
+      const target = levelQueue[currentStep];
+      if (isPairMode) {
+        processPairLetter(key, target);
+        return;
+      }
+      const cardEl = document.getElementById('game-card');
+
+      if (key === target) {
+        // CORRECT ANSWER
+        playSound('correct');
+        cardEl.classList.remove('shake');
+        cardEl.classList.add('correct-pop');
+        setTimeout(() => cardEl.classList.remove('correct-pop'), 200);
+
+        currentStep++;
+        if (currentStep >= TOTAL_STEPS) {
+          endLevel();
+        } else {
+          updateGameUI();
+        }
+      } else {
+        // ERROR: show the correct Braille pattern
+        playSound('error');
+        errorsCount++;
+        document.getElementById('error-counter').innerText = errorsCount;
+
+        revealBrailleHint(target, key);
+
+        cardEl.classList.remove('correct-pop');
+        cardEl.classList.add('shake');
+        setTimeout(() => cardEl.classList.remove('shake'), 300);
+      }
+    }
+
+    function processPairLetter(key, target) {
+      const cardEl = document.getElementById('game-card');
+      const expected = target[pairPosition];
+      if (key !== expected) {
+        playSound('error');
+        errorsCount++;
+        document.getElementById('error-counter').innerText = errorsCount;
+        revealBrailleHint(expected, key);
+        cardEl.classList.remove('correct-pop');
+        cardEl.classList.add('shake');
+        setTimeout(() => cardEl.classList.remove('shake'), 300);
+        return;
+      }
+      playSound('correct');
+      pairPosition++;
+      if (pairPosition < target.length) {
+        document.getElementById('hint-banner').innerHTML = `First letter correct. Now type <b>"${target[1].toUpperCase()}"</b>`;
+        return;
+      }
+      pairPosition = 0;
+      currentStep++;
+      if (currentStep >= TOTAL_STEPS) endLevel();
+      else updateGameUI();
+    }
+
+    // Keyboard input handling
+    window.addEventListener('keydown', (e) => {
+      if (isLetterRushActive) {
+        if (Object.prototype.hasOwnProperty.call(NUMPAD_CODE_TO_DOT, e.code)) {
+          e.preventDefault();
+          if (pressedNumpadCodes.has(e.code)) return;
+          pressedNumpadCodes.add(e.code);
+          currentChordDots.add(NUMPAD_CODE_TO_DOT[e.code]);
+          if (chordTimer) scheduleChordCommit();
+          return;
+        }
+        if (e.key.length === 1) {
+          e.preventDefault();
+          processLetterRushCharacter(e.key.toLowerCase());
+        }
+        return;
+      }
+      if (isPhraseActive) {
+        if (e.code === 'Numpad0') {
+          e.preventDefault();
+          processPhraseCharacter(' ');
+          return;
+        }
+        if (Object.prototype.hasOwnProperty.call(NUMPAD_CODE_TO_DOT, e.code)) {
+          e.preventDefault();
+          if (pressedNumpadCodes.has(e.code)) return;
+          pressedNumpadCodes.add(e.code);
+          currentChordDots.add(NUMPAD_CODE_TO_DOT[e.code]);
+          if (chordTimer) scheduleChordCommit();
+          return;
+        }
+        if (e.key.length === 1) {
+          e.preventDefault();
+          processPhraseCharacter(e.key.toLowerCase());
+        }
+        return;
+      }
+      if (!isGameActive) return;
+
+      // Numeric keypad Braille keys: accumulate the chord (works standalone, without Python)
+      if (Object.prototype.hasOwnProperty.call(NUMPAD_CODE_TO_DOT, e.code)) {
+        e.preventDefault();
+        if (pressedNumpadCodes.has(e.code)) return; // Ignore auto-repeat while the key is held.
+        pressedNumpadCodes.add(e.code);
+        currentChordDots.add(NUMPAD_CODE_TO_DOT[e.code]);
+
+        // Reset the timer if a late finger arrives while it is about to fire.
+        if (chordTimer) scheduleChordCommit();
+        return;
+      }
+
+      const key = e.key.toLowerCase();
+      // Ignore special keys such as Shift, Control, Alt, etc.
+      if (key.length > 1 || !ALPHABET.includes(key)) return;
+      processTypedLetter(key);
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (Object.prototype.hasOwnProperty.call(NUMPAD_CODE_TO_DOT, e.code)) {
+        if (!isGameActive && !isPhraseActive && !isLetterRushActive) return;
+        e.preventDefault();
+        pressedNumpadCodes.delete(e.code);
+
+        // Start the tolerance window as soon as release begins.
+        if (currentChordDots.size > 0) scheduleChordCommit();
+      }
+    });
+
+    // Level completion
+    function endLevel() {
+      isGameActive = false;
+      const modal = document.getElementById('result-modal');
+      const title = document.getElementById('modal-title');
+      const msg = document.getElementById('modal-msg');
+      const icon = document.getElementById('modal-icon');
+      const actions = document.getElementById('modal-actions');
+
+      modal.style.display = 'flex';
+
+      if (errorsCount === 0) {
+        // PERFECT (0 ERRORS)
+        playSound('win');
+        icon.innerText = '🌟';
+        title.innerText = 'PERFETTO! 30/30';
+        
+        const completed = isPairMode ? pairCompletedLevels : completedLevels;
+        if (!completed.includes(currentLevel)) {
+          completed.push(currentLevel);
+          localStorage.setItem(isPairMode ? PAIR_COMPLETED_KEY : 'braille_completed', JSON.stringify(completed));
+        }
+
+        if (currentLevel < 26) {
+          const maxLevel = isPairMode ? pairMaxUnlockedLevel : maxUnlockedLevel;
+          if (currentLevel === maxLevel) {
+            if (isPairMode) {
+              pairMaxUnlockedLevel++;
+              localStorage.setItem(PAIR_MAX_UNLOCKED_KEY, pairMaxUnlockedLevel);
+            } else {
+              maxUnlockedLevel++;
+              localStorage.setItem('braille_max_unlocked', maxUnlockedLevel);
+            }
+          }
+          msg.innerText = `No errors! Level ${currentLevel + 1} (${ALPHABET[currentLevel].toUpperCase()}) has been unlocked in ${isPairMode ? 'pair' : 'letter'} mode!`;
+          actions.innerHTML = `
+            <button class="btn" onclick="closeModalAndMenu()">Menu</button>
+            <button class="btn btn-primary" onclick="startNextLevel()">Next Level →</button>
+          `;
+        } else {
+          msg.innerText = `CONGRATULATIONS! You completed all ${isPairMode ? 'pair' : 'Braille alphabet'} levels like a master!`;
+          actions.innerHTML = `<button class="btn btn-primary" onclick="closeModalAndMenu()">Back to Menu</button>`;
+        }
+      } else {
+        // NOT PERFECT
+        icon.innerText = '❌';
+        title.innerText = 'Not Perfect!';
+        msg.innerText = `You made ${errorsCount} ${errorsCount === 1 ? 'error' : 'errors'}. To unlock the next level, you must complete all 30 characters without any mistakes.`;
+        actions.innerHTML = `
+          <button class="btn" onclick="closeModalAndMenu()">Level Menu</button>
+          <button class="btn btn-primary" onclick="retryLevel()">Retry Level</button>
+        `;
+      }
+    }
+
+    function retryLevel() {
+      document.getElementById('result-modal').style.display = 'none';
+      if (isPairMode) startPairLevel(currentLevel);
+      else startLevel(currentLevel);
+    }
+
+    function startNextLevel() {
+      document.getElementById('result-modal').style.display = 'none';
+      if (isPairMode) startPairLevel(currentLevel + 1);
+      else startLevel(currentLevel + 1);
+    }
+
+    function closeModalAndMenu() {
+      document.getElementById('result-modal').style.display = 'none';
+      showLevelsMenu();
+    }
+
+    function showLevelsMenu() {
+      isGameActive = false;
+      isPhraseActive = false;
+      isLetterRushActive = false;
+      rushReady = false;
+      clearInterval(rushCountdownTimer);
+      rushCountdownTimer = null;
+      cancelAnimationFrame(rushFrame);
+      rushNotes.forEach(note => note.element.remove());
+      rushNotes = [];
+      clearInterval(phraseTimer);
+      clearTimeout(phraseRestartTimer);
+      phraseRestartTimer = null;
+      resetChordState();
+      document.getElementById('game-card').classList.remove('pair-mode');
+      document.getElementById('view-game').style.display = 'none';
+      document.getElementById('view-phrase').style.display = 'none';
+      document.getElementById('view-levels').style.display = 'block';
+      renderLevelsGrid();
+    }
+
+    function resetAllProgress() {
+       if (confirm('Are you sure you want to reset all saved levels, progress, and records?')) {
+        localStorage.removeItem('braille_max_unlocked');
+         localStorage.removeItem('braille_completed');
+         localStorage.removeItem(PAIR_MAX_UNLOCKED_KEY);
+         localStorage.removeItem(PAIR_COMPLETED_KEY);
+        localStorage.removeItem(PHRASE_RECORD_KEY);
+        localStorage.removeItem(RUSH_RECORD_KEY);
+         maxUnlockedLevel = 1;
+         completedLevels = [];
+         pairMaxUnlockedLevel = 1;
+         pairCompletedLevels = [];
+        renderLevelsGrid();
+      }
+    }
+
+    // Initial startup
+    renderLevelsGrid();
+  </script>
+</body>
+</html>

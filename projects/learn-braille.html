@@ -447,6 +447,18 @@
     }
     .rush-key { color: var(--dot-active); font-weight: 800; }
     .rush-status { color: var(--text-muted); text-align: center; min-height: 24px; }
+    .rush-leaderboard {
+      margin-top: 14px;
+      padding: 12px 16px;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid #334155;
+      border-radius: 10px;
+      color: var(--text-muted);
+      text-align: left;
+    }
+    .rush-leaderboard h3 { color: var(--text-main); font-size: 1rem; margin-bottom: 6px; }
+    .rush-leaderboard ol { padding-left: 22px; line-height: 1.6; }
+    .mode-reset { margin-top: 10px; }
 
     @media (max-width: 600px) {
       .game-card { padding: 18px; }
@@ -470,23 +482,29 @@
         <p>Write a complete sentence as fast as possible.</p>
         <button class="btn btn-primary" onclick="startPhraseMode()">Start Challenge</button>
         <div id="phrase-record-menu" class="phrase-result"></div>
+        <button class="reset-progress mode-reset" onclick="resetPhraseProgress()">Reset Time Challenge</button>
       </div>
       <div class="mode-card">
         <h2>🎸 Falling Letters</h2>
          <p>Press the letter before it hits the ground. Build the longest combo!</p>
         <button class="btn btn-primary" onclick="startLetterRush()">Start Game</button>
         <div id="rush-record-menu" class="phrase-result"></div>
+        <div id="rush-leaderboard-menu" class="rush-leaderboard"></div>
+        <button class="reset-progress mode-reset" onclick="resetRushProgress()">Reset Falling Letters</button>
       </div>
       <div class="mode-card">
         <h2>🔗 Braille Pairs</h2>
-        <p>Practice ordered pairs: at level F, for example, you will find FA and AF.</p>
+        <p>Practice ordered pairs: each level focuses on its letter combined with every letter of the alphabet.</p>
         <button class="btn btn-primary" onclick="scrollToPairLevels()">Choose a Level</button>
+        <button class="reset-progress mode-reset" onclick="resetPairProgress()">Reset Braille Pairs</button>
       </div>
       <h2 id="single-levels-heading">Letter Levels</h2>
       <div class="levels-grid" id="levels-container"></div>
       <h2 id="pair-levels-heading" style="margin-top: 30px;">Pair Levels</h2>
       <div class="levels-grid" id="pair-levels-container"></div>
       <div style="text-align: center;">
+        <button class="reset-progress" onclick="resetLetterProgress()">Reset Letter Levels</button>
+        <br>
         <button class="reset-progress" onclick="resetAllProgress()">Reset Progress and Records</button>
       </div>
     </div>
@@ -565,6 +583,7 @@
         </div>
         <div class="rush-arena" id="rush-arena"></div>
         <div class="rush-status" id="rush-status">Use the keyboard or Braille chords. The game starts right away!</div>
+        <div id="rush-leaderboard-game" class="rush-leaderboard"></div>
       </div>
     </div>
 
@@ -647,6 +666,7 @@
     ];
     const PHRASE_LENGTH = 36;
     const RUSH_RECORD_KEY = 'braille_rush_record';
+    const RUSH_MISTAKES_KEY = 'braille_rush_mistakes';
     const RUSH_TOTAL_NOTES = 30;
     const RUSH_FALL_START_MS = 3200;
     const RUSH_FALL_END_MS = 1900;
@@ -722,10 +742,33 @@
     let rushCombo = 0;
     let rushErrors = 0;
     let rushLives = 3;
+    let rushMistakes = {};
     let rushFrame = null;
     let rushCountdownTimer = null;
     let rushReady = false;
     let lastPhraseIndex = -1;
+
+    function getRushMistakes() {
+      try { return JSON.parse(localStorage.getItem(RUSH_MISTAKES_KEY) || '{}'); }
+      catch (error) { return {}; }
+    }
+
+    function renderRushLeaderboard() {
+      const entries = Object.entries(getRushMistakes()).sort((a, b) => b[1] - a[1]);
+      const html = entries.length
+        ? `<h3>Letters missed most often</h3><ol>${entries.slice(0, 5).map(([letter, count]) => `<li><b>${letter.toUpperCase()}</b>: ${count}</li>`).join('')}</ol>`
+        : 'No mistakes recorded yet.';
+      document.getElementById('rush-leaderboard-menu').innerHTML = html;
+      document.getElementById('rush-leaderboard-game').innerHTML = html;
+    }
+
+    function recordRushMistake(letter) {
+      if (!letter || !ALPHABET.includes(letter)) return;
+      rushMistakes = getRushMistakes();
+      rushMistakes[letter] = (rushMistakes[letter] || 0) + 1;
+      localStorage.setItem(RUSH_MISTAKES_KEY, JSON.stringify(rushMistakes));
+      renderRushLeaderboard();
+    }
 
     // Audio synthesizer (Web Audio API)
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -774,6 +817,7 @@
       pairContainer.innerHTML = '';
       renderPhraseRecord();
       renderRushRecord();
+      renderRushLeaderboard();
 
       for (let i = 1; i <= 26; i++) {
         const isUnlocked = i <= maxUnlockedLevel;
@@ -921,6 +965,7 @@
       rushCombo = 0;
       rushErrors = 0;
       rushLives = 3;
+      rushMistakes = getRushMistakes();
       document.getElementById('view-levels').style.display = 'none';
       document.getElementById('view-game').style.display = 'none';
       document.getElementById('view-phrase').style.display = 'none';
@@ -979,6 +1024,7 @@
           rushCombo = 0;
           rushErrors++;
           rushLives--;
+          recordRushMistake(note.letter);
           updateRushStats();
           return false;
         }
@@ -998,6 +1044,7 @@
         rushCombo = 0;
         rushErrors++;
         rushLives--;
+        recordRushMistake(note ? note.letter : character);
         document.getElementById('rush-status').innerText = 'Wrong letter: combo lost.';
         playSound('error');
         updateRushStats();
@@ -1033,6 +1080,24 @@
       document.getElementById('rush-record').innerText = isRecord ? rushScore : oldRecord;
       document.getElementById('rush-status').innerText = isRecord ? `New record: ${rushScore} points! (${rushErrors} errors)` : `Game over: ${rushScore} points, ${rushErrors} errors.`;
       renderRushRecord();
+      if (rushLives <= 0) showRushGameOverModal();
+    }
+
+    function showRushGameOverModal() {
+      const modal = document.getElementById('result-modal');
+      document.getElementById('modal-icon').innerText = '💥';
+      document.getElementById('modal-title').innerText = 'Game Over';
+      document.getElementById('modal-msg').innerText = `You scored ${rushScore} points with ${rushErrors} errors.`;
+      document.getElementById('modal-actions').innerHTML = `
+        <button class="btn" onclick="closeModalAndMenu()">Back to Menu</button>
+        <button class="btn btn-primary" onclick="retryRush()">Try Again</button>
+      `;
+      modal.style.display = 'flex';
+    }
+
+    function retryRush() {
+      document.getElementById('result-modal').style.display = 'none';
+      startLetterRush();
     }
 
     // Anti-streak shuffle algorithm (prevents more than 2 identical consecutive letters)
@@ -1109,7 +1174,7 @@
     // Generate ordered pairs containing the letter introduced at this level.
     function generatePairLevelQueue(lvl) {
       const focusLetter = ALPHABET[lvl - 1];
-      const availableLetters = ALPHABET.slice(0, lvl);
+      const availableLetters = ALPHABET;
       const pairs = [];
       availableLetters.forEach(letter => {
         pairs.push(focusLetter + letter);
@@ -1121,6 +1186,10 @@
         queue.push(pairs[Math.floor(Math.random() * pairs.length)]);
       }
       return shuffleAntiStreak(queue, 2);
+    }
+
+    function getLevelTotalSteps() {
+      return isPairMode ? levelQueue.length : TOTAL_STEPS;
     }
 
     // Start level
@@ -1165,9 +1234,9 @@
     function updateGameUI() {
       const target = levelQueue[currentStep];
       document.getElementById('target-letter').innerText = target.toUpperCase();
-      document.getElementById('step-counter').innerText = currentStep + 1;
+      document.getElementById('step-counter').innerText = `${currentStep + 1} / ${getLevelTotalSteps()}`;
       
-      const progressPct = (currentStep / TOTAL_STEPS) * 100;
+      const progressPct = (currentStep / getLevelTotalSteps()) * 100;
       document.getElementById('progress-bar').style.width = `${progressPct}%`;
 
       // Hide Braille dots (turn all dots off)
@@ -1263,7 +1332,7 @@
       }
       pairPosition = 0;
       currentStep++;
-      if (currentStep >= TOTAL_STEPS) endLevel();
+      if (currentStep >= getLevelTotalSteps()) endLevel();
       else updateGameUI();
     }
 
@@ -1435,13 +1504,45 @@
          localStorage.removeItem(PAIR_MAX_UNLOCKED_KEY);
          localStorage.removeItem(PAIR_COMPLETED_KEY);
         localStorage.removeItem(PHRASE_RECORD_KEY);
-        localStorage.removeItem(RUSH_RECORD_KEY);
+         localStorage.removeItem(RUSH_RECORD_KEY);
+         localStorage.removeItem(RUSH_MISTAKES_KEY);
          maxUnlockedLevel = 1;
          completedLevels = [];
          pairMaxUnlockedLevel = 1;
          pairCompletedLevels = [];
         renderLevelsGrid();
       }
+    }
+
+    function resetPhraseProgress() {
+      if (!confirm('Reset the Time Challenge record?')) return;
+      localStorage.removeItem(PHRASE_RECORD_KEY);
+      renderLevelsGrid();
+    }
+
+    function resetRushProgress() {
+      if (!confirm('Reset the Falling Letters record and mistake leaderboard?')) return;
+      localStorage.removeItem(RUSH_RECORD_KEY);
+      localStorage.removeItem(RUSH_MISTAKES_KEY);
+      renderLevelsGrid();
+    }
+
+    function resetLetterProgress() {
+      if (!confirm('Reset all Letter Levels progress?')) return;
+      localStorage.removeItem('braille_max_unlocked');
+      localStorage.removeItem('braille_completed');
+      maxUnlockedLevel = 1;
+      completedLevels = [];
+      renderLevelsGrid();
+    }
+
+    function resetPairProgress() {
+      if (!confirm('Reset all Braille Pairs progress?')) return;
+      localStorage.removeItem(PAIR_MAX_UNLOCKED_KEY);
+      localStorage.removeItem(PAIR_COMPLETED_KEY);
+      pairMaxUnlockedLevel = 1;
+      pairCompletedLevels = [];
+      renderLevelsGrid();
     }
 
     // Initial startup

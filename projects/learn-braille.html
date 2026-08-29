@@ -1181,7 +1181,6 @@
         if (letter !== focusLetter) pairs.push(letter + focusLetter);
       });
       const queue = [];
-      pairs.forEach(pair => queue.push(pair));
       while (queue.length < TOTAL_STEPS) {
         queue.push(pairs[Math.floor(Math.random() * pairs.length)]);
       }

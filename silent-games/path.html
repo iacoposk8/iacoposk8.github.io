@@ -441,10 +441,10 @@ body.blackout-mode .btn-blackout-toggle {
       </div>
     </div>
     <div class="option-group path-sliders">
-      <label for="path-touch-width">Larghezza percorso <output id="path-touch-width-value">72%</output></label>
-      <input id="path-touch-width" type="range" min="28" max="78" value="72">
-      <label for="path-touch-speed">Velocità discesa <output id="path-touch-speed-value">115 m/s</output></label>
-      <input id="path-touch-speed" type="range" min="70" max="300" value="115">
+      <label for="path-touch-width">Larghezza percorso <output id="path-touch-width-value">53%</output></label>
+      <input id="path-touch-width" type="range" min="28" max="78" value="53">
+      <label for="path-touch-speed">Velocità discesa <output id="path-touch-speed-value">165 m/s</output></label>
+      <input id="path-touch-speed" type="range" min="70" max="300" value="165">
       <label for="path-touch-distance">Distanza gara (m)</label>
       <input id="path-touch-distance" type="number" min="1" max="100000" step="1" value="500" required>
     </div>
@@ -478,10 +478,10 @@ body.blackout-mode .btn-blackout-toggle {
       </div>
     </div>
     <div class="option-group path-sliders">
-      <label for="path-width">Larghezza percorso <output id="path-width-value">72%</output></label>
-      <input id="path-width" type="range" min="28" max="78" value="72">
-      <label for="path-speed">Velocità discesa <output id="path-speed-value">115 m/s</output></label>
-      <input id="path-speed" type="range" min="70" max="300" value="115">
+      <label for="path-width">Larghezza percorso <output id="path-width-value">53%</output></label>
+      <input id="path-width" type="range" min="28" max="78" value="53">
+      <label for="path-speed">Velocità discesa <output id="path-speed-value">165 m/s</output></label>
+      <input id="path-speed" type="range" min="70" max="300" value="165">
       <label for="path-distance">Distanza gara (m)</label>
       <input id="path-distance" type="number" min="1" max="100000" step="1" value="500" required>
     </div>
@@ -762,7 +762,7 @@ body.blackout-mode .btn-blackout-toggle {
     terrain: 'secco', size: 8,
     laps: 3, opponents: 4, collisions: 'off',
     mowTerrain: 'secco', mowSize: 10, mowRadar: 'on',
-    pathDifficulty: 'easy', pathWidth: 72, pathSpeed: 115,
+    pathDifficulty: 'easy', pathWidth: 53, pathSpeed: 165,
     pathOpponents: 3, pathOpponentSpeed: 100,
   };
   const NUMERIC_SETTINGS = ['size', 'laps', 'opponents', 'mowSize', 'pathWidth', 'pathSpeed', 'pathOpponents', 'pathOpponentSpeed'];
@@ -784,7 +784,7 @@ body.blackout-mode .btn-blackout-toggle {
   const pathWidthValue = document.getElementById('path-width-value');
   const pathSpeedValue = document.getElementById('path-speed-value');
   const pathPresets = {
-    easy: { width: 72, speed: 115 }, medium: { width: 53, speed: 165 }, hard: { width: 36, speed: 225 },
+    easy: { width: 53, speed: 165 }, medium: { width: 36, speed: 225 }, hard: { width: 28, speed: 300 },
   };
   function syncPathSettings() {
     pathWidthRange.value = settings.pathWidth;

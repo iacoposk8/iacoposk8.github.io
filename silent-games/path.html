@@ -3194,9 +3194,19 @@ body.blackout-mode .btn-blackout-toggle {
     // Turning back in restores enough traction to recover from a standstill.
     if (path.x * Math.sin(path.heading) < 0) grip = Math.max(grip, 0.2);
     const throttle = keyState.up ? 1 : keyState.down ? -1 : pathThrottle;
-    path.speed = settings.pathSpeed * (1 + throttle * (throttle < 0 ? 0.85 : 0.9)) * grip;
     const curvature = pathSpiralCurvature(path.distance);
     const worldScale = pathSpiralLength / pathTargetDistance;
+    const requestedSpeed = settings.pathSpeed * (1 + throttle * (throttle < 0 ? 0.85 : 0.9));
+    // Re-entering restores grip, not instant speed. While pointing across the
+    // lane, limit sideways travel so there is time to straighten the mower
+    // before reaching the opposite edge. Tight bends also need a slower pace.
+    const lateralLimit = half * PATH_SPIRAL_VIEW / 2 * 0.55 /
+      (worldScale * Math.max(0.02, Math.abs(Math.sin(path.heading))));
+    const bendLimit = 1.8 / (curvature * worldScale);
+    const targetSpeed = Math.min(requestedSpeed * grip, lateralLimit, bendLimit);
+    const acceleration = settings.pathSpeed * 0.18;
+    const braking = settings.pathSpeed * 1.5;
+    path.speed = Math.max(0, path.speed + clamp(targetSpeed - path.speed, -braking * dt, acceleration * dt));
     const worldSpeed = path.speed * worldScale;
     const offset = path.x * PATH_SPIRAL_VIEW / 2;
     // Frenet coordinates: the outside of a bend covers more ground than
@@ -3509,7 +3519,7 @@ body.blackout-mode .btn-blackout-toggle {
     setPathBlackout(false);
     currentMode = 'path';
     pathControl = control || 'tilt';
-    path = { x: 0, distance: 0, elapsed: 0, speed: settings.pathSpeed, heading: 0 };
+    path = { x: 0, distance: 0, elapsed: 0, speed: pathVariant === 'spiral' ? 0 : settings.pathSpeed, heading: 0 };
     pathOpponents = Array.from({ length: pathVariant === 'spiral' ? 0 : settings.pathOpponents }, (_, index) => ({
       distance: -index * 90,
       speed: settings.pathSpeed * (settings.pathOpponentSpeed / 100) * (0.92 + index * 0.035),

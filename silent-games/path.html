@@ -438,9 +438,9 @@ body.blackout-mode .btn-blackout-toggle {
         <button type="button" data-value="road" class="opt selected">Gara</button>
         <button type="button" data-value="spiral" class="opt">🌿 Tagliaerba</button>
       </div>
-      <p class="hint path-spiral-hint" hidden>Segui la spirale fino al centro. L’erba attraversata dalle lame perde il verde; ai lati vedi le spire già percorse e quelle ancora da tagliare. Fuori dalla fascia rallenti e senti la vibrazione. Un suono e un impulso segnano ogni giro.</p>
+      <p class="hint path-spiral-hint" hidden>Segui la spirale mantenendo lo sterzo verso l’interno. Appoggia il dito, spostalo a sinistra o destra e tienilo lì per sterzare. Al rilascio il tagliaerba va dritto. Sposta il dito in alto per accelerare, in basso per rallentare. Su PC usa ← → e ↑ ↓. Nelle curve strette rallenta e sterza di più. Fuori dalla fascia senti la vibrazione e rallenti fino a fermarti: sterza verso il percorso per rientrare. L’erba tagliata perde il verde; un suono e un impulso segnano ogni giro.</p>
     </div>
-    <p class="subtitle">Trascina il pallino a destra e sinistra per seguire il percorso. Qui non servono inclinazione o sensori: il dito controlla direttamente la posizione.</p>
+    <p class="subtitle path-road-hint">Trascina il pallino a destra e sinistra per seguire il percorso. Qui non servono inclinazione o sensori: il dito controlla direttamente la posizione.</p>
     <div class="option-group">
       <h2>Difficoltà</h2>
       <div class="options" data-group="pathTouchDifficulty">
@@ -469,7 +469,7 @@ body.blackout-mode .btn-blackout-toggle {
       <label for="path-opponent-speed">Velocità concorrenti <output id="path-opponent-speed-value">100%</output></label>
       <input id="path-opponent-speed" type="range" min="60" max="140" value="100">
     </div>
-    <p class="hint">Trascina il pallino a destra e sinistra per sterzare. Tieni il dito spostato verso l’alto per aumentare la velocità. Se esci dal percorso rallenti.</p>
+    <p class="hint path-road-hint">Trascina il pallino a destra e sinistra per sterzare. Tieni il dito spostato verso l’alto per aumentare la velocità. Se esci dal percorso rallenti.</p>
     <button type="button" id="btn-path-touch-start" class="primary">Inizia la gara</button>
   </section>
 
@@ -483,9 +483,9 @@ body.blackout-mode .btn-blackout-toggle {
         <button type="button" data-value="road" class="opt selected">Gara</button>
         <button type="button" data-value="spiral" class="opt">🌿 Tagliaerba</button>
       </div>
-      <p class="hint path-spiral-hint" hidden>Segui la spirale fino al centro. L’erba attraversata dalle lame perde il verde; ai lati vedi le spire già percorse e quelle ancora da tagliare. Fuori dalla fascia rallenti e senti la vibrazione. Un suono e un impulso segnano ogni giro.</p>
+      <p class="hint path-spiral-hint" hidden>Segui la spirale mantenendo una leggera inclinazione verso l’interno. Senza sterzare il tagliaerba va dritto. Nelle curve strette rallenta e sterza di più. Trascina il dito in alto per accelerare, in basso per rallentare. Su PC usa ← → e ↑ ↓. Fuori dalla fascia senti la vibrazione e rallenti fino a fermarti: sterza verso il percorso per rientrare. L’erba tagliata perde il verde; un suono e un impulso segnano ogni giro.</p>
     </div>
-    <p class="subtitle">Il percorso scende dall’alto. Tu sei il punto in basso: inclina il telefono per restare tra i due bordi. La vibrazione cresce quando ti allontani e si alleggerisce quando torni verso il centro.</p>
+    <p class="subtitle path-road-hint">Il percorso scende dall’alto. Tu sei il punto in basso: inclina il telefono per restare tra i due bordi. La vibrazione cresce quando ti allontani e si alleggerisce quando torni verso il centro.</p>
     <div class="option-group">
       <h2>Difficoltà</h2>
       <div class="options" data-group="pathDifficulty">
@@ -805,6 +805,7 @@ body.blackout-mode .btn-blackout-toggle {
       button.classList.toggle('selected', button.dataset.value === settings.pathVariant);
     });
     document.querySelectorAll('.path-spiral-hint').forEach((hint) => { hint.hidden = !mowing; });
+    document.querySelectorAll('.path-road-hint').forEach((hint) => { hint.hidden = mowing; });
     document.querySelector('[data-group="pathOpponents"]').parentElement.hidden = mowing;
     document.getElementById('path-opponent-speed').parentElement.hidden = mowing;
     document.getElementById('btn-path-touch-start').textContent = mowing ? 'Inizia a tagliare' : 'Inizia la gara';
@@ -3058,10 +3059,12 @@ body.blackout-mode .btn-blackout-toggle {
   const pathRaceEl = document.getElementById('path-race');
   const pathTimerEl = document.getElementById('path-timer');
 
-  let path = { x: 0, distance: 0, elapsed: 0, speed: 0 };
+  let path = { x: 0, distance: 0, elapsed: 0, speed: 0, heading: 0 };
   let pathOpponents = [];
   let pathRunning = false, pathRAF = null, pathLastFrame = 0;
   let pathPointerActive = false, pathPointerX = 0, pathPointerLastX = 0, pathTouchDirection = 0, pathPointerAnchorY = 0, pathThrottle = 0;
+  let pathPointerAnchorX = 0;
+  const PATH_SPIRAL_TURN_RATE = 4.5;
   let pathFeedbackAccum = 0, pathDpr = 1;
   let pathTiltCalibratingUntil = 0, pathTiltSamples = [];
   let pathControl = 'tilt';
@@ -3137,11 +3140,40 @@ body.blackout-mode .btn-blackout-toggle {
   }
 
   function pathSpiralCenter(distance) {
-    const here = pathSpiralPoint(distance);
-    const ahead = pathSpiralPoint(distance + 160 * pathTargetDistance / pathSpiralLength);
-    // The bend moves the lane across the screen: following the camera alone
-    // must not automatically steer the mower onto the correct line.
-    return clamp((here.tx * ahead.ty - here.ty * ahead.tx) * 1.2, -0.65, 0.65);
+    // Only the camera follows the tangent. The mower has its own heading
+    // and lateral position, so centring the view no longer steers it.
+    return 0;
+  }
+
+  function pathSpiralCurvature(distance) {
+    const point = pathSpiralPoint(distance);
+    const r = Math.hypot(point.x, point.y), b = PATH_SPIRAL_PITCH / (2 * Math.PI);
+    return (r * r + 2 * b * b) / Math.pow(r * r + b * b, 1.5);
+  }
+
+  function advancePathMower(dt, input) {
+    const half = settings.pathWidth / 200;
+    const offroad = Math.max(0, Math.abs(path.x) - half);
+    let grip = Math.pow(1 - clamp(offroad / 0.5, 0, 1), 2);
+    // A mower abandoned outside the lane stops, rather than winning slowly.
+    // Turning back in restores enough traction to recover from a standstill.
+    if (path.x * Math.sin(path.heading) < 0) grip = Math.max(grip, 0.2);
+    const throttle = keyState.up ? 1 : keyState.down ? -1 : pathThrottle;
+    path.speed = settings.pathSpeed * (1 + throttle * (throttle < 0 ? 0.85 : 0.9)) * grip;
+    const curvature = pathSpiralCurvature(path.distance);
+    const worldScale = pathSpiralLength / pathTargetDistance;
+    const worldSpeed = path.speed * worldScale;
+    const offset = path.x * PATH_SPIRAL_VIEW / 2;
+    // Frenet coordinates: the outside of a bend covers more ground than
+    // its centreline. Camera yaw changes relative heading, never world yaw.
+    const progress = path.speed * Math.cos(path.heading) / Math.max(0.3, 1 + curvature * offset);
+    const step = progress > 0 ? Math.min(dt, (pathTargetDistance - path.distance) / progress) : dt;
+    const yawRate = input * PATH_SPIRAL_TURN_RATE + curvature * progress * worldScale;
+    const midHeading = clamp(path.heading + yawRate * step / 2, -1.4, 1.4);
+    path.x = clamp(path.x + Math.sin(midHeading) * worldSpeed * step * 2 / PATH_SPIRAL_VIEW, -1, 1);
+    path.heading = clamp(path.heading + yawRate * step, -1.4, 1.4);
+    path.distance = Math.min(pathTargetDistance, path.distance + progress * step);
+    return step;
   }
 
   function cutPathSpiral(from, to) {
@@ -3193,10 +3225,13 @@ body.blackout-mode .btn-blackout-toggle {
     }
     const px = w / 2 + path.x * w / 2;
     // The blade width is also the actual swept width used by cutPathSpiral.
+    pathCtx.save();
+    pathCtx.translate(px, playerY); pathCtx.rotate(path.heading);
     pathCtx.strokeStyle = '#e7f3ea'; pathCtx.lineWidth = 5;
-    pathCtx.beginPath(); pathCtx.moveTo(px - half * scale, playerY); pathCtx.lineTo(px + half * scale, playerY); pathCtx.stroke();
-    pathCtx.fillStyle = '#dfe7e1'; roundRect(pathCtx, px - 10, playerY - 13, 20, 26, 5);
-    pathCtx.fillStyle = '#52665a'; pathCtx.fillRect(px - 5, playerY - 7, 10, 10);
+    pathCtx.beginPath(); pathCtx.moveTo(-half * scale, 0); pathCtx.lineTo(half * scale, 0); pathCtx.stroke();
+    pathCtx.fillStyle = '#dfe7e1'; roundRect(pathCtx, -10, -13, 20, 26, 5);
+    pathCtx.fillStyle = '#52665a'; pathCtx.fillRect(-5, -7, 10, 10);
+    pathCtx.restore();
   }
 
   async function requestPathWakeLock() {
@@ -3302,6 +3337,10 @@ body.blackout-mode .btn-blackout-toggle {
   }
 
   function pathInput() {
+    if (pathVariant === 'spiral' && (keyState.left || keyState.right)) return (keyState.right ? 1 : 0) - (keyState.left ? 1 : 0);
+    if (pathVariant === 'spiral' && (pathControl === 'touch' || !tiltAvailable)) {
+      return pathPointerActive ? clamp((pathPointerX - pathPointerAnchorX) / 0.55, -1, 1) : 0;
+    }
     if (pathControl === 'touch') return pathPointerActive ? pathTouchDirection : 0;
     if (tiltAvailable) {
       // Calibrate after the start tap: the hand often tilts the phone while
@@ -3333,24 +3372,30 @@ body.blackout-mode .btn-blackout-toggle {
     if (error <= 0) { pathStatusEl.textContent = 'Dentro'; return; }
     const intensity = clamp(error / (1 - half), 0, 1);
     const input = pathInput();
-    const outward = (path.x - centre) * input > 0;
+    const outward = pathVariant === 'spiral'
+      ? (path.x - centre) * path.heading >= 0
+      : (path.x - centre) * input > 0;
     PathHaptics.drift(intensity, path.x >= centre ? 1 : -1, !outward);
-    pathStatusEl.textContent = outward ? 'Allontanati!' : 'Rientra';
+    pathStatusEl.textContent = outward ? 'Fuori percorso' : 'Rientra';
   }
 
   function updatePathPhysics(dt) {
     if (!pathRunning) return;
     const level = { width: settings.pathWidth / 100, speed: settings.pathSpeed };
     const input = pathInput();
-    if (pathControl !== 'touch') path.x += input * (1.15 + level.speed / 240) * dt;
-    path.x = clamp(path.x, -1, 1);
-    const offroad = Math.max(0, Math.abs(path.x - pathCenter(path.distance)) - level.width * 0.5);
-    const grip = 1 - clamp(offroad / (1 - level.width * 0.5), 0, 1) * 0.72;
-    path.speed = level.speed * (1 + pathThrottle * 0.9) * grip;
     const previousDistance = path.distance;
-    // Stop everyone at the exact crossing time, independent of frame rate.
-    dt = Math.min(dt, Math.max(0, pathTargetDistance - path.distance) / path.speed);
-    path.distance = Math.min(pathTargetDistance, path.distance + path.speed * dt);
+    if (pathVariant === 'spiral') {
+      dt = advancePathMower(dt, input);
+    } else {
+      if (pathControl !== 'touch') path.x += input * (1.15 + level.speed / 240) * dt;
+      path.x = clamp(path.x, -1, 1);
+      const offroad = Math.max(0, Math.abs(path.x - pathCenter(path.distance)) - level.width * 0.5);
+      const grip = 1 - clamp(offroad / (1 - level.width * 0.5), 0, 1) * 0.72;
+      path.speed = level.speed * (1 + pathThrottle * 0.9) * grip;
+      // Stop everyone at the exact crossing time, independent of frame rate.
+      dt = Math.min(dt, Math.max(0, pathTargetDistance - path.distance) / path.speed);
+      path.distance = Math.min(pathTargetDistance, path.distance + path.speed * dt);
+    }
     path.elapsed += dt;
     if (pathVariant === 'spiral') cutPathSpiral(previousDistance, path.distance);
     for (const opponent of pathOpponents) opponent.distance += opponent.speed * dt;
@@ -3392,16 +3437,17 @@ body.blackout-mode .btn-blackout-toggle {
     if (!pathRunning) return;
     AudioFX.ensure(); pathPointerActive = true; pathPointerAnchorY = e.clientY; updatePathPointer(e.clientX);
     pathPointerLastX = pathPointerX;
+    pathPointerAnchorX = pathPointerX;
     pathTouchDirection = 0; pathThrottle = 0;
-    if (pathControl === 'touch') path.x = pathPointerX;
+    if (pathControl === 'touch' && pathVariant !== 'spiral') path.x = pathPointerX;
     try { pathWrap.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
   });
   pathWrap.addEventListener('pointermove', (e) => {
     if (!pathPointerActive) return;
     const previousX = pathPointerX;
     updatePathPointer(e.clientX);
-    if (pathControl === 'touch') path.x = pathPointerX;
-    pathThrottle = clamp((pathPointerAnchorY - e.clientY) / 100, 0, 1);
+    if (pathControl === 'touch' && pathVariant !== 'spiral') path.x = pathPointerX;
+    pathThrottle = clamp((pathPointerAnchorY - e.clientY) / 100, pathVariant === 'spiral' ? -1 : 0, 1);
     pathTouchDirection = clamp((pathPointerX - previousX) * 8, -1, 1);
     pathPointerLastX = pathPointerX;
   });
@@ -3414,7 +3460,8 @@ body.blackout-mode .btn-blackout-toggle {
       pathTiltSamples = [];
       pathTiltCalibratingUntil = performance.now() + 450;
     }
-    path.x = 0; pathPointerX = 0;
+    if (pathVariant !== 'spiral') { path.x = 0; pathPointerX = 0; }
+    pathPointerAnchorX = pathPointerX;
   });
 
   function startPathRun(control) {
@@ -3426,7 +3473,7 @@ body.blackout-mode .btn-blackout-toggle {
     setPathBlackout(false);
     currentMode = 'path';
     pathControl = control || 'tilt';
-    path = { x: 0, distance: 0, elapsed: 0, speed: settings.pathSpeed };
+    path = { x: 0, distance: 0, elapsed: 0, speed: settings.pathSpeed, heading: 0 };
     pathOpponents = Array.from({ length: pathVariant === 'spiral' ? 0 : settings.pathOpponents }, (_, index) => ({
       distance: -index * 90,
       speed: settings.pathSpeed * (settings.pathOpponentSpeed / 100) * (0.92 + index * 0.035),

@@ -451,9 +451,9 @@ body.blackout-mode .btn-blackout-toggle {
     </div>
     <div class="option-group path-sliders">
       <div class="path-sliders path-spiral-settings" hidden>
-        <label for="path-touch-sensitivity">Sensibilità sterzo <output id="path-touch-sensitivity-value">35%</output></label>
+        <label for="path-touch-sensitivity">Sensibilità <output id="path-touch-sensitivity-value">35%</output></label>
         <input id="path-touch-sensitivity" class="path-sensitivity" type="range" min="10" max="100" step="5" value="35">
-        <p class="hint">Valori bassi rendono più dolci i piccoli movimenti. Anche al 100% lo sterzo è delicato; al 10% le correzioni sono ancora più leggere. Spostando molto il dito puoi sempre sterzare al massimo.</p>
+        <p class="hint">Regola accelerazione e velocità di rientro: valori bassi sono più tranquilli, valori alti più pronti. Il tagliaerba può orientarsi al massimo di 45° per lato rispetto al percorso.</p>
       </div>
       <label for="path-touch-width">Larghezza percorso <output id="path-touch-width-value">53%</output></label>
       <input id="path-touch-width" type="range" min="28" max="78" value="53">
@@ -501,9 +501,9 @@ body.blackout-mode .btn-blackout-toggle {
     </div>
     <div class="option-group path-sliders">
       <div class="path-sliders path-spiral-settings" hidden>
-        <label for="path-sensitivity">Sensibilità sterzo <output id="path-sensitivity-value">35%</output></label>
+        <label for="path-sensitivity">Sensibilità <output id="path-sensitivity-value">35%</output></label>
         <input id="path-sensitivity" class="path-sensitivity" type="range" min="10" max="100" step="5" value="35">
-        <p class="hint">Valori bassi rendono più dolci le piccole inclinazioni. Anche al 100% lo sterzo è delicato; al 10% le correzioni sono ancora più leggere. Rimane disponibile la sterzata massima.</p>
+        <p class="hint">Regola accelerazione e velocità di rientro: valori bassi sono più tranquilli, valori alti più pronti. Il tagliaerba può orientarsi al massimo di 45° per lato rispetto al percorso.</p>
       </div>
       <label for="path-width">Larghezza percorso <output id="path-width-value">53%</output></label>
       <input id="path-width" type="range" min="28" max="78" value="53">
@@ -843,9 +843,9 @@ body.blackout-mode .btn-blackout-toggle {
   function pathSteeringResponse(input) {
     // Soften small corrections without reducing full lock: lowering the
     // maximum turn rate would make the innermost curves impossible to hold.
-    // The new maximum matches the old 10% (exponent 2.8). Extend the
-    // gentle end substantially: at half travel, 10% is nine times softer.
-    const exponent = lerp(6, 2.8, (settings.pathSensitivity - 10) / 90);
+    // Keep the previous default steering feel. Sensitivity now controls
+    // acceleration and recovery speed, independently of the finger curve.
+    const exponent = 46 / 9;
     return Math.sign(input) * Math.pow(Math.min(1, Math.abs(input)), exponent);
   }
 
@@ -3100,6 +3100,7 @@ body.blackout-mode .btn-blackout-toggle {
   let pathPointerActive = false, pathPointerX = 0, pathPointerLastX = 0, pathTouchDirection = 0, pathPointerAnchorY = 0, pathThrottle = 0;
   let pathPointerAnchorX = 0;
   const PATH_SPIRAL_TURN_RATE = 4.5;
+  const PATH_SPIRAL_MAX_HEADING = Math.PI / 4;
   let pathFeedbackAccum = 0, pathDpr = 1;
   let pathTiltCalibratingUntil = 0, pathTiltSamples = [];
   let pathControl = 'tilt';
@@ -3197,14 +3198,18 @@ body.blackout-mode .btn-blackout-toggle {
     const curvature = pathSpiralCurvature(path.distance);
     const worldScale = pathSpiralLength / pathTargetDistance;
     const requestedSpeed = settings.pathSpeed * (1 + throttle * (throttle < 0 ? 0.85 : 0.9));
+    // Preserve the previous pace at 35%, with gentler recovery below it.
+    const response = settings.pathSensitivity <= 35
+      ? lerp(0.3, 1, (settings.pathSensitivity - 10) / 25)
+      : lerp(1, 1.8, (settings.pathSensitivity - 35) / 65);
     // Re-entering restores grip, not instant speed. While pointing across the
     // lane, limit sideways travel so there is time to straighten the mower
     // before reaching the opposite edge. Tight bends also need a slower pace.
-    const lateralLimit = half * PATH_SPIRAL_VIEW / 2 * 0.55 /
+    const lateralLimit = half * PATH_SPIRAL_VIEW / 2 * 0.55 * response /
       (worldScale * Math.max(0.02, Math.abs(Math.sin(path.heading))));
     const bendLimit = 1.8 / (curvature * worldScale);
     const targetSpeed = Math.min(requestedSpeed * grip, lateralLimit, bendLimit);
-    const acceleration = settings.pathSpeed * 0.18;
+    const acceleration = settings.pathSpeed * 0.18 * response;
     const braking = settings.pathSpeed * 1.5;
     path.speed = Math.max(0, path.speed + clamp(targetSpeed - path.speed, -braking * dt, acceleration * dt));
     const worldSpeed = path.speed * worldScale;
@@ -3214,9 +3219,9 @@ body.blackout-mode .btn-blackout-toggle {
     const progress = path.speed * Math.cos(path.heading) / Math.max(0.3, 1 + curvature * offset);
     const step = progress > 0 ? Math.min(dt, (pathTargetDistance - path.distance) / progress) : dt;
     const yawRate = input * PATH_SPIRAL_TURN_RATE + curvature * progress * worldScale;
-    const midHeading = clamp(path.heading + yawRate * step / 2, -1.4, 1.4);
+    const midHeading = clamp(path.heading + yawRate * step / 2, -PATH_SPIRAL_MAX_HEADING, PATH_SPIRAL_MAX_HEADING);
     path.x = clamp(path.x + Math.sin(midHeading) * worldSpeed * step * 2 / PATH_SPIRAL_VIEW, -1, 1);
-    path.heading = clamp(path.heading + yawRate * step, -1.4, 1.4);
+    path.heading = clamp(path.heading + yawRate * step, -PATH_SPIRAL_MAX_HEADING, PATH_SPIRAL_MAX_HEADING);
     path.distance = Math.min(pathTargetDistance, path.distance + progress * step);
     return step;
   }

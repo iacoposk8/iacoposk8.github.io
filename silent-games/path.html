@@ -445,14 +445,14 @@ body.blackout-mode .btn-blackout-toggle {
       <input id="path-touch-width" type="range" min="28" max="78" value="72">
       <label for="path-touch-speed">Velocità discesa <output id="path-touch-speed-value">115 m/s</output></label>
       <input id="path-touch-speed" type="range" min="70" max="300" value="115">
-      <label for="path-touch-distance">Distanza gara (km)</label>
-      <input id="path-touch-distance" type="number" min="0.1" max="100" step="0.1" value="1" required>
+      <label for="path-touch-distance">Distanza gara (m)</label>
+      <input id="path-touch-distance" type="number" min="1" max="100000" step="1" value="500" required>
     </div>
     <div class="option-group">
       <h2>Concorrenti virtuali</h2>
       <div class="options" data-group="pathOpponents">
-        <button type="button" data-value="0" class="opt selected">Nessuno</button>
-        <button type="button" data-value="3" class="opt">3 concorrenti</button>
+        <button type="button" data-value="0" class="opt">Nessuno</button>
+        <button type="button" data-value="3" class="opt selected">3 concorrenti</button>
         <button type="button" data-value="5" class="opt">5 concorrenti</button>
       </div>
     </div>
@@ -482,8 +482,8 @@ body.blackout-mode .btn-blackout-toggle {
       <input id="path-width" type="range" min="28" max="78" value="72">
       <label for="path-speed">Velocità discesa <output id="path-speed-value">115 m/s</output></label>
       <input id="path-speed" type="range" min="70" max="300" value="115">
-      <label for="path-distance">Distanza gara (km)</label>
-      <input id="path-distance" type="number" min="0.1" max="100" step="0.1" value="1" required>
+      <label for="path-distance">Distanza gara (m)</label>
+      <input id="path-distance" type="number" min="1" max="100000" step="1" value="500" required>
     </div>
     <p class="hint">📱 Inclina a sinistra o destra. Su computer usa ← → o A/D. Puoi giocare a occhi chiusi: dentro le linee c’è silenzio, fuori senti da quale lato correggere.</p>
     <button type="button" id="btn-path-start" class="primary">Segui il percorso</button>
@@ -763,7 +763,7 @@ body.blackout-mode .btn-blackout-toggle {
     laps: 3, opponents: 4, collisions: 'off',
     mowTerrain: 'secco', mowSize: 10, mowRadar: 'on',
     pathDifficulty: 'easy', pathWidth: 72, pathSpeed: 115,
-    pathOpponents: 0, pathOpponentSpeed: 100,
+    pathOpponents: 3, pathOpponentSpeed: 100,
   };
   const NUMERIC_SETTINGS = ['size', 'laps', 'opponents', 'mowSize', 'pathWidth', 'pathSpeed', 'pathOpponents', 'pathOpponentSpeed'];
 
@@ -3033,7 +3033,7 @@ body.blackout-mode .btn-blackout-toggle {
   let pathControl = 'tilt';
   // Keep the existing odometer scale: ten world units represent one metre.
   const PATH_UNITS_PER_METRE = 10;
-  let pathTargetDistance = 1000 * PATH_UNITS_PER_METRE;
+  let pathTargetDistance = 500 * PATH_UNITS_PER_METRE;
   const PATH_OPP_COLORS = ['#e06f6f', '#6fa8e0', '#e0b85f', '#b47ce0', '#65d39a'];
   let pathWakeLock = null;
 
@@ -3245,7 +3245,7 @@ body.blackout-mode .btn-blackout-toggle {
   function startPathRun(control) {
     const distanceInput = document.getElementById(control === 'touch' ? 'path-touch-distance' : 'path-distance');
     if (!distanceInput.reportValidity()) return;
-    pathTargetDistance = distanceInput.valueAsNumber * 1000 * PATH_UNITS_PER_METRE;
+    pathTargetDistance = distanceInput.valueAsNumber * PATH_UNITS_PER_METRE;
     currentMode = 'path';
     pathControl = control || 'tilt';
     path = { x: 0, distance: 0, elapsed: 0, speed: settings.pathSpeed };
@@ -3281,7 +3281,7 @@ body.blackout-mode .btn-blackout-toggle {
       ? (placement === 1 ? 'Hai vinto la gara! 🏁' : 'Arrivato ' + placement + 'º su ' + (pathOpponents.length + 1) + ' 🏁')
       : 'Traguardo raggiunto! 🏁';
     winTimeEl.textContent = 'Tempo: ' + formatTime(path.elapsed * 1000);
-    winBestEl.textContent = 'Distanza: ' + (pathTargetDistance / (1000 * PATH_UNITS_PER_METRE)).toLocaleString('it-IT') + ' km';
+    winBestEl.textContent = 'Distanza: ' + (pathTargetDistance / PATH_UNITS_PER_METRE).toLocaleString('it-IT') + ' m';
     showScreen('screen-win');
   }
   btnPathStart.addEventListener('click', () => { AudioFX.ensure(); beginTilt().then(() => startPathRun('tilt')); });

@@ -450,11 +450,6 @@ body.blackout-mode .btn-blackout-toggle {
       </div>
     </div>
     <div class="option-group path-sliders">
-      <div class="path-sliders path-spiral-settings" hidden>
-        <label for="path-touch-sensitivity">Sensibilità <output id="path-touch-sensitivity-value">35%</output></label>
-        <input id="path-touch-sensitivity" class="path-sensitivity" type="range" min="10" max="100" step="5" value="35">
-        <p class="hint">Regola accelerazione e velocità di rientro: valori bassi sono più tranquilli, valori alti più pronti. Il tagliaerba può orientarsi al massimo di 45° per lato rispetto al percorso.</p>
-      </div>
       <label for="path-touch-width">Larghezza percorso <output id="path-touch-width-value">53%</output></label>
       <input id="path-touch-width" type="range" min="28" max="78" value="53">
       <label for="path-touch-speed">Velocità discesa <output id="path-touch-speed-value">165 m/s</output></label>
@@ -500,11 +495,6 @@ body.blackout-mode .btn-blackout-toggle {
       </div>
     </div>
     <div class="option-group path-sliders">
-      <div class="path-sliders path-spiral-settings" hidden>
-        <label for="path-sensitivity">Sensibilità <output id="path-sensitivity-value">35%</output></label>
-        <input id="path-sensitivity" class="path-sensitivity" type="range" min="10" max="100" step="5" value="35">
-        <p class="hint">Regola accelerazione e velocità di rientro: valori bassi sono più tranquilli, valori alti più pronti. Il tagliaerba può orientarsi al massimo di 45° per lato rispetto al percorso.</p>
-      </div>
       <label for="path-width">Larghezza percorso <output id="path-width-value">53%</output></label>
       <input id="path-width" type="range" min="28" max="78" value="53">
       <label for="path-speed">Velocità discesa <output id="path-speed-value">165 m/s</output></label>
@@ -793,7 +783,6 @@ body.blackout-mode .btn-blackout-toggle {
     mowTerrain: 'secco', mowSize: 10, mowRadar: 'on',
     pathDifficulty: 'easy', pathWidth: 53, pathSpeed: 165,
     pathOpponents: 3, pathOpponentSpeed: 100, pathVariant: 'road',
-    pathSensitivity: 35,
   };
   const NUMERIC_SETTINGS = ['size', 'laps', 'opponents', 'mowSize', 'pathWidth', 'pathSpeed', 'pathOpponents', 'pathOpponentSpeed'];
 
@@ -816,7 +805,6 @@ body.blackout-mode .btn-blackout-toggle {
       button.classList.toggle('selected', button.dataset.value === settings.pathVariant);
     });
     document.querySelectorAll('.path-spiral-hint').forEach((hint) => { hint.hidden = !mowing; });
-    document.querySelectorAll('.path-spiral-settings').forEach((group) => { group.hidden = !mowing; });
     document.querySelectorAll('.path-road-hint').forEach((hint) => { hint.hidden = mowing; });
     document.querySelector('[data-group="pathOpponents"]').parentElement.hidden = mowing;
     document.getElementById('path-opponent-speed').parentElement.hidden = mowing;
@@ -826,25 +814,10 @@ body.blackout-mode .btn-blackout-toggle {
     });
   }
 
-  function syncPathSensitivity() {
-    document.querySelectorAll('.path-sensitivity').forEach((input) => {
-      input.value = settings.pathSensitivity;
-      document.getElementById(input.id + '-value').textContent = settings.pathSensitivity + '%';
-    });
-  }
-  document.querySelectorAll('.path-sensitivity').forEach((input) => {
-    input.addEventListener('input', () => {
-      settings.pathSensitivity = clamp(Number(input.value), 10, 100);
-      syncPathSensitivity();
-    });
-  });
-  syncPathSensitivity();
-
   function pathSteeringResponse(input) {
     // Soften small corrections without reducing full lock: lowering the
     // maximum turn rate would make the innermost curves impossible to hold.
-    // Keep the previous default steering feel. Sensitivity now controls
-    // acceleration and recovery speed, independently of the finger curve.
+    // Keep small finger movements gentle independently of driving speed.
     const exponent = 46 / 9;
     return Math.sign(input) * Math.pow(Math.min(1, Math.abs(input)), exponent);
   }
@@ -3101,6 +3074,7 @@ body.blackout-mode .btn-blackout-toggle {
   let pathPointerAnchorX = 0;
   const PATH_SPIRAL_TURN_RATE = 4.5;
   const PATH_SPIRAL_MAX_HEADING = Math.PI / 4;
+  const PATH_SPIRAL_MARGIN = 0.12; // at most 6% of the screen beyond either edge
   let pathFeedbackAccum = 0, pathDpr = 1;
   let pathTiltCalibratingUntil = 0, pathTiltSamples = [];
   let pathControl = 'tilt';
@@ -3189,38 +3163,31 @@ body.blackout-mode .btn-blackout-toggle {
 
   function advancePathMower(dt, input) {
     const half = settings.pathWidth / 200;
+    const limit = half + PATH_SPIRAL_MARGIN;
     const offroad = Math.max(0, Math.abs(path.x) - half);
-    let grip = Math.pow(1 - clamp(offroad / 0.5, 0, 1), 2);
-    // A mower abandoned outside the lane stops, rather than winning slowly.
-    // Turning back in restores enough traction to recover from a standstill.
-    if (path.x * Math.sin(path.heading) < 0) grip = Math.max(grip, 0.2);
+    const grip = 0.05 + 0.95 * Math.pow(1 - clamp(offroad / PATH_SPIRAL_MARGIN, 0, 1), 2);
     const throttle = keyState.up ? 1 : keyState.down ? -1 : pathThrottle;
     const curvature = pathSpiralCurvature(path.distance);
     const worldScale = pathSpiralLength / pathTargetDistance;
     const requestedSpeed = settings.pathSpeed * (1 + throttle * (throttle < 0 ? 0.85 : 0.9));
-    // Preserve the previous pace at 35%, with gentler recovery below it.
-    const response = settings.pathSensitivity <= 35
-      ? lerp(0.3, 1, (settings.pathSensitivity - 10) / 25)
-      : lerp(1, 1.8, (settings.pathSensitivity - 35) / 65);
-    // Re-entering restores grip, not instant speed. While pointing across the
-    // lane, limit sideways travel so there is time to straighten the mower
-    // before reaching the opposite edge. Tight bends also need a slower pace.
-    const lateralLimit = half * PATH_SPIRAL_VIEW / 2 * 0.55 * response /
-      (worldScale * Math.max(0.02, Math.abs(Math.sin(path.heading))));
-    const bendLimit = 1.8 / (curvature * worldScale);
-    const targetSpeed = Math.min(requestedSpeed * grip, lateralLimit, bendLimit);
-    const acceleration = settings.pathSpeed * 0.18 * response;
+    // Only leaving the lane costs speed. Heading and curvature must not
+    // penalise a legitimate turn. Grip recovery still accelerates gradually.
+    const targetSpeed = requestedSpeed * grip;
+    const acceleration = settings.pathSpeed * 0.18;
     const braking = settings.pathSpeed * 1.5;
     path.speed = Math.max(0, path.speed + clamp(targetSpeed - path.speed, -braking * dt, acceleration * dt));
     const worldSpeed = path.speed * worldScale;
     const offset = path.x * PATH_SPIRAL_VIEW / 2;
     // Frenet coordinates: the outside of a bend covers more ground than
     // its centreline. Camera yaw changes relative heading, never world yaw.
-    const progress = path.speed * Math.cos(path.heading) / Math.max(0.3, 1 + curvature * offset);
+    // At the outer stop, pointing farther out cannot advance the route.
+    // Steering back in releases it without teleporting or resetting heading.
+    const againstWall = Math.abs(path.x) >= limit - 1e-8 && path.x * path.heading > 0;
+    const progress = againstWall ? 0 : path.speed * Math.cos(path.heading) / Math.max(0.3, 1 + curvature * offset);
     const step = progress > 0 ? Math.min(dt, (pathTargetDistance - path.distance) / progress) : dt;
     const yawRate = input * PATH_SPIRAL_TURN_RATE + curvature * progress * worldScale;
     const midHeading = clamp(path.heading + yawRate * step / 2, -PATH_SPIRAL_MAX_HEADING, PATH_SPIRAL_MAX_HEADING);
-    path.x = clamp(path.x + Math.sin(midHeading) * worldSpeed * step * 2 / PATH_SPIRAL_VIEW, -1, 1);
+    path.x = clamp(path.x + Math.sin(midHeading) * worldSpeed * step * 2 / PATH_SPIRAL_VIEW, -limit, limit);
     path.heading = clamp(path.heading + yawRate * step, -PATH_SPIRAL_MAX_HEADING, PATH_SPIRAL_MAX_HEADING);
     path.distance = Math.min(pathTargetDistance, path.distance + progress * step);
     return step;

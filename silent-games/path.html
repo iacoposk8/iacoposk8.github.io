@@ -445,6 +445,8 @@ body.blackout-mode .btn-blackout-toggle {
       <input id="path-touch-width" type="range" min="28" max="78" value="72">
       <label for="path-touch-speed">Velocità discesa <output id="path-touch-speed-value">115 m/s</output></label>
       <input id="path-touch-speed" type="range" min="70" max="300" value="115">
+      <label for="path-touch-distance">Distanza gara (km)</label>
+      <input id="path-touch-distance" type="number" min="0.1" max="100" step="0.1" value="1" required>
     </div>
     <div class="option-group">
       <h2>Concorrenti virtuali</h2>
@@ -480,6 +482,8 @@ body.blackout-mode .btn-blackout-toggle {
       <input id="path-width" type="range" min="28" max="78" value="72">
       <label for="path-speed">Velocità discesa <output id="path-speed-value">115 m/s</output></label>
       <input id="path-speed" type="range" min="70" max="300" value="115">
+      <label for="path-distance">Distanza gara (km)</label>
+      <input id="path-distance" type="number" min="0.1" max="100" step="0.1" value="1" required>
     </div>
     <p class="hint">📱 Inclina a sinistra o destra. Su computer usa ← → o A/D. Puoi giocare a occhi chiusi: dentro le linee c’è silenzio, fuori senti da quale lato correggere.</p>
     <button type="button" id="btn-path-start" class="primary">Segui il percorso</button>
@@ -3005,7 +3009,7 @@ body.blackout-mode .btn-blackout-toggle {
 
   /* ============================================================ */
   /* ======================  DENTRO LA LINEA  ==================== */
-  /* A deliberately simple endless lane: the path moves toward the player,
+  /* A deliberately simple lane: the path moves toward the player,
      while the phone tilt controls only the lateral position. This keeps the
      rule audible even when the display is black. */
   const pathCanvas = document.getElementById('path-field');
@@ -3027,6 +3031,9 @@ body.blackout-mode .btn-blackout-toggle {
   let pathFeedbackAccum = 0, pathDpr = 1;
   let pathTiltCalibratingUntil = 0, pathTiltSamples = [];
   let pathControl = 'tilt';
+  // Keep the existing odometer scale: ten world units represent one metre.
+  const PATH_UNITS_PER_METRE = 10;
+  let pathTargetDistance = 1000 * PATH_UNITS_PER_METRE;
   const PATH_OPP_COLORS = ['#e06f6f', '#6fa8e0', '#e0b85f', '#b47ce0', '#65d39a'];
   let pathWakeLock = null;
 
@@ -3163,6 +3170,7 @@ body.blackout-mode .btn-blackout-toggle {
   }
 
   function updatePathPhysics(dt) {
+    if (!pathRunning) return;
     const level = { width: settings.pathWidth / 100, speed: settings.pathSpeed };
     const input = pathInput();
     if (pathControl !== 'touch') path.x += input * (1.15 + level.speed / 240) * dt;
@@ -3170,7 +3178,9 @@ body.blackout-mode .btn-blackout-toggle {
     const offroad = Math.max(0, Math.abs(path.x - pathCenter(path.distance)) - level.width * 0.5);
     const grip = 1 - clamp(offroad / (1 - level.width * 0.5), 0, 1) * 0.72;
     path.speed = level.speed * (1 + pathThrottle * 0.9) * grip;
-    path.distance += path.speed * dt;
+    // Stop everyone at the exact crossing time, independent of frame rate.
+    dt = Math.min(dt, Math.max(0, pathTargetDistance - path.distance) / path.speed);
+    path.distance = Math.min(pathTargetDistance, path.distance + path.speed * dt);
     path.elapsed += dt;
     for (const opponent of pathOpponents) opponent.distance += opponent.speed * dt;
     pathFeedbackAccum += dt;
@@ -3179,7 +3189,7 @@ body.blackout-mode .btn-blackout-toggle {
       pathHapticTick();
       pathTouchDirection = 0;
     }
-    pathScoreEl.textContent = Math.floor(path.distance / 10) + ' m';
+    pathScoreEl.textContent = Math.floor(path.distance / PATH_UNITS_PER_METRE) + ' / ' + Math.round(pathTargetDistance / PATH_UNITS_PER_METRE) + ' m';
     if (pathOpponents.length) {
       const ahead = pathOpponents.filter((opponent) => opponent.distance > path.distance).length;
       pathRaceEl.textContent = (ahead + 1) + '°/' + (pathOpponents.length + 1);
@@ -3188,6 +3198,7 @@ body.blackout-mode .btn-blackout-toggle {
     }
     pathTimerEl.textContent = formatTime(path.elapsed * 1000);
     renderPath();
+    if (path.distance >= pathTargetDistance) finishPath();
   }
 
   function pathLoop(ts) {
@@ -3195,7 +3206,7 @@ body.blackout-mode .btn-blackout-toggle {
     const dt = Math.min(0.05, (ts - pathLastFrame) / 1000 || 0.016);
     pathLastFrame = ts;
     updatePathPhysics(dt);
-    pathRAF = requestAnimationFrame(pathLoop);
+    if (pathRunning) pathRAF = requestAnimationFrame(pathLoop);
   }
 
   function updatePathPointer(clientX) {
@@ -3232,6 +3243,9 @@ body.blackout-mode .btn-blackout-toggle {
   });
 
   function startPathRun(control) {
+    const distanceInput = document.getElementById(control === 'touch' ? 'path-touch-distance' : 'path-distance');
+    if (!distanceInput.reportValidity()) return;
+    pathTargetDistance = distanceInput.valueAsNumber * 1000 * PATH_UNITS_PER_METRE;
     currentMode = 'path';
     pathControl = control || 'tilt';
     path = { x: 0, distance: 0, elapsed: 0, speed: settings.pathSpeed };
@@ -3239,7 +3253,7 @@ body.blackout-mode .btn-blackout-toggle {
       distance: -index * 90,
       speed: settings.pathSpeed * (settings.pathOpponentSpeed / 100) * (0.92 + index * 0.035),
     }));
-    pathThrottle = 0;
+    releasePathPointer();
     pathRunning = true; steerActive = true; clearKeys();
     pathTiltSamples = [];
     pathTiltCalibratingUntil = pathControl === 'tilt' && tiltAvailable ? performance.now() + 650 : 0;
@@ -3255,6 +3269,20 @@ body.blackout-mode .btn-blackout-toggle {
     if (pathRAF) cancelAnimationFrame(pathRAF);
     stopOrientationListener();
     releasePathWakeLock();
+    releasePathPointer();
+    clearKeys();
+  }
+  function finishPath() {
+    stopPath();
+    path.speed = 0;
+    const placement = 1 + pathOpponents.filter((opponent) => opponent.distance > path.distance).length;
+    RaceHaptics.finish();
+    winTitleEl.textContent = pathOpponents.length
+      ? (placement === 1 ? 'Hai vinto la gara! 🏁' : 'Arrivato ' + placement + 'º su ' + (pathOpponents.length + 1) + ' 🏁')
+      : 'Traguardo raggiunto! 🏁';
+    winTimeEl.textContent = 'Tempo: ' + formatTime(path.elapsed * 1000);
+    winBestEl.textContent = 'Distanza: ' + (pathTargetDistance / (1000 * PATH_UNITS_PER_METRE)).toLocaleString('it-IT') + ' km';
+    showScreen('screen-win');
   }
   btnPathStart.addEventListener('click', () => { AudioFX.ensure(); beginTilt().then(() => startPathRun('tilt')); });
   btnPathTouchStart.addEventListener('click', () => { AudioFX.ensure(); startPathRun('touch'); });
@@ -3268,7 +3296,8 @@ body.blackout-mode .btn-blackout-toggle {
     if (currentMode === 'prato') startGame();
     else if (currentMode === 'gara') restartRace();
     else if (currentMode === 'mow') restartMow();
-    else startPathRun(pathControl);
+    else if (pathControl === 'tilt') beginTilt().then(() => startPathRun('tilt'));
+    else startPathRun('touch');
   });
   btnBackMenu.addEventListener('click', () => showScreen('screen-mode'));
 

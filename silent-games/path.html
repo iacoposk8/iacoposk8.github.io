@@ -438,7 +438,7 @@ body.blackout-mode .btn-blackout-toggle {
         <button type="button" data-value="road" class="opt selected">Gara</button>
         <button type="button" data-value="spiral" class="opt">🌿 Tagliaerba</button>
       </div>
-      <p class="hint path-spiral-hint" hidden>Segui la spirale mantenendo lo sterzo verso l’interno. Appoggia il dito, spostalo a sinistra o destra e tienilo lì per sterzare. Al rilascio il tagliaerba va dritto. Sposta il dito in alto per accelerare, in basso per rallentare. Su PC usa ← → e ↑ ↓. Nelle curve strette rallenta e sterza di più. Fuori dalla fascia senti la vibrazione e rallenti fino a fermarti: sterza verso il percorso per rientrare. L’erba tagliata perde il verde; un suono e un impulso segnano ogni giro.</p>
+      <p class="hint path-spiral-hint" hidden>Pollice nella metà sinistra dello schermo: sterzi a sinistra. Nella metà destra: sterzi a destra. Più ti allontani dal centro, più rapidamente curvi. Al centro, o rilasciando il dito, smetti di sterzare e procedi dritto. Sposta il dito in alto per accelerare, in basso per rallentare. Su PC usa ← → e ↑ ↓. Fuori dalla fascia rallenti e senti la vibrazione; un limite poco oltre il bordo impedisce di allontanarti troppo. L’erba tagliata perde il verde; un suono e un impulso segnano ogni giro.</p>
     </div>
     <p class="subtitle path-road-hint">Trascina il pallino a destra e sinistra per seguire il percorso. Qui non servono inclinazione o sensori: il dito controlla direttamente la posizione.</p>
     <div class="option-group">
@@ -3071,7 +3071,6 @@ body.blackout-mode .btn-blackout-toggle {
   let pathOpponents = [];
   let pathRunning = false, pathRAF = null, pathLastFrame = 0;
   let pathPointerActive = false, pathPointerX = 0, pathPointerLastX = 0, pathTouchDirection = 0, pathPointerAnchorY = 0, pathThrottle = 0;
-  let pathPointerAnchorX = 0;
   const PATH_SPIRAL_TURN_RATE = 4.5;
   const PATH_SPIRAL_MAX_HEADING = Math.PI / 4;
   const PATH_SPIRAL_MARGIN = 0.12; // at most 6% of the screen beyond either edge
@@ -3356,7 +3355,9 @@ body.blackout-mode .btn-blackout-toggle {
   function pathInput() {
     if (pathVariant === 'spiral' && (keyState.left || keyState.right)) return (keyState.right ? 1 : 0) - (keyState.left ? 1 : 0);
     if (pathVariant === 'spiral' && (pathControl === 'touch' || !tiltAvailable)) {
-      return pathPointerActive ? pathSteeringResponse(clamp((pathPointerX - pathPointerAnchorX) / 0.55, -1, 1)) : 0;
+      // Fixed screen centre is neutral. A held position has the same steering
+      // regardless of where the touch began or which way the finger moved.
+      return pathPointerActive ? pathPointerX : 0;
     }
     if (pathControl === 'touch') return pathPointerActive ? pathTouchDirection : 0;
     if (tiltAvailable) {
@@ -3455,7 +3456,6 @@ body.blackout-mode .btn-blackout-toggle {
     if (!pathRunning) return;
     AudioFX.ensure(); pathPointerActive = true; pathPointerAnchorY = e.clientY; updatePathPointer(e.clientX);
     pathPointerLastX = pathPointerX;
-    pathPointerAnchorX = pathPointerX;
     pathTouchDirection = 0; pathThrottle = 0;
     if (pathControl === 'touch' && pathVariant !== 'spiral') path.x = pathPointerX;
     try { pathWrap.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
@@ -3479,7 +3479,6 @@ body.blackout-mode .btn-blackout-toggle {
       pathTiltCalibratingUntil = performance.now() + 450;
     }
     if (pathVariant !== 'spiral') { path.x = 0; pathPointerX = 0; }
-    pathPointerAnchorX = pathPointerX;
   });
 
   function startPathRun(control) {

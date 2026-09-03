@@ -438,7 +438,7 @@ body.blackout-mode .btn-blackout-toggle {
         <button type="button" data-value="road" class="opt selected">Gara</button>
         <button type="button" data-value="spiral" class="opt">🌿 Tagliaerba</button>
       </div>
-      <p class="hint path-spiral-hint" hidden>Segui una spirale rettangolare irregolare fino al centro, con angoli arrotondati e lati ondulati. Le spire si stringono e ai lati vedi i passaggi già tagliati e quelli ancora verdi. Trascina il pollice a destra e sinistra: il tagliaerba segue direttamente la sua posizione, come l’auto. Tenendo fermo o rilasciando il dito, mantieni la posizione orizzontale, entro i limiti del percorso. Tieni il dito spostato in alto per accelerare; rilascialo per tornare alla velocità normale. Fuori dalla fascia rallenti e senti la vibrazione; un limite poco oltre il bordo impedisce di allontanarti troppo. Un suono e un impulso segnano ogni spira completata.</p>
+      <p class="hint path-spiral-hint" hidden>Segui una spirale rettangolare irregolare fino al centro, con angoli arrotondati e lati ondulati soprattutto all’inizio, sempre più regolari verso il centro. Le spire si stringono e ai lati vedi i passaggi già tagliati e quelli ancora verdi. Trascina il pollice a destra e sinistra: il tagliaerba segue direttamente la sua posizione, come l’auto. Tenendo fermo o rilasciando il dito, mantieni la posizione orizzontale, entro i limiti del percorso. Tieni il dito spostato in alto per accelerare; rilascialo per tornare alla velocità normale. Fuori dalla fascia rallenti e senti la vibrazione; un limite poco oltre il bordo impedisce di allontanarti troppo. Un suono e un impulso segnano ogni spira completata.</p>
     </div>
     <p class="subtitle path-road-hint">Trascina il pallino a destra e sinistra per seguire il percorso. Qui non servono inclinazione o sensori: il dito controlla direttamente la posizione.</p>
     <div class="option-group">
@@ -486,7 +486,7 @@ body.blackout-mode .btn-blackout-toggle {
         <button type="button" data-value="road" class="opt selected">Gara</button>
         <button type="button" data-value="spiral" class="opt">🌿 Tagliaerba</button>
       </div>
-      <p class="hint path-spiral-hint" hidden>Segui una spirale rettangolare irregolare fino al centro, con angoli arrotondati e lati ondulati. Le spire si stringono e ai lati vedi i passaggi già tagliati e quelli ancora verdi. Inclina il telefono a sinistra e destra per seguire le curve. Tieni il dito spostato in alto per accelerare; rilascialo per tornare alla velocità normale. Su PC usa ← → e ↑ ↓. Fuori dalla fascia rallenti e senti la vibrazione; un limite poco oltre il bordo impedisce di allontanarti troppo. Un suono e un impulso segnano ogni spira completata.</p>
+      <p class="hint path-spiral-hint" hidden>Segui una spirale rettangolare irregolare fino al centro, con angoli arrotondati e lati ondulati soprattutto all’inizio, sempre più regolari verso il centro. Le spire si stringono e ai lati vedi i passaggi già tagliati e quelli ancora verdi. Inclina il telefono a sinistra e destra per seguire le curve. Tieni il dito spostato in alto per accelerare; rilascialo per tornare alla velocità normale. Su PC usa ← → e ↑ ↓. Fuori dalla fascia rallenti e senti la vibrazione; un limite poco oltre il bordo impedisce di allontanarti troppo. Un suono e un impulso segnano ogni spira completata.</p>
     </div>
     <p class="subtitle path-road-hint">Il percorso scende dall’alto. Tu sei il punto in basso: inclina il telefono per restare tra i due bordi. La vibrazione cresce quando ti allontani e si alleggerisce quando torni verso il centro.</p>
     <div class="option-group">
@@ -3125,14 +3125,14 @@ body.blackout-mode .btn-blackout-toggle {
         // Zero displacement and slope at both ends join the rounded corners
         // without a kink. Each side contains both left- and right-hand bends.
         const wave = amplitude * Math.sin(t * Math.PI * 2) * Math.pow(Math.sin(t * Math.PI), 2);
-        pathSpiral.push({ x: lerp(x1, x2, t) + nx * wave, y: lerp(y1, y2, t) + ny * wave });
+        pathSpiral.push({ x: lerp(x1, x2, t), y: lerp(y1, y2, t), waveX: nx * wave, waveY: ny * wave });
       }
     }
     function corner(cx, cy, start) {
       const count = Math.ceil(radius * Math.PI / 2 / 8);
       for (let i = 0; i < count; i++) {
         const a = start + i / count * Math.PI / 2;
-        pathSpiral.push({ x: cx + radius * Math.cos(a), y: cy + radius * Math.sin(a) });
+        pathSpiral.push({ x: cx + radius * Math.cos(a), y: cy + radius * Math.sin(a), waveX: 0, waveY: 0 });
       }
     }
     side(-ax + radius, -ay, ax - radius, -ay, 0, -1, 60);
@@ -3149,7 +3149,12 @@ body.blackout-mode .btn-blackout-toggle {
       for (let i = 0; i < outline.length; i++) {
         const phase = turn + i / outline.length;
         const scale = 2.2 * (1 - phase / PATH_SPIRAL_TURNS);
-        pathSpiral.push({ x: outline[i].x * scale, y: outline[i].y * scale, turn: phase });
+        // Fade the waves relative to the rectangle itself, not just its size.
+        // Continuous decay across turns avoids seams as the lane winds inward.
+        const irregularity = Math.pow(1 - phase / PATH_SPIRAL_TURNS, 2);
+        const point = outline[i];
+        pathSpiral.push({ x: (point.x + point.waveX * irregularity) * scale,
+          y: (point.y + point.waveY * irregularity) * scale, turn: phase });
       }
     }
     pathSpiral.push({ x: 0, y: 0, turn: PATH_SPIRAL_TURNS });
@@ -3220,8 +3225,10 @@ body.blackout-mode .btn-blackout-toggle {
         curvature = Math.max(curvature, Math.abs(second) / Math.pow(1 + slope * slope, 1.5));
       }
     }
-    // Smoothly approach an 80% reduction at full assistance; never stop.
-    return 1 - strength * 0.8 * curvature / (curvature + 0.003);
+    // Strong assistance also engages on broad bends. At 100%, tight bends
+    // approach a 95% reduction; lower slider values scale the same help.
+    // Keep positive progress even in the tightest final turn.
+    return 1 - strength * 0.95 * curvature / (curvature + 0.00065);
   }
 
   function advancePathMower(dt, input) {

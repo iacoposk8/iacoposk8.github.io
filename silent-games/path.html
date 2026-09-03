@@ -438,7 +438,7 @@ body.blackout-mode .btn-blackout-toggle {
         <button type="button" data-value="road" class="opt selected">Gara</button>
         <button type="button" data-value="spiral" class="opt">🌿 Tagliaerba</button>
       </div>
-      <p class="hint path-spiral-hint" hidden>Pollice nella metà sinistra dello schermo: sterzi a sinistra. Nella metà destra: sterzi a destra. Più ti allontani dal centro, più rapidamente curvi. Al centro, o rilasciando il dito, smetti di sterzare e procedi dritto. Sposta il dito in alto per accelerare, in basso per rallentare. Su PC usa ← → e ↑ ↓. Fuori dalla fascia rallenti e senti la vibrazione; un limite poco oltre il bordo impedisce di allontanarti troppo. L’erba tagliata perde il verde; un suono e un impulso segnano ogni giro.</p>
+      <p class="hint path-spiral-hint" hidden>Taglia un circuito a rettangolo arrotondato, con quattro lati ondulati. Un giro misura 500 metri; scegli una distanza maggiore per fare più giri. Pollice a sinistra o destra del centro: sterzi in quella direzione. Più ti allontani dal centro, più rapidamente curvi. Al centro, o rilasciando il dito, procedi dritto. Sposta il dito in alto per accelerare, in basso per rallentare. Su PC usa ← → e ↑ ↓. Fuori dalla fascia rallenti e senti la vibrazione; un limite poco oltre il bordo impedisce di allontanarti troppo. L’erba tagliata resta senza colore anche nei giri successivi. Un suono e un impulso segnano ogni giro.</p>
     </div>
     <p class="subtitle path-road-hint">Trascina il pallino a destra e sinistra per seguire il percorso. Qui non servono inclinazione o sensori: il dito controlla direttamente la posizione.</p>
     <div class="option-group">
@@ -483,7 +483,7 @@ body.blackout-mode .btn-blackout-toggle {
         <button type="button" data-value="road" class="opt selected">Gara</button>
         <button type="button" data-value="spiral" class="opt">🌿 Tagliaerba</button>
       </div>
-      <p class="hint path-spiral-hint" hidden>Segui la spirale mantenendo una leggera inclinazione verso l’interno. Senza sterzare il tagliaerba va dritto. Nelle curve strette rallenta e sterza di più. Trascina il dito in alto per accelerare, in basso per rallentare. Su PC usa ← → e ↑ ↓. Fuori dalla fascia senti la vibrazione e rallenti fino a fermarti: sterza verso il percorso per rientrare. L’erba tagliata perde il verde; un suono e un impulso segnano ogni giro.</p>
+      <p class="hint path-spiral-hint" hidden>Segui un circuito a rettangolo arrotondato, con quattro lati ondulati. Un giro misura 500 metri; scegli una distanza maggiore per fare più giri. Inclina il telefono a sinistra e destra per seguire le curve. Senza sterzare il tagliaerba va dritto. Trascina il dito in alto per accelerare, in basso per rallentare. Su PC usa ← → e ↑ ↓. Fuori dalla fascia rallenti e senti la vibrazione; un limite poco oltre il bordo impedisce di allontanarti troppo. L’erba tagliata resta senza colore anche nei giri successivi. Un suono e un impulso segnano ogni giro.</p>
     </div>
     <p class="subtitle path-road-hint">Il percorso scende dall’alto. Tu sei il punto in basso: inclina il telefono per restare tra i due bordi. La vibrazione cresce quando ti allontani e si alleggerisce quando torni verso il centro.</p>
     <div class="option-group">
@@ -810,7 +810,7 @@ body.blackout-mode .btn-blackout-toggle {
     document.getElementById('path-opponent-speed').parentElement.hidden = mowing;
     document.getElementById('btn-path-touch-start').textContent = mowing ? 'Inizia a tagliare' : 'Inizia la gara';
     document.querySelectorAll('label[for="path-distance"], label[for="path-touch-distance"]').forEach((label) => {
-      label.textContent = mowing ? 'Lunghezza spirale (m)' : 'Distanza gara (m)';
+      label.textContent = mowing ? 'Distanza da percorrere (m)' : 'Distanza gara (m)';
     });
   }
 
@@ -3099,36 +3099,59 @@ body.blackout-mode .btn-blackout-toggle {
     pathLastBlackoutTap = now;
   });
 
-  // One world-space curve, shared by the camera, lane edges and cut history.
-  // Its pitch exceeds even the widest deck, so adjacent turns never overlap.
-  const PATH_SPIRAL_TURNS = 6, PATH_SPIRAL_PITCH = 200, PATH_SPIRAL_VIEW = 500;
+  // One closed world-space circuit, shared by camera, physics and cut history.
+  // Lap length is independent of the requested distance: longer sessions
+  // revisit the same grass instead of stretching or rebuilding the track.
+  const PATH_CIRCUIT_LAP_DISTANCE = 500 * PATH_UNITS_PER_METRE, PATH_SPIRAL_VIEW = 500;
   let pathSpiral = [], pathSpiralLength = 0, pathSpiralLap = 0;
   function buildPathSpiral() {
     pathSpiral = [];
-    const end = PATH_SPIRAL_TURNS * Math.PI * 2;
-    const b = PATH_SPIRAL_PITCH / (Math.PI * 2);
-    let angle = 0, length = 0;
-    while (true) {
-      const radius = b * (end - angle);
-      const dx = -b * Math.cos(angle) - radius * Math.sin(angle);
-      const dy = -b * Math.sin(angle) + radius * Math.cos(angle);
-      const norm = Math.hypot(dx, dy);
-      const point = { x: radius * Math.cos(angle), y: radius * Math.sin(angle),
-        tx: dx / norm, ty: dy / norm, angle, distance: length,
-        cutLo: Infinity, cutHi: -Infinity, cutEnd: 0 };
-      if (pathSpiral.length) {
-        const previous = pathSpiral[pathSpiral.length - 1];
-        length += Math.hypot(point.x - previous.x, point.y - previous.y);
-        point.distance = length;
+    const ax = 1000, ay = 650, radius = 260;
+    function side(x1, y1, x2, y2, nx, ny, amplitude) {
+      const count = Math.ceil(Math.hypot(x2 - x1, y2 - y1) / 8);
+      for (let i = 0; i < count; i++) {
+        const t = i / count;
+        // Zero displacement and slope at both ends join the rounded corners
+        // without a kink. Each side contains both left- and right-hand bends.
+        const wave = amplitude * Math.sin(t * Math.PI * 2) * Math.pow(Math.sin(t * Math.PI), 2);
+        pathSpiral.push({ x: lerp(x1, x2, t) + nx * wave, y: lerp(y1, y2, t) + ny * wave });
       }
-      pathSpiral.push(point);
-      if (angle === end) break;
-      // Roughly eight world units per segment even at the centre.
-      angle = Math.min(end, angle + Math.min(0.08, 8 / norm));
     }
+    function corner(cx, cy, start) {
+      const count = Math.ceil(radius * Math.PI / 2 / 8);
+      for (let i = 0; i < count; i++) {
+        const a = start + i / count * Math.PI / 2;
+        pathSpiral.push({ x: cx + radius * Math.cos(a), y: cy + radius * Math.sin(a) });
+      }
+    }
+    side(-ax + radius, -ay, ax - radius, -ay, 0, -1, 60);
+    corner(ax - radius, -ay + radius, -Math.PI / 2);
+    side(ax, -ay + radius, ax, ay - radius, 1, 0, 45);
+    corner(ax - radius, ay - radius, 0);
+    side(ax - radius, ay, -ax + radius, ay, 0, 1, 60);
+    corner(-ax + radius, ay - radius, Math.PI / 2);
+    side(-ax, ay - radius, -ax, -ay + radius, -1, 0, 45);
+    corner(-ax + radius, -ay + radius, Math.PI);
+    const count = pathSpiral.length;
+    let length = 0;
+    for (let i = 0; i < count; i++) {
+      const p = pathSpiral[i], prev = pathSpiral[(i + count - 1) % count], next = pathSpiral[(i + 1) % count];
+      const dx = next.x - prev.x, dy = next.y - prev.y, norm = Math.hypot(dx, dy);
+      const ux = p.x - prev.x, uy = p.y - prev.y, vx = next.x - p.x, vy = next.y - p.y;
+      if (i) length += Math.hypot(ux, uy);
+      Object.assign(p, { tx: dx / norm, ty: dy / norm, distance: length,
+        curvature: Math.atan2(ux * vy - uy * vx, ux * vx + uy * vy) / ((Math.hypot(ux, uy) + Math.hypot(vx, vy)) / 2),
+        cutLo: Infinity, cutHi: -Infinity, cutEnd: 0 });
+    }
+    length += Math.hypot(pathSpiral[0].x - pathSpiral[count - 1].x, pathSpiral[0].y - pathSpiral[count - 1].y);
+    pathSpiral.push({ ...pathSpiral[0], distance: length });
     pathSpiralLength = length;
-    for (const point of pathSpiral) point.distance *= pathTargetDistance / length;
+    for (const point of pathSpiral) point.distance *= PATH_CIRCUIT_LAP_DISTANCE / length;
     pathSpiralLap = 0;
+  }
+
+  function pathCircuitDistance(distance) {
+    return ((distance % PATH_CIRCUIT_LAP_DISTANCE) + PATH_CIRCUIT_LAP_DISTANCE) % PATH_CIRCUIT_LAP_DISTANCE;
   }
 
   function pathSpiralIndex(distance) {
@@ -3141,11 +3164,12 @@ body.blackout-mode .btn-blackout-toggle {
   }
 
   function pathSpiralPoint(distance) {
+    distance = pathCircuitDistance(distance);
     const i = pathSpiralIndex(distance), a = pathSpiral[i], b = pathSpiral[i + 1];
     const t = clamp((distance - a.distance) / (b.distance - a.distance), 0, 1);
     const tx = lerp(a.tx, b.tx, t), ty = lerp(a.ty, b.ty, t), norm = Math.hypot(tx, ty);
     return { x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t), tx: tx / norm, ty: ty / norm,
-      angle: lerp(a.angle, b.angle, t) };
+      curvature: lerp(a.curvature, b.curvature, t) };
   }
 
   function pathSpiralCenter(distance) {
@@ -3155,9 +3179,8 @@ body.blackout-mode .btn-blackout-toggle {
   }
 
   function pathSpiralCurvature(distance) {
-    const point = pathSpiralPoint(distance);
-    const r = Math.hypot(point.x, point.y), b = PATH_SPIRAL_PITCH / (2 * Math.PI);
-    return (r * r + 2 * b * b) / Math.pow(r * r + b * b, 1.5);
+    // Signed curvature is essential: the side waves bend in both directions.
+    return pathSpiralPoint(distance).curvature;
   }
 
   function advancePathMower(dt, input) {
@@ -3167,7 +3190,7 @@ body.blackout-mode .btn-blackout-toggle {
     const grip = 0.05 + 0.95 * Math.pow(1 - clamp(offroad / PATH_SPIRAL_MARGIN, 0, 1), 2);
     const throttle = keyState.up ? 1 : keyState.down ? -1 : pathThrottle;
     const curvature = pathSpiralCurvature(path.distance);
-    const worldScale = pathSpiralLength / pathTargetDistance;
+    const worldScale = pathSpiralLength / PATH_CIRCUIT_LAP_DISTANCE;
     const requestedSpeed = settings.pathSpeed * (1 + throttle * (throttle < 0 ? 0.85 : 0.9));
     // Only leaving the lane costs speed. Heading and curvature must not
     // penalise a legitimate turn. Grip recovery still accelerates gradually.
@@ -3194,16 +3217,21 @@ body.blackout-mode .btn-blackout-toggle {
 
   function cutPathSpiral(from, to) {
     const half = settings.pathWidth / 100 * PATH_SPIRAL_VIEW / 4;
-    // Use the same lateral error as this physics step. Re-evaluating it at
-    // later samples would invent sideways movement on the tight final turn.
+    // Split at the finish line so a wrap updates both ends of the same cut
+    // history. Subsequent laps never regenerate already-mown grass.
     const offset = (path.x - pathSpiralCenter(from)) * PATH_SPIRAL_VIEW / 2;
-    for (let i = pathSpiralIndex(from); i < pathSpiral.length - 1 && pathSpiral[i].distance < to; i++) {
-      const point = pathSpiral[i], next = pathSpiral[i + 1];
-      const lo = Math.max(-half, offset - half), hi = Math.min(half, offset + half);
-      if (hi <= lo) continue; // Leaving the lane must not mow untouched grass remotely.
-      point.cutLo = Math.min(point.cutLo, lo);
-      point.cutHi = Math.max(point.cutHi, hi);
-      point.cutEnd = Math.max(point.cutEnd, clamp((to - point.distance) / (next.distance - point.distance), 0, 1));
+    while (from < to) {
+      const lapStart = Math.floor(from / PATH_CIRCUIT_LAP_DISTANCE) * PATH_CIRCUIT_LAP_DISTANCE;
+      const localFrom = from - lapStart, localTo = Math.min(PATH_CIRCUIT_LAP_DISTANCE, to - lapStart);
+      for (let i = pathSpiralIndex(localFrom); i < pathSpiral.length - 1 && pathSpiral[i].distance < localTo; i++) {
+        const point = pathSpiral[i], next = pathSpiral[i + 1];
+        const lo = Math.max(-half, offset - half), hi = Math.min(half, offset + half);
+        if (hi <= lo) continue; // Leaving the lane must not mow untouched grass remotely.
+        point.cutLo = Math.min(point.cutLo, lo);
+        point.cutHi = Math.max(point.cutHi, hi);
+        point.cutEnd = Math.max(point.cutEnd, clamp((localTo - point.distance) / (next.distance - point.distance), 0, 1));
+      }
+      from = lapStart + localTo;
     }
   }
 
@@ -3429,9 +3457,10 @@ body.blackout-mode .btn-blackout-toggle {
       const ahead = pathOpponents.filter((opponent) => opponent.distance > path.distance).length;
       pathRaceEl.textContent = (ahead + 1) + '°/' + (pathOpponents.length + 1);
     } else if (pathVariant === 'spiral') {
-      const lap = Math.min(PATH_SPIRAL_TURNS - 1, Math.floor(pathSpiralPoint(path.distance).angle / (Math.PI * 2)));
+      const totalLaps = Math.ceil(pathTargetDistance / PATH_CIRCUIT_LAP_DISTANCE);
+      const lap = Math.min(totalLaps - 1, Math.floor(path.distance / PATH_CIRCUIT_LAP_DISTANCE));
       if (lap > pathSpiralLap) { pathSpiralLap = lap; RaceHaptics.lap(); }
-      pathRaceEl.textContent = 'Spira ' + (lap + 1) + '/' + PATH_SPIRAL_TURNS;
+      pathRaceEl.textContent = 'Giro ' + (lap + 1) + '/' + totalLaps;
     } else {
       pathRaceEl.textContent = 'Solo';
     }
@@ -3521,7 +3550,7 @@ body.blackout-mode .btn-blackout-toggle {
     RaceHaptics.finish();
     winTitleEl.textContent = pathOpponents.length
       ? (placement === 1 ? 'Hai vinto la gara! 🏁' : 'Arrivato ' + placement + 'º su ' + (pathOpponents.length + 1) + ' 🏁')
-      : (pathVariant === 'spiral' ? 'Spirale percorsa! 🌿' : 'Traguardo raggiunto! 🏁');
+      : (pathVariant === 'spiral' ? 'Percorso completato! 🌿' : 'Traguardo raggiunto! 🏁');
     winTimeEl.textContent = 'Tempo: ' + formatTime(path.elapsed * 1000);
     winBestEl.textContent = 'Distanza: ' + (pathTargetDistance / PATH_UNITS_PER_METRE).toLocaleString('it-IT') + ' m';
     showScreen('screen-win');

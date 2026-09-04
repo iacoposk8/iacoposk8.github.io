@@ -29,7 +29,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.7"
-     inkscape:cx="215.97939"
+     inkscape:cx="-113.30632"
      inkscape:cy="328.14552"
      inkscape:document-units="mm"
      showgrid="false"
@@ -362,7 +362,7 @@
      inkscape:groupmode="layer"
      id="layer3"
      inkscape:label="Faccia Reale"
-     style="display:inline;opacity:1"
+     style="display:none;opacity:1"
      transform="translate(0,-112.77114)">
     <path
        style="display:inline;fill:#ffffff;stroke-width:0.19948298"

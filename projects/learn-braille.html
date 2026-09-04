@@ -679,7 +679,7 @@
     function setInputMode(mode) {
       inputMode = Object.prototype.hasOwnProperty.call(INPUT_MODES, mode) ? mode : 'normal';
       localStorage.setItem(INPUT_MODE_KEY, inputMode);
-      clearBrailleChord();
+      resetChordState();
       const picker = document.getElementById('input-mode');
       const help = document.getElementById('input-mode-help');
       if (picker) picker.value = inputMode;

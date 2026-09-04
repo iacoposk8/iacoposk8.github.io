@@ -494,7 +494,7 @@
         <label for="input-mode">Braille input mode</label>
         <select id="input-mode" onchange="setInputMode(this.value)">
           <option value="normal">Normal numpad</option>
-          <option value="reverse">Reverse numpad (rotated 180°)</option>
+          <option value="reverse">Reverse numpad (X-axis flip)</option>
           <option value="one-hand">One-hand keyboard (AWEDXC)</option>
           <option value="inline">Inline keyboard (QWERXC)</option>
         </select>
@@ -661,8 +661,8 @@
         keys: {'Numpad7': [1], 'Numpad4': [2], 'Numpad1': [3], 'Numpad8': [4], 'Numpad5': [5], 'Numpad2': [6]}
       },
       reverse: {
-        help: 'Rotated keypad. D = 125; Z = 5817.',
-        keys: {'Numpad1': [1], 'Numpad4': [2], 'Numpad8': [3], 'Numpad2': [4], 'Numpad5': [5], 'Numpad7': [6]}
+        help: 'Keypad flipped top-to-bottom on the X axis. D = 125; Z = 5817.',
+        keys: {'Numpad1': [1], 'Numpad4': [2], 'Numpad7': [3], 'Numpad2': [4], 'Numpad5': [5], 'Numpad8': [6]}
       },
       'one-hand': {
         help: 'Dots 1, 2, 3, 4, 5: W, A, X, E, D. C enters dots 3+6. D = WED; Z = CDW.',

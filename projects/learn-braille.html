@@ -459,6 +459,19 @@
     .rush-leaderboard h3 { color: var(--text-main); font-size: 1rem; margin-bottom: 6px; }
     .rush-leaderboard ol { padding-left: 22px; line-height: 1.6; }
     .mode-reset { margin-top: 10px; }
+    .input-mode-picker {
+      margin-bottom: 22px;
+      padding: 16px;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid #334155;
+      border-radius: 12px;
+    }
+    .input-mode-picker label { display: block; font-weight: 800; margin-bottom: 8px; }
+    .input-mode-picker select {
+      width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #475569;
+      background: #0f172a; color: var(--text-main); font-size: 1rem;
+    }
+    .input-mode-help { color: var(--text-muted); margin-top: 8px; font-size: 0.9rem; }
 
     @media (max-width: 600px) {
       .game-card { padding: 18px; }
@@ -477,6 +490,16 @@
     
     <!-- SCHERMATA 1: MENU DEI LIVELLI -->
     <div id="view-levels">
+      <div class="input-mode-picker">
+        <label for="input-mode">Braille input mode</label>
+        <select id="input-mode" onchange="setInputMode(this.value)">
+          <option value="normal">Normal numpad</option>
+          <option value="reverse">Reverse numpad (rotated 180°)</option>
+          <option value="one-hand">One-hand keyboard (AWEDXC)</option>
+          <option value="inline">Inline keyboard (QWERXC)</option>
+        </select>
+        <div class="input-mode-help" id="input-mode-help"></div>
+      </div>
       <div class="mode-card">
         <h2>⚡ Time Challenge</h2>
         <p>Write a complete sentence as fast as possible.</p>
@@ -632,12 +655,40 @@
       'z': [1, 3, 5, 6]
     };
 
-    // Numeric keypad -> Braille dot mapping (standard 7-8 / 4-5 / 1-2 layout)
-    const NUMPAD_CODE_TO_DOT = {
-      'Numpad7': 1, 'Numpad8': 4,
-      'Numpad4': 2, 'Numpad5': 5,
-      'Numpad1': 3, 'Numpad2': 6
+    const INPUT_MODES = {
+      normal: {
+        help: 'Dots 1–6: 7, 4, 1, 8, 5, 2.',
+        keys: {'Numpad7': [1], 'Numpad4': [2], 'Numpad1': [3], 'Numpad8': [4], 'Numpad5': [5], 'Numpad2': [6]}
+      },
+      reverse: {
+        help: 'Rotated keypad. D = 125; Z = 5817.',
+        keys: {'Numpad1': [1], 'Numpad4': [2], 'Numpad8': [3], 'Numpad2': [4], 'Numpad5': [5], 'Numpad7': [6]}
+      },
+      'one-hand': {
+        help: 'Dots 1, 2, 3, 4, 5: W, A, X, E, D. C enters dots 3+6. D = WED; Z = CDW.',
+        keys: {'KeyW': [1], 'KeyA': [2], 'KeyX': [3], 'KeyE': [4], 'KeyD': [5], 'KeyC': [3, 6]}
+      },
+      inline: {
+        help: 'Dots 1, 2, 3, 4, 5: W, Q, X, E, R. C enters dots 3+6. D = WER; Z = CRW.',
+        keys: {'KeyW': [1], 'KeyQ': [2], 'KeyX': [3], 'KeyE': [4], 'KeyR': [5], 'KeyC': [3, 6]}
+      }
     };
+    const INPUT_MODE_KEY = 'braille_input_mode';
+    let inputMode = localStorage.getItem(INPUT_MODE_KEY) || 'normal';
+
+    function setInputMode(mode) {
+      inputMode = Object.prototype.hasOwnProperty.call(INPUT_MODES, mode) ? mode : 'normal';
+      localStorage.setItem(INPUT_MODE_KEY, inputMode);
+      clearBrailleChord();
+      const picker = document.getElementById('input-mode');
+      const help = document.getElementById('input-mode-help');
+      if (picker) picker.value = inputMode;
+      if (help) help.textContent = INPUT_MODES[inputMode].help;
+    }
+
+    function getInputDots(code) {
+      return INPUT_MODES[inputMode].keys[code] || null;
+    }
 
     // Reverse table: dot combination -> letter (derived from BRAILLE_DOTS)
     const DOTS_TO_LETTER = {};
@@ -647,7 +698,7 @@
     }
 
     // State of the Braille chord currently being typed on the numeric keypad
-    const pressedNumpadCodes = new Set();
+    const pressedInputCodes = new Set();
     const currentChordDots = new Set();
     let chordTimer = null;
     const CHORD_GRACE_MS = 250; // Tolerance for fingers that are not perfectly synchronized.
@@ -709,7 +760,7 @@
         chordTimer = null;
       }
       currentChordDots.clear();
-      pressedNumpadCodes.clear();
+      pressedInputCodes.clear();
     }
 
     const TOTAL_STEPS = 30; // 30 characters per level
@@ -1337,12 +1388,13 @@
 
     // Keyboard input handling
     window.addEventListener('keydown', (e) => {
+      const inputDots = getInputDots(e.code);
       if (isLetterRushActive) {
-        if (Object.prototype.hasOwnProperty.call(NUMPAD_CODE_TO_DOT, e.code)) {
+        if (inputDots) {
           e.preventDefault();
-          if (pressedNumpadCodes.has(e.code)) return;
-          pressedNumpadCodes.add(e.code);
-          currentChordDots.add(NUMPAD_CODE_TO_DOT[e.code]);
+          if (pressedInputCodes.has(e.code)) return;
+          pressedInputCodes.add(e.code);
+          inputDots.forEach(dot => currentChordDots.add(dot));
           if (chordTimer) scheduleChordCommit();
           return;
         }
@@ -1358,11 +1410,11 @@
           processPhraseCharacter(' ');
           return;
         }
-        if (Object.prototype.hasOwnProperty.call(NUMPAD_CODE_TO_DOT, e.code)) {
+        if (inputDots) {
           e.preventDefault();
-          if (pressedNumpadCodes.has(e.code)) return;
-          pressedNumpadCodes.add(e.code);
-          currentChordDots.add(NUMPAD_CODE_TO_DOT[e.code]);
+          if (pressedInputCodes.has(e.code)) return;
+          pressedInputCodes.add(e.code);
+          inputDots.forEach(dot => currentChordDots.add(dot));
           if (chordTimer) scheduleChordCommit();
           return;
         }
@@ -1374,12 +1426,12 @@
       }
       if (!isGameActive) return;
 
-      // Numeric keypad Braille keys: accumulate the chord (works standalone, without Python)
-      if (Object.prototype.hasOwnProperty.call(NUMPAD_CODE_TO_DOT, e.code)) {
+      // Accumulate the Braille chord using the selected input layout.
+      if (inputDots) {
         e.preventDefault();
-        if (pressedNumpadCodes.has(e.code)) return; // Ignore auto-repeat while the key is held.
-        pressedNumpadCodes.add(e.code);
-        currentChordDots.add(NUMPAD_CODE_TO_DOT[e.code]);
+        if (pressedInputCodes.has(e.code)) return; // Ignore auto-repeat while the key is held.
+        pressedInputCodes.add(e.code);
+        inputDots.forEach(dot => currentChordDots.add(dot));
 
         // Reset the timer if a late finger arrives while it is about to fire.
         if (chordTimer) scheduleChordCommit();
@@ -1393,10 +1445,10 @@
     });
 
     window.addEventListener('keyup', (e) => {
-      if (Object.prototype.hasOwnProperty.call(NUMPAD_CODE_TO_DOT, e.code)) {
+      if (getInputDots(e.code)) {
         if (!isGameActive && !isPhraseActive && !isLetterRushActive) return;
         e.preventDefault();
-        pressedNumpadCodes.delete(e.code);
+        pressedInputCodes.delete(e.code);
 
         // Start the tolerance window as soon as release begins.
         if (currentChordDots.size > 0) scheduleChordCommit();
@@ -1545,6 +1597,7 @@
     }
 
     // Initial startup
+    setInputMode(inputMode);
     renderLevelsGrid();
   </script>
 </body>

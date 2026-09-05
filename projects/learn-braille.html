@@ -495,8 +495,8 @@
         <select id="input-mode" onchange="setInputMode(this.value)">
           <option value="normal">Normal numpad</option>
           <option value="reverse">Reverse numpad (X-axis flip)</option>
-          <option value="one-hand">One-hand keyboard (AWEDXC)</option>
-          <option value="inline">Inline keyboard (QWERXC)</option>
+          <option value="one-hand">One-hand keyboard (AWEFCV)</option>
+          <option value="inline">Inline keyboard (QWERCV)</option>
         </select>
         <div class="input-mode-help" id="input-mode-help"></div>
       </div>
@@ -527,6 +527,8 @@
       <div class="levels-grid" id="pair-levels-container"></div>
       <div style="text-align: center;">
         <button class="reset-progress" onclick="resetLetterProgress()">Reset Letter Levels</button>
+        <br>
+        <button class="reset-progress" onclick="resetPairProgress()">Reset Pair Levels</button>
         <br>
         <button class="reset-progress" onclick="resetAllProgress()">Reset Progress and Records</button>
       </div>
@@ -665,16 +667,35 @@
         keys: {'Numpad1': [1], 'Numpad4': [2], 'Numpad7': [3], 'Numpad2': [4], 'Numpad5': [5], 'Numpad8': [6]}
       },
       'one-hand': {
-        help: 'Dots 1, 2, 3, 4, 5: W, A, X, E, D. C enters dots 3+6. D = WED; Z = CDW.',
-        keys: {'KeyW': [1], 'KeyA': [2], 'KeyX': [3], 'KeyE': [4], 'KeyD': [5], 'KeyC': [3, 6]}
+        help: 'Dots 1–6: W, A, C, E, F, V. D = WEF; Z = WCFV.',
+        keys: {'KeyW': [1], 'KeyA': [2], 'KeyC': [3], 'KeyE': [4], 'KeyF': [5], 'KeyV': [6]}
       },
       inline: {
-        help: 'Dots 1, 2, 3, 4, 5: W, Q, X, E, R. C enters dots 3+6. D = WER; Z = CRW.',
-        keys: {'KeyW': [1], 'KeyQ': [2], 'KeyX': [3], 'KeyE': [4], 'KeyR': [5], 'KeyC': [3, 6]}
+        help: 'Dots 1–6: W, Q, C, E, R, V. D = WER; Z = WCRV.',
+        keys: {'KeyW': [1], 'KeyQ': [2], 'KeyC': [3], 'KeyE': [4], 'KeyR': [5], 'KeyV': [6]}
       }
     };
     const INPUT_MODE_KEY = 'braille_input_mode';
     let inputMode = localStorage.getItem(INPUT_MODE_KEY) || 'normal';
+
+    function scopedStorageKey(baseKey) {
+      return `${baseKey}_${inputMode}`;
+    }
+
+    function getModeStorage(baseKey) {
+      const scopedValue = localStorage.getItem(scopedStorageKey(baseKey));
+      if (scopedValue !== null) return scopedValue;
+      return inputMode === 'normal' ? localStorage.getItem(baseKey) : null;
+    }
+
+    function setModeStorage(baseKey, value) {
+      localStorage.setItem(scopedStorageKey(baseKey), value);
+    }
+
+    function removeModeStorage(baseKey) {
+      localStorage.removeItem(scopedStorageKey(baseKey));
+      if (inputMode === 'normal') localStorage.removeItem(baseKey);
+    }
 
     function setInputMode(mode) {
       inputMode = Object.prototype.hasOwnProperty.call(INPUT_MODES, mode) ? mode : 'normal';
@@ -684,10 +705,24 @@
       const help = document.getElementById('input-mode-help');
       if (picker) picker.value = inputMode;
       if (help) help.textContent = INPUT_MODES[inputMode].help;
+      loadModeProgress();
+      renderLevelsGrid();
     }
 
     function getInputDots(code) {
       return INPUT_MODES[inputMode].keys[code] || null;
+    }
+
+    function keyLabel(code) {
+      return code.replace(/^Numpad/, '').replace(/^Key/, '');
+    }
+
+    function keysForDots(dots) {
+      return dots.map(dot => {
+        const entry = Object.entries(INPUT_MODES[inputMode].keys)
+          .find(([, mappedDots]) => mappedDots.length === 1 && mappedDots[0] === dot);
+        return entry ? keyLabel(entry[0]) : '?';
+      });
     }
 
     // Reverse table: dot combination -> letter (derived from BRAILLE_DOTS)
@@ -766,10 +801,10 @@
     const TOTAL_STEPS = 30; // 30 characters per level
 
     // Saved state
-    let maxUnlockedLevel = parseInt(localStorage.getItem('braille_max_unlocked') || '1');
-    let completedLevels = JSON.parse(localStorage.getItem('braille_completed') || '[]');
-    let pairMaxUnlockedLevel = parseInt(localStorage.getItem(PAIR_MAX_UNLOCKED_KEY) || '1');
-    let pairCompletedLevels = JSON.parse(localStorage.getItem(PAIR_COMPLETED_KEY) || '[]');
+    let maxUnlockedLevel = 1;
+    let completedLevels = [];
+    let pairMaxUnlockedLevel = 1;
+    let pairCompletedLevels = [];
 
     let currentLevel = 1;
     let currentStep = 0;
@@ -799,8 +834,16 @@
     let rushReady = false;
     let lastPhraseIndex = -1;
 
+    function loadModeProgress() {
+      maxUnlockedLevel = parseInt(getModeStorage('braille_max_unlocked') || '1', 10);
+      completedLevels = JSON.parse(getModeStorage('braille_completed') || '[]');
+      pairMaxUnlockedLevel = parseInt(getModeStorage(PAIR_MAX_UNLOCKED_KEY) || '1', 10);
+      pairCompletedLevels = JSON.parse(getModeStorage(PAIR_COMPLETED_KEY) || '[]');
+      rushMistakes = getRushMistakes();
+    }
+
     function getRushMistakes() {
-      try { return JSON.parse(localStorage.getItem(RUSH_MISTAKES_KEY) || '{}'); }
+      try { return JSON.parse(getModeStorage(RUSH_MISTAKES_KEY) || '{}'); }
       catch (error) { return {}; }
     }
 
@@ -817,7 +860,7 @@
       if (!letter || !ALPHABET.includes(letter)) return;
       rushMistakes = getRushMistakes();
       rushMistakes[letter] = (rushMistakes[letter] || 0) + 1;
-      localStorage.setItem(RUSH_MISTAKES_KEY, JSON.stringify(rushMistakes));
+      setModeStorage(RUSH_MISTAKES_KEY, JSON.stringify(rushMistakes));
       renderRushLeaderboard();
     }
 
@@ -911,7 +954,7 @@
     }
 
     function getPhraseRecord() {
-      return parseInt(localStorage.getItem(PHRASE_RECORD_KEY) || '0', 10);
+      return parseInt(getModeStorage(PHRASE_RECORD_KEY) || '0', 10);
     }
 
     function formatTime(ms) { return `${(ms / 1000).toFixed(2)} s`; }
@@ -978,7 +1021,7 @@
       const elapsed = Math.round(performance.now() - phraseStartedAt);
       const oldRecord = getPhraseRecord();
       const isRecord = !oldRecord || elapsed < oldRecord;
-      if (isRecord) localStorage.setItem(PHRASE_RECORD_KEY, elapsed);
+      if (isRecord) setModeStorage(PHRASE_RECORD_KEY, elapsed);
       playSound('win');
       document.getElementById('phrase-record').innerText = formatTime(isRecord ? elapsed : oldRecord);
       document.getElementById('phrase-status').innerText = isRecord ? `New record: ${formatTime(elapsed)}!` : `Sentence completed in ${formatTime(elapsed)}.`;
@@ -991,7 +1034,7 @@
     }
 
     function getRushRecord() {
-      return parseInt(localStorage.getItem(RUSH_RECORD_KEY) || '0', 10);
+      return parseInt(getModeStorage(RUSH_RECORD_KEY) || '0', 10);
     }
 
     function renderRushRecord() {
@@ -1126,7 +1169,7 @@
       rushNotes = [];
       const oldRecord = getRushRecord();
       const isRecord = rushScore > oldRecord;
-      if (isRecord) localStorage.setItem(RUSH_RECORD_KEY, rushScore);
+      if (isRecord) setModeStorage(RUSH_RECORD_KEY, rushScore);
       if (isRecord) playSound('win');
       document.getElementById('rush-record').innerText = isRecord ? rushScore : oldRecord;
       document.getElementById('rush-status').innerText = isRecord ? `New record: ${rushScore} points! (${rushErrors} errors)` : `Game over: ${rushScore} points, ${rushErrors} errors.`;
@@ -1305,6 +1348,7 @@
     // Show the correct combination only after an error
     function revealBrailleHint(targetChar, wrongChar) {
       const activeDots = BRAILLE_DOTS[targetChar] || [];
+      const activeKeys = keysForDots(activeDots);
       const cellEl = document.getElementById('braille-cell');
       cellEl.classList.add('revealed');
 
@@ -1319,7 +1363,7 @@
 
       const banner = document.getElementById('hint-banner');
       banner.className = 'hint-banner error-state';
-       banner.innerHTML = `⚠️ You typed <b>"${wrongChar.toUpperCase()}"</b>. To make <b>"${targetChar.toUpperCase()}"</b>, use dots: <b>[ ${activeDots.join(', ')} ]</b>`;
+       banner.innerHTML = `⚠️ You typed <b>"${wrongChar.toUpperCase()}"</b>. To make <b>"${targetChar.toUpperCase()}"</b>, use dots: <b>[ ${activeDots.join(', ')} ]</b> and press: <b>[ ${activeKeys.join(' + ')} ]</b>`;
     }
 
     // Evaluate the typed letter (from a direct key or a Braille keypad chord)
@@ -1475,7 +1519,7 @@
         const completed = isPairMode ? pairCompletedLevels : completedLevels;
         if (!completed.includes(currentLevel)) {
           completed.push(currentLevel);
-          localStorage.setItem(isPairMode ? PAIR_COMPLETED_KEY : 'braille_completed', JSON.stringify(completed));
+          setModeStorage(isPairMode ? PAIR_COMPLETED_KEY : 'braille_completed', JSON.stringify(completed));
         }
 
         if (currentLevel < 26) {
@@ -1483,10 +1527,10 @@
           if (currentLevel === maxLevel) {
             if (isPairMode) {
               pairMaxUnlockedLevel++;
-              localStorage.setItem(PAIR_MAX_UNLOCKED_KEY, pairMaxUnlockedLevel);
+              setModeStorage(PAIR_MAX_UNLOCKED_KEY, pairMaxUnlockedLevel);
             } else {
               maxUnlockedLevel++;
-              localStorage.setItem('braille_max_unlocked', maxUnlockedLevel);
+              setModeStorage('braille_max_unlocked', maxUnlockedLevel);
             }
           }
           msg.innerText = `No errors! Level ${currentLevel + 1} (${ALPHABET[currentLevel].toUpperCase()}) has been unlocked in ${isPairMode ? 'pair' : 'letter'} mode!`;
@@ -1550,13 +1594,13 @@
 
     function resetAllProgress() {
        if (confirm('Are you sure you want to reset all saved levels, progress, and records?')) {
-        localStorage.removeItem('braille_max_unlocked');
-         localStorage.removeItem('braille_completed');
-         localStorage.removeItem(PAIR_MAX_UNLOCKED_KEY);
-         localStorage.removeItem(PAIR_COMPLETED_KEY);
-        localStorage.removeItem(PHRASE_RECORD_KEY);
-         localStorage.removeItem(RUSH_RECORD_KEY);
-         localStorage.removeItem(RUSH_MISTAKES_KEY);
+        removeModeStorage('braille_max_unlocked');
+         removeModeStorage('braille_completed');
+         removeModeStorage(PAIR_MAX_UNLOCKED_KEY);
+         removeModeStorage(PAIR_COMPLETED_KEY);
+        removeModeStorage(PHRASE_RECORD_KEY);
+         removeModeStorage(RUSH_RECORD_KEY);
+         removeModeStorage(RUSH_MISTAKES_KEY);
          maxUnlockedLevel = 1;
          completedLevels = [];
          pairMaxUnlockedLevel = 1;
@@ -1567,21 +1611,21 @@
 
     function resetPhraseProgress() {
       if (!confirm('Reset the Time Challenge record?')) return;
-      localStorage.removeItem(PHRASE_RECORD_KEY);
+      removeModeStorage(PHRASE_RECORD_KEY);
       renderLevelsGrid();
     }
 
     function resetRushProgress() {
       if (!confirm('Reset the Falling Letters record and mistake leaderboard?')) return;
-      localStorage.removeItem(RUSH_RECORD_KEY);
-      localStorage.removeItem(RUSH_MISTAKES_KEY);
+      removeModeStorage(RUSH_RECORD_KEY);
+      removeModeStorage(RUSH_MISTAKES_KEY);
       renderLevelsGrid();
     }
 
     function resetLetterProgress() {
       if (!confirm('Reset all Letter Levels progress?')) return;
-      localStorage.removeItem('braille_max_unlocked');
-      localStorage.removeItem('braille_completed');
+      removeModeStorage('braille_max_unlocked');
+      removeModeStorage('braille_completed');
       maxUnlockedLevel = 1;
       completedLevels = [];
       renderLevelsGrid();
@@ -1589,8 +1633,8 @@
 
     function resetPairProgress() {
       if (!confirm('Reset all Braille Pairs progress?')) return;
-      localStorage.removeItem(PAIR_MAX_UNLOCKED_KEY);
-      localStorage.removeItem(PAIR_COMPLETED_KEY);
+      removeModeStorage(PAIR_MAX_UNLOCKED_KEY);
+      removeModeStorage(PAIR_COMPLETED_KEY);
       pairMaxUnlockedLevel = 1;
       pairCompletedLevels = [];
       renderLevelsGrid();
@@ -1598,7 +1642,6 @@
 
     // Initial startup
     setInputMode(inputMode);
-    renderLevelsGrid();
   </script>
 </body>
 </html>

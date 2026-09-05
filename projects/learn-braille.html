@@ -667,12 +667,12 @@
         keys: {'Numpad1': [1], 'Numpad4': [2], 'Numpad7': [3], 'Numpad2': [4], 'Numpad5': [5], 'Numpad8': [6]}
       },
       'one-hand': {
-        help: 'Dots 1–6: W, A, C, E, F, V. D = WEF; Z = WCFV.',
-        keys: {'KeyW': [1], 'KeyA': [2], 'KeyC': [3], 'KeyE': [4], 'KeyF': [5], 'KeyV': [6]}
+        help: 'V supplies dots 3+6, or only dot 6 for W. D = WEF; U = WV; W = EAFV; Z = WFV.',
+        keys: {'KeyW': [1], 'KeyA': [2], 'KeyC': [3], 'KeyE': [4], 'KeyF': [5], 'KeyV': [3, 6]}
       },
       inline: {
-        help: 'Dots 1–6: W, Q, C, E, R, V. D = WER; Z = WCRV.',
-        keys: {'KeyW': [1], 'KeyQ': [2], 'KeyC': [3], 'KeyE': [4], 'KeyR': [5], 'KeyV': [6]}
+        help: 'V supplies dots 3+6, or only dot 6 for W. D = WER; U = WV; W = EQRV; Z = WRV.',
+        keys: {'KeyW': [1], 'KeyQ': [2], 'KeyC': [3], 'KeyE': [4], 'KeyR': [5], 'KeyV': [3, 6]}
       }
     };
     const INPUT_MODE_KEY = 'braille_input_mode';
@@ -718,11 +718,28 @@
     }
 
     function keysForDots(dots) {
-      return dots.map(dot => {
+      if (dots.length === 4 && dots.join(',') === '2,4,5,6') {
+        if (inputMode === 'one-hand') return ['E', 'A', 'F', 'V'];
+        if (inputMode === 'inline') return ['E', 'Q', 'R', 'V'];
+      }
+      const keys = [];
+      const alphabeticMode = inputMode === 'one-hand' || inputMode === 'inline';
+      const vCoversThreeAndSix = alphabeticMode && dots.includes(3) && dots.includes(6);
+      dots.forEach(dot => {
+        if (vCoversThreeAndSix && dot === 3) {
+          keys.push('V');
+          return;
+        }
+        if (vCoversThreeAndSix && dot === 6) return;
+        if (alphabeticMode && dot === 6) {
+          keys.push('V');
+          return;
+        }
         const entry = Object.entries(INPUT_MODES[inputMode].keys)
           .find(([, mappedDots]) => mappedDots.length === 1 && mappedDots[0] === dot);
-        return entry ? keyLabel(entry[0]) : '?';
+        keys.push(entry ? keyLabel(entry[0]) : '?');
       });
+      return keys;
     }
 
     // Reverse table: dot combination -> letter (derived from BRAILLE_DOTS)
@@ -734,6 +751,7 @@
 
     // State of the Braille chord currently being typed on the numeric keypad
     const pressedInputCodes = new Set();
+    const currentChordCodes = new Set();
     const currentChordDots = new Set();
     let chordTimer = null;
     const CHORD_GRACE_MS = 250; // Tolerance for fingers that are not perfectly synchronized.
@@ -779,8 +797,14 @@
     function commitChord() {
       chordTimer = null;
       if (currentChordDots.size === 0) return;
+      if ((inputMode === 'one-hand' || inputMode === 'inline') &&
+          currentChordCodes.has('KeyV') && !currentChordCodes.has('KeyC') &&
+          [2, 3, 4, 5, 6].every(dot => currentChordDots.has(dot)) && currentChordDots.size === 5) {
+        currentChordDots.delete(3);
+      }
       const signature = Array.from(currentChordDots).sort((a, b) => a - b).join(',');
       currentChordDots.clear();
+      currentChordCodes.clear();
       const letter = DOTS_TO_LETTER[signature];
       if (letter) {
         if (isLetterRushActive) processLetterRushCharacter(letter);
@@ -795,6 +819,7 @@
         chordTimer = null;
       }
       currentChordDots.clear();
+      currentChordCodes.clear();
       pressedInputCodes.clear();
     }
 
@@ -1438,6 +1463,7 @@
           e.preventDefault();
           if (pressedInputCodes.has(e.code)) return;
           pressedInputCodes.add(e.code);
+          currentChordCodes.add(e.code);
           inputDots.forEach(dot => currentChordDots.add(dot));
           if (chordTimer) scheduleChordCommit();
           return;
@@ -1458,6 +1484,7 @@
           e.preventDefault();
           if (pressedInputCodes.has(e.code)) return;
           pressedInputCodes.add(e.code);
+          currentChordCodes.add(e.code);
           inputDots.forEach(dot => currentChordDots.add(dot));
           if (chordTimer) scheduleChordCommit();
           return;
@@ -1475,6 +1502,7 @@
         e.preventDefault();
         if (pressedInputCodes.has(e.code)) return; // Ignore auto-repeat while the key is held.
         pressedInputCodes.add(e.code);
+        currentChordCodes.add(e.code);
         inputDots.forEach(dot => currentChordDots.add(dot));
 
         // Reset the timer if a late finger arrives while it is about to fire.

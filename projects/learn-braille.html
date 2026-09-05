@@ -497,6 +497,7 @@
           <option value="reverse">Reverse numpad (X-axis flip)</option>
           <option value="one-hand">One-hand keyboard (AWEFCV)</option>
           <option value="inline">Inline keyboard (QWERCV)</option>
+          <option value="inline-reverse">Reverse inline keyboard (QWERCV)</option>
         </select>
         <div class="input-mode-help" id="input-mode-help"></div>
       </div>
@@ -673,6 +674,10 @@
       inline: {
         help: 'V supplies dots 3+6, or only dot 6 for W. D = WER; U = WV; W = EQRV; Z = WRV.',
         keys: {'KeyW': [1], 'KeyQ': [2], 'KeyC': [3], 'KeyE': [4], 'KeyR': [5], 'KeyV': [3, 6]}
+      },
+      'inline-reverse': {
+        help: 'Dots 1–5: R, E, C, W, Q. V supplies dots 3+6, or only dot 6 for W. U = RV; W = EWQV.',
+        keys: {'KeyR': [1], 'KeyE': [2], 'KeyC': [3], 'KeyW': [4], 'KeyQ': [5], 'KeyV': [3, 6]}
       }
     };
     const INPUT_MODE_KEY = 'braille_input_mode';
@@ -721,9 +726,10 @@
       if (dots.length === 4 && dots.join(',') === '2,4,5,6') {
         if (inputMode === 'one-hand') return ['E', 'A', 'F', 'V'];
         if (inputMode === 'inline') return ['E', 'Q', 'R', 'V'];
+        if (inputMode === 'inline-reverse') return ['E', 'W', 'Q', 'V'];
       }
       const keys = [];
-      const alphabeticMode = inputMode === 'one-hand' || inputMode === 'inline';
+      const alphabeticMode = inputMode === 'one-hand' || inputMode === 'inline' || inputMode === 'inline-reverse';
       const vCoversThreeAndSix = alphabeticMode && dots.includes(3) && dots.includes(6);
       dots.forEach(dot => {
         if (vCoversThreeAndSix && dot === 3) {
@@ -797,7 +803,7 @@
     function commitChord() {
       chordTimer = null;
       if (currentChordDots.size === 0) return;
-      if ((inputMode === 'one-hand' || inputMode === 'inline') &&
+      if ((inputMode === 'one-hand' || inputMode === 'inline' || inputMode === 'inline-reverse') &&
           currentChordCodes.has('KeyV') && !currentChordCodes.has('KeyC') &&
           [2, 3, 4, 5, 6].every(dot => currentChordDots.has(dot)) && currentChordDots.size === 5) {
         currentChordDots.delete(3);

@@ -459,19 +459,6 @@
     .rush-leaderboard h3 { color: var(--text-main); font-size: 1rem; margin-bottom: 6px; }
     .rush-leaderboard ol { padding-left: 22px; line-height: 1.6; }
     .mode-reset { margin-top: 10px; }
-    .input-mode-picker {
-      margin-bottom: 22px;
-      padding: 16px;
-      background: rgba(15, 23, 42, 0.7);
-      border: 1px solid #334155;
-      border-radius: 12px;
-    }
-    .input-mode-picker label { display: block; font-weight: 800; margin-bottom: 8px; }
-    .input-mode-picker select {
-      width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #475569;
-      background: #0f172a; color: var(--text-main); font-size: 1rem;
-    }
-    .input-mode-help { color: var(--text-muted); margin-top: 8px; font-size: 0.9rem; }
 
     @media (max-width: 600px) {
       .game-card { padding: 18px; }
@@ -490,17 +477,6 @@
     
     <!-- SCHERMATA 1: MENU DEI LIVELLI -->
     <div id="view-levels">
-      <div class="input-mode-picker">
-        <label for="input-mode">Braille input mode</label>
-        <select id="input-mode" onchange="setInputMode(this.value)">
-          <option value="normal">Normal numpad</option>
-          <option value="reverse">Reverse numpad (X-axis flip)</option>
-          <option value="one-hand">One-hand keyboard (AWEFCV)</option>
-          <option value="inline">Inline keyboard (QWERCV)</option>
-          <option value="inline-reverse">Reverse inline keyboard (QWERCV)</option>
-        </select>
-        <div class="input-mode-help" id="input-mode-help"></div>
-      </div>
       <div class="mode-card">
         <h2>⚡ Time Challenge</h2>
         <p>Write a complete sentence as fast as possible.</p>
@@ -572,7 +548,7 @@
         </div>
 
         <div class="hint-banner" id="hint-banner">
-          Type the Braille combination from memory
+          Type the letter normally or use its Braille combination
         </div>
       </div>
     </div>
@@ -658,94 +634,33 @@
       'z': [1, 3, 5, 6]
     };
 
-    const INPUT_MODES = {
-      normal: {
-        help: 'Dots 1–6: 7, 4, 1, 8, 5, 2.',
-        keys: {'Numpad7': [1], 'Numpad4': [2], 'Numpad1': [3], 'Numpad8': [4], 'Numpad5': [5], 'Numpad2': [6]}
-      },
-      reverse: {
-        help: 'Keypad flipped top-to-bottom on the X axis. D = 125; Z = 5817.',
-        keys: {'Numpad1': [1], 'Numpad4': [2], 'Numpad7': [3], 'Numpad2': [4], 'Numpad5': [5], 'Numpad8': [6]}
-      },
-      'one-hand': {
-        help: 'V supplies dots 3+6, or only dot 6 for W. D = WEF; U = WV; W = EAFV; Z = WFV.',
-        keys: {'KeyW': [1], 'KeyA': [2], 'KeyC': [3], 'KeyE': [4], 'KeyF': [5], 'KeyV': [3, 6]}
-      },
-      inline: {
-        help: 'V supplies dots 3+6, or only dot 6 for W. D = WER; U = WV; W = EQRV; Z = WRV.',
-        keys: {'KeyW': [1], 'KeyQ': [2], 'KeyC': [3], 'KeyE': [4], 'KeyR': [5], 'KeyV': [3, 6]}
-      },
-      'inline-reverse': {
-        help: 'Dots 1–5: R, E, C, W, Q. V supplies dots 3+6, or only dot 6 for W. U = RV; W = EWQV.',
-        keys: {'KeyR': [1], 'KeyE': [2], 'KeyC': [3], 'KeyW': [4], 'KeyQ': [5], 'KeyV': [3, 6]}
-      }
+    const INPUT_KEYS = {
+      'Numpad7': [1], 'Numpad4': [2], 'Numpad1': [3],
+      'Numpad8': [4], 'Numpad5': [5], 'Numpad2': [6]
     };
-    const INPUT_MODE_KEY = 'braille_input_mode';
-    let inputMode = localStorage.getItem(INPUT_MODE_KEY) || 'normal';
-
-    function scopedStorageKey(baseKey) {
-      return `${baseKey}_${inputMode}`;
-    }
 
     function getModeStorage(baseKey) {
-      const scopedValue = localStorage.getItem(scopedStorageKey(baseKey));
-      if (scopedValue !== null) return scopedValue;
-      return inputMode === 'normal' ? localStorage.getItem(baseKey) : null;
+      return localStorage.getItem(baseKey) ?? localStorage.getItem(`${baseKey}_normal`);
     }
 
     function setModeStorage(baseKey, value) {
-      localStorage.setItem(scopedStorageKey(baseKey), value);
+      localStorage.setItem(baseKey, value);
     }
 
     function removeModeStorage(baseKey) {
-      localStorage.removeItem(scopedStorageKey(baseKey));
-      if (inputMode === 'normal') localStorage.removeItem(baseKey);
-    }
-
-    function setInputMode(mode) {
-      inputMode = Object.prototype.hasOwnProperty.call(INPUT_MODES, mode) ? mode : 'normal';
-      localStorage.setItem(INPUT_MODE_KEY, inputMode);
-      resetChordState();
-      const picker = document.getElementById('input-mode');
-      const help = document.getElementById('input-mode-help');
-      if (picker) picker.value = inputMode;
-      if (help) help.textContent = INPUT_MODES[inputMode].help;
-      loadModeProgress();
-      renderLevelsGrid();
+      localStorage.removeItem(baseKey);
+      localStorage.removeItem(`${baseKey}_normal`);
     }
 
     function getInputDots(code) {
-      return INPUT_MODES[inputMode].keys[code] || null;
-    }
-
-    function keyLabel(code) {
-      return code.replace(/^Numpad/, '').replace(/^Key/, '');
+      return INPUT_KEYS[code] || null;
     }
 
     function keysForDots(dots) {
-      if (dots.length === 4 && dots.join(',') === '2,4,5,6') {
-        if (inputMode === 'one-hand') return ['E', 'A', 'F', 'V'];
-        if (inputMode === 'inline') return ['E', 'Q', 'R', 'V'];
-        if (inputMode === 'inline-reverse') return ['E', 'W', 'Q', 'V'];
-      }
-      const keys = [];
-      const alphabeticMode = inputMode === 'one-hand' || inputMode === 'inline' || inputMode === 'inline-reverse';
-      const vCoversThreeAndSix = alphabeticMode && dots.includes(3) && dots.includes(6);
-      dots.forEach(dot => {
-        if (vCoversThreeAndSix && dot === 3) {
-          keys.push('V');
-          return;
-        }
-        if (vCoversThreeAndSix && dot === 6) return;
-        if (alphabeticMode && dot === 6) {
-          keys.push('V');
-          return;
-        }
-        const entry = Object.entries(INPUT_MODES[inputMode].keys)
-          .find(([, mappedDots]) => mappedDots.length === 1 && mappedDots[0] === dot);
-        keys.push(entry ? keyLabel(entry[0]) : '?');
+      return dots.map(dot => {
+        const entry = Object.entries(INPUT_KEYS).find(([, mappedDots]) => mappedDots[0] === dot);
+        return entry ? entry[0].replace('Numpad', '') : '?';
       });
-      return keys;
     }
 
     // Reverse table: dot combination -> letter (derived from BRAILLE_DOTS)
@@ -803,11 +718,6 @@
     function commitChord() {
       chordTimer = null;
       if (currentChordDots.size === 0) return;
-      if ((inputMode === 'one-hand' || inputMode === 'inline' || inputMode === 'inline-reverse') &&
-          currentChordCodes.has('KeyV') && !currentChordCodes.has('KeyC') &&
-          [2, 3, 4, 5, 6].every(dot => currentChordDots.has(dot)) && currentChordDots.size === 5) {
-        currentChordDots.delete(3);
-      }
       const signature = Array.from(currentChordDots).sort((a, b) => a - b).join(',');
       currentChordDots.clear();
       currentChordCodes.clear();
@@ -1373,7 +1283,7 @@
       // Reset the hint message
       const banner = document.getElementById('hint-banner');
       banner.className = 'hint-banner';
-      banner.innerHTML = isPairMode ? 'Type the two letters of the pair in sequence' : 'Type the Braille combination from memory';
+      banner.innerHTML = isPairMode ? 'Type the two letters normally or with Braille chords' : 'Type the letter normally or use its Braille combination';
     }
 
     // Show the correct combination only after an error
@@ -1503,7 +1413,7 @@
       }
       if (!isGameActive) return;
 
-      // Accumulate the Braille chord using the selected input layout.
+      // Accumulate a Braille chord from the numeric keypad.
       if (inputDots) {
         e.preventDefault();
         if (pressedInputCodes.has(e.code)) return; // Ignore auto-repeat while the key is held.
@@ -1675,7 +1585,8 @@
     }
 
     // Initial startup
-    setInputMode(inputMode);
+    loadModeProgress();
+    renderLevelsGrid();
   </script>
 </body>
 </html>

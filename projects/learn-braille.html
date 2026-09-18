@@ -245,6 +245,17 @@
       transition: border-color 0.3s;
     }
 
+    .braille-cell.alternative {
+      grid-template-rows: repeat(5, 24px);
+    }
+
+    .braille-cell.alternative .dot[data-dot="3"] { grid-column: 1; grid-row: 1; }
+    .braille-cell.alternative .dot[data-dot="6"] { grid-column: 2; grid-row: 1; }
+    .braille-cell.alternative .dot[data-dot="1"] { grid-column: 1; grid-row: 2; }
+    .braille-cell.alternative .dot[data-dot="2"] { grid-column: 1; grid-row: 3; }
+    .braille-cell.alternative .dot[data-dot="4"] { grid-column: 1; grid-row: 4; }
+    .braille-cell.alternative .dot[data-dot="5"] { grid-column: 1; grid-row: 5; }
+
     .braille-cell.revealed {
       border-style: solid;
       border-color: var(--warning);
@@ -543,12 +554,12 @@
               <div class="dot" data-dot="3" title="Dot 3"></div>
               <div class="dot" data-dot="6" title="Dot 6"></div>
             </div>
-            <div class="braille-cell" title="Alternative Braille combination">
+            <div class="braille-cell alternative" title="Alternative Braille combination">
               <div class="dot" data-dot="3" title="Dot 3"></div>
               <div class="dot" data-dot="6" title="Dot 6"></div>
               <div class="dot" data-dot="1" title="Dot 1"></div>
-              <div class="dot" data-dot="4" title="Dot 4"></div>
               <div class="dot" data-dot="2" title="Dot 2"></div>
+              <div class="dot" data-dot="4" title="Dot 4"></div>
               <div class="dot" data-dot="5" title="Dot 5"></div>
             </div>
           </div>

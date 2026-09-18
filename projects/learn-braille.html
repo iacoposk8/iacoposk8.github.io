@@ -229,9 +229,8 @@
     /* Six-dot Braille display */
     .braille-container {
       display: flex;
-      flex-direction: column;
       align-items: center;
-      gap: 8px;
+      gap: 12px;
     }
 
     .braille-cell {
@@ -536,13 +535,21 @@
           
           <!-- Six-dot Braille pattern (hidden by default, shown after an error) -->
           <div class="braille-container">
-            <div class="braille-cell" id="braille-cell" title="Braille combination">
-              <div class="dot" id="dot-1" title="Dot 1"></div>
-              <div class="dot" id="dot-4" title="Dot 4"></div>
-              <div class="dot" id="dot-2" title="Dot 2"></div>
-              <div class="dot" id="dot-5" title="Dot 5"></div>
-              <div class="dot" id="dot-3" title="Dot 3"></div>
-              <div class="dot" id="dot-6" title="Dot 6"></div>
+            <div class="braille-cell" title="Standard Braille combination">
+              <div class="dot" data-dot="1" title="Dot 1"></div>
+              <div class="dot" data-dot="4" title="Dot 4"></div>
+              <div class="dot" data-dot="2" title="Dot 2"></div>
+              <div class="dot" data-dot="5" title="Dot 5"></div>
+              <div class="dot" data-dot="3" title="Dot 3"></div>
+              <div class="dot" data-dot="6" title="Dot 6"></div>
+            </div>
+            <div class="braille-cell" title="Alternative Braille combination">
+              <div class="dot" data-dot="3" title="Dot 3"></div>
+              <div class="dot" data-dot="6" title="Dot 6"></div>
+              <div class="dot" data-dot="1" title="Dot 1"></div>
+              <div class="dot" data-dot="4" title="Dot 4"></div>
+              <div class="dot" data-dot="2" title="Dot 2"></div>
+              <div class="dot" data-dot="5" title="Dot 5"></div>
             </div>
           </div>
         </div>
@@ -1274,11 +1281,8 @@
       document.getElementById('progress-bar').style.width = `${progressPct}%`;
 
       // Hide Braille dots (turn all dots off)
-      const cellEl = document.getElementById('braille-cell');
-      cellEl.classList.remove('revealed');
-      for (let d = 1; d <= 6; d++) {
-        document.getElementById(`dot-${d}`).classList.remove('active');
-      }
+      document.querySelectorAll('.braille-cell').forEach(cell => cell.classList.remove('revealed'));
+      document.querySelectorAll('.braille-cell .dot').forEach(dot => dot.classList.remove('active'));
 
       // Reset the hint message
       const banner = document.getElementById('hint-banner');
@@ -1290,17 +1294,11 @@
     function revealBrailleHint(targetChar, wrongChar) {
       const activeDots = BRAILLE_DOTS[targetChar] || [];
       const activeKeys = keysForDots(activeDots);
-      const cellEl = document.getElementById('braille-cell');
-      cellEl.classList.add('revealed');
+      document.querySelectorAll('.braille-cell').forEach(cell => cell.classList.add('revealed'));
 
-      for (let d = 1; d <= 6; d++) {
-        const dotEl = document.getElementById(`dot-${d}`);
-        if (activeDots.includes(d)) {
-          dotEl.classList.add('active');
-        } else {
-          dotEl.classList.remove('active');
-        }
-      }
+      document.querySelectorAll('.braille-cell .dot').forEach(dot => {
+        dot.classList.toggle('active', activeDots.includes(Number(dot.dataset.dot)));
+      });
 
       const banner = document.getElementById('hint-banner');
       banner.className = 'hint-banner error-state';

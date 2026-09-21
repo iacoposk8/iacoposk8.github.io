@@ -469,6 +469,19 @@
     .rush-leaderboard h3 { color: var(--text-main); font-size: 1rem; margin-bottom: 6px; }
     .rush-leaderboard ol { padding-left: 22px; line-height: 1.6; }
     .mode-reset { margin-top: 10px; }
+    .input-mode-picker {
+      margin-bottom: 22px;
+      padding: 16px;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid #334155;
+      border-radius: 12px;
+    }
+    .input-mode-picker label { display: block; font-weight: 800; margin-bottom: 8px; }
+    .input-mode-picker select {
+      width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #475569;
+      background: #0f172a; color: var(--text-main); font-size: 1rem;
+    }
+    .input-mode-help { color: var(--text-muted); margin-top: 8px; font-size: 0.9rem; }
 
     @media (max-width: 600px) {
       .game-card { padding: 18px; }
@@ -487,6 +500,14 @@
     
     <!-- SCHERMATA 1: MENU DEI LIVELLI -->
     <div id="view-levels">
+      <div class="input-mode-picker">
+        <label for="input-mode">Braille input mode</label>
+        <select id="input-mode" onchange="setInputMode(this.value)">
+          <option value="normal">Normal numpad</option>
+          <option value="reverse">Upside-down numpad</option>
+        </select>
+        <div class="input-mode-help" id="input-mode-help"></div>
+      </div>
       <div class="mode-card">
         <h2>⚡ Time Challenge</h2>
         <p>Write a complete sentence as fast as possible.</p>
@@ -652,10 +673,18 @@
       'z': [1, 3, 5, 6]
     };
 
-    const INPUT_KEYS = {
-      'Numpad7': [1], 'Numpad4': [2], 'Numpad1': [3],
-      'Numpad8': [4], 'Numpad5': [5], 'Numpad2': [6]
+    const INPUT_MODES = {
+      normal: {
+        help: 'Dots 1–6: 7, 4, 1, 8, 5, 2.',
+        keys: {'Numpad7': [1], 'Numpad4': [2], 'Numpad1': [3], 'Numpad8': [4], 'Numpad5': [5], 'Numpad2': [6]}
+      },
+      reverse: {
+        help: 'Upside-down keypad. Dots 1–6: 1, 4, 7, 2, 5, 8.',
+        keys: {'Numpad1': [1], 'Numpad4': [2], 'Numpad7': [3], 'Numpad2': [4], 'Numpad5': [5], 'Numpad8': [6]}
+      }
     };
+    const INPUT_MODE_KEY = 'braille_input_mode';
+    let inputMode = localStorage.getItem(INPUT_MODE_KEY) || 'normal';
 
     function getModeStorage(baseKey) {
       return localStorage.getItem(baseKey) ?? localStorage.getItem(`${baseKey}_normal`);
@@ -670,13 +699,21 @@
       localStorage.removeItem(`${baseKey}_normal`);
     }
 
+    function setInputMode(mode) {
+      inputMode = Object.prototype.hasOwnProperty.call(INPUT_MODES, mode) ? mode : 'normal';
+      localStorage.setItem(INPUT_MODE_KEY, inputMode);
+      resetChordState();
+      document.getElementById('input-mode').value = inputMode;
+      document.getElementById('input-mode-help').textContent = INPUT_MODES[inputMode].help;
+    }
+
     function getInputDots(code) {
-      return INPUT_KEYS[code] || null;
+      return INPUT_MODES[inputMode].keys[code] || null;
     }
 
     function keysForDots(dots) {
       return dots.map(dot => {
-        const entry = Object.entries(INPUT_KEYS).find(([, mappedDots]) => mappedDots[0] === dot);
+        const entry = Object.entries(INPUT_MODES[inputMode].keys).find(([, mappedDots]) => mappedDots[0] === dot);
         return entry ? entry[0].replace('Numpad', '') : '?';
       });
     }
@@ -1596,6 +1633,7 @@
     // Initial startup
     loadModeProgress();
     renderLevelsGrid();
+    setInputMode(inputMode);
   </script>
 </body>
 </html>

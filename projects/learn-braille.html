@@ -245,17 +245,6 @@
       transition: border-color 0.3s;
     }
 
-    .braille-cell.alternative {
-      grid-template-rows: repeat(5, 24px);
-    }
-
-    .braille-cell.alternative .dot[data-dot="3"] { grid-column: 1; grid-row: 1; }
-    .braille-cell.alternative .dot[data-dot="6"] { grid-column: 2; grid-row: 1; }
-    .braille-cell.alternative .dot[data-dot="1"] { grid-column: 1; grid-row: 2; }
-    .braille-cell.alternative .dot[data-dot="2"] { grid-column: 1; grid-row: 3; }
-    .braille-cell.alternative .dot[data-dot="4"] { grid-column: 1; grid-row: 4; }
-    .braille-cell.alternative .dot[data-dot="5"] { grid-column: 1; grid-row: 5; }
-
     .braille-cell.revealed {
       border-style: solid;
       border-color: var(--warning);
@@ -469,20 +458,6 @@
     .rush-leaderboard h3 { color: var(--text-main); font-size: 1rem; margin-bottom: 6px; }
     .rush-leaderboard ol { padding-left: 22px; line-height: 1.6; }
     .mode-reset { margin-top: 10px; }
-    .input-mode-picker {
-      margin-bottom: 22px;
-      padding: 16px;
-      background: rgba(15, 23, 42, 0.7);
-      border: 1px solid #334155;
-      border-radius: 12px;
-    }
-    .input-mode-picker label { display: block; font-weight: 800; margin-bottom: 8px; }
-    .input-mode-picker select {
-      width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #475569;
-      background: #0f172a; color: var(--text-main); font-size: 1rem;
-    }
-    .input-mode-help { color: var(--text-muted); margin-top: 8px; font-size: 0.9rem; }
-
     @media (max-width: 600px) {
       .game-card { padding: 18px; }
       .phrase-target { font-size: 1.1rem; padding: 14px; }
@@ -500,14 +475,6 @@
     
     <!-- SCHERMATA 1: MENU DEI LIVELLI -->
     <div id="view-levels">
-      <div class="input-mode-picker">
-        <label for="input-mode">Braille input mode</label>
-        <select id="input-mode" onchange="setInputMode(this.value)">
-          <option value="normal">Normal numpad</option>
-          <option value="reverse">Upside-down numpad</option>
-        </select>
-        <div class="input-mode-help" id="input-mode-help"></div>
-      </div>
       <div class="mode-card">
         <h2>⚡ Time Challenge</h2>
         <p>Write a complete sentence as fast as possible.</p>
@@ -567,21 +534,13 @@
           
           <!-- Six-dot Braille pattern (hidden by default, shown after an error) -->
           <div class="braille-container">
-            <div class="braille-cell" title="Standard Braille combination">
+            <div class="braille-cell" title="Braille combination">
               <div class="dot" data-dot="1" title="Dot 1"></div>
               <div class="dot" data-dot="4" title="Dot 4"></div>
               <div class="dot" data-dot="2" title="Dot 2"></div>
               <div class="dot" data-dot="5" title="Dot 5"></div>
               <div class="dot" data-dot="3" title="Dot 3"></div>
               <div class="dot" data-dot="6" title="Dot 6"></div>
-            </div>
-            <div class="braille-cell alternative" title="Alternative Braille combination">
-              <div class="dot" data-dot="3" title="Dot 3"></div>
-              <div class="dot" data-dot="6" title="Dot 6"></div>
-              <div class="dot" data-dot="1" title="Dot 1"></div>
-              <div class="dot" data-dot="2" title="Dot 2"></div>
-              <div class="dot" data-dot="4" title="Dot 4"></div>
-              <div class="dot" data-dot="5" title="Dot 5"></div>
             </div>
           </div>
         </div>
@@ -673,18 +632,10 @@
       'z': [1, 3, 5, 6]
     };
 
-    const INPUT_MODES = {
-      normal: {
-        help: 'Dots 1–6: 7, 4, 1, 8, 5, 2.',
-        keys: {'Numpad7': [1], 'Numpad4': [2], 'Numpad1': [3], 'Numpad8': [4], 'Numpad5': [5], 'Numpad2': [6]}
-      },
-      reverse: {
-        help: 'Upside-down keypad. Dots 1–6: 1, 4, 7, 2, 5, 8.',
-        keys: {'Numpad1': [1], 'Numpad4': [2], 'Numpad7': [3], 'Numpad2': [4], 'Numpad5': [5], 'Numpad8': [6]}
-      }
+    const INPUT_KEYS = {
+      'Numpad7': [1], 'Numpad4': [2], 'Numpad1': [3],
+      'Numpad8': [4], 'Numpad5': [5], 'Numpad2': [6]
     };
-    const INPUT_MODE_KEY = 'braille_input_mode';
-    let inputMode = localStorage.getItem(INPUT_MODE_KEY) || 'normal';
 
     function getModeStorage(baseKey) {
       return localStorage.getItem(baseKey) ?? localStorage.getItem(`${baseKey}_normal`);
@@ -699,21 +650,13 @@
       localStorage.removeItem(`${baseKey}_normal`);
     }
 
-    function setInputMode(mode) {
-      inputMode = Object.prototype.hasOwnProperty.call(INPUT_MODES, mode) ? mode : 'normal';
-      localStorage.setItem(INPUT_MODE_KEY, inputMode);
-      resetChordState();
-      document.getElementById('input-mode').value = inputMode;
-      document.getElementById('input-mode-help').textContent = INPUT_MODES[inputMode].help;
-    }
-
     function getInputDots(code) {
-      return INPUT_MODES[inputMode].keys[code] || null;
+      return INPUT_KEYS[code] || null;
     }
 
     function keysForDots(dots) {
       return dots.map(dot => {
-        const entry = Object.entries(INPUT_MODES[inputMode].keys).find(([, mappedDots]) => mappedDots[0] === dot);
+        const entry = Object.entries(INPUT_KEYS).find(([, mappedDots]) => mappedDots[0] === dot);
         return entry ? entry[0].replace('Numpad', '') : '?';
       });
     }
@@ -734,6 +677,8 @@
     const PHRASE_RECORD_KEY = 'braille_phrase_record_ms';
     const PAIR_MAX_UNLOCKED_KEY = 'braille_pair_max_unlocked';
     const PAIR_COMPLETED_KEY = 'braille_pair_completed';
+    const LETTER_STARS_KEY = 'braille_level_stars';
+    const PAIR_STARS_KEY = 'braille_pair_level_stars';
     const PHRASES = [
       'the moon lights up the silent forest',
       'the wind gently moves the green leaves',
@@ -799,8 +744,10 @@
     // Saved state
     let maxUnlockedLevel = 1;
     let completedLevels = [];
+    let levelStars = {};
     let pairMaxUnlockedLevel = 1;
     let pairCompletedLevels = [];
+    let pairLevelStars = {};
 
     let currentLevel = 1;
     let currentStep = 0;
@@ -833,8 +780,12 @@
     function loadModeProgress() {
       maxUnlockedLevel = parseInt(getModeStorage('braille_max_unlocked') || '1', 10);
       completedLevels = JSON.parse(getModeStorage('braille_completed') || '[]');
+      levelStars = JSON.parse(getModeStorage(LETTER_STARS_KEY) || '{}');
+      completedLevels.forEach(level => { if (!levelStars[level]) levelStars[level] = 3; });
       pairMaxUnlockedLevel = parseInt(getModeStorage(PAIR_MAX_UNLOCKED_KEY) || '1', 10);
       pairCompletedLevels = JSON.parse(getModeStorage(PAIR_COMPLETED_KEY) || '[]');
+      pairLevelStars = JSON.parse(getModeStorage(PAIR_STARS_KEY) || '{}');
+      pairCompletedLevels.forEach(level => { if (!pairLevelStars[level]) pairLevelStars[level] = 3; });
       rushMistakes = getRushMistakes();
     }
 
@@ -911,16 +862,16 @@
 
       for (let i = 1; i <= 26; i++) {
         const isUnlocked = i <= maxUnlockedLevel;
-        const isCompleted = completedLevels.includes(i);
+        const stars = Number(levelStars[i] || 0);
         const letter = ALPHABET[i - 1].toUpperCase();
 
         const card = document.createElement('div');
-        card.className = `level-card ${isUnlocked ? 'unlocked' : 'locked'} ${isCompleted ? 'completed' : ''}`;
-        
+        card.className = `level-card ${isUnlocked ? 'unlocked' : 'locked'} ${stars ? 'completed' : ''}`;
+        const starDisplay = stars ? `<span class="star-icon">${'⭐'.repeat(stars)}</span>` : '';
         card.innerHTML = `
-          <div class="level-number">Lvl ${i} ${isCompleted ? '<span class="star-icon">⭐</span>' : ''}</div>
+          <div class="level-number">Lvl ${i} ${starDisplay}</div>
           <div class="level-letter">${letter}</div>
-          <div class="level-status">${isUnlocked ? (isCompleted ? 'Perfect' : 'Unlocked') : '🔒 Locked'}</div>
+          <div class="level-status">${isUnlocked ? (stars ? `${stars}/3 stars` : 'Unlocked') : '🔒 Locked'}</div>
         `;
 
         if (isUnlocked) {
@@ -931,14 +882,15 @@
 
       for (let i = 1; i <= 26; i++) {
         const isUnlocked = i <= pairMaxUnlockedLevel;
-        const isCompleted = pairCompletedLevels.includes(i);
+        const stars = Number(pairLevelStars[i] || 0);
         const letter = ALPHABET[i - 1].toUpperCase();
         const card = document.createElement('div');
-        card.className = `level-card ${isUnlocked ? 'unlocked' : 'locked'} ${isCompleted ? 'completed' : ''}`;
+        card.className = `level-card ${isUnlocked ? 'unlocked' : 'locked'} ${stars ? 'completed' : ''}`;
+        const starDisplay = stars ? `<span class="star-icon">${'⭐'.repeat(stars)}</span>` : '';
         card.innerHTML = `
-          <div class="level-number">Lvl ${i} ${isCompleted ? '<span class="star-icon">⭐</span>' : ''}</div>
+          <div class="level-number">Lvl ${i} ${starDisplay}</div>
           <div class="level-letter">${letter}</div>
-          <div class="level-status">${isUnlocked ? (isCompleted ? 'Perfect' : 'Unlocked') : '🔒 Locked'}</div>
+          <div class="level-status">${isUnlocked ? (stars ? `${stars}/3 stars` : 'Unlocked') : '🔒 Locked'}</div>
         `;
         if (isUnlocked) card.onclick = () => startPairLevel(i);
         pairContainer.appendChild(card);
@@ -1500,46 +1452,37 @@
 
       modal.style.display = 'flex';
 
-      if (errorsCount === 0) {
-        // PERFECT (0 ERRORS)
-        playSound('win');
-        icon.innerText = '🌟';
-        title.innerText = 'PERFETTO! 30/30';
-        
-        const completed = isPairMode ? pairCompletedLevels : completedLevels;
-        if (!completed.includes(currentLevel)) {
-          completed.push(currentLevel);
-          setModeStorage(isPairMode ? PAIR_COMPLETED_KEY : 'braille_completed', JSON.stringify(completed));
-        }
+      const earnedStars = errorsCount === 0 ? 3 : errorsCount <= 3 ? 2 : 1;
+      const stars = isPairMode ? pairLevelStars : levelStars;
+      stars[currentLevel] = Math.max(Number(stars[currentLevel] || 0), earnedStars);
+      setModeStorage(isPairMode ? PAIR_STARS_KEY : LETTER_STARS_KEY, JSON.stringify(stars));
 
-        if (currentLevel < 26) {
-          const maxLevel = isPairMode ? pairMaxUnlockedLevel : maxUnlockedLevel;
-          if (currentLevel === maxLevel) {
-            if (isPairMode) {
-              pairMaxUnlockedLevel++;
-              setModeStorage(PAIR_MAX_UNLOCKED_KEY, pairMaxUnlockedLevel);
-            } else {
-              maxUnlockedLevel++;
-              setModeStorage('braille_max_unlocked', maxUnlockedLevel);
-            }
+      playSound('win');
+      icon.innerText = '⭐'.repeat(earnedStars);
+      title.innerText = earnedStars === 3 ? 'Perfect!' : 'Level Complete!';
+
+      if (currentLevel < 26) {
+        const maxLevel = isPairMode ? pairMaxUnlockedLevel : maxUnlockedLevel;
+        if (currentLevel === maxLevel) {
+          if (isPairMode) {
+            pairMaxUnlockedLevel++;
+            setModeStorage(PAIR_MAX_UNLOCKED_KEY, pairMaxUnlockedLevel);
+          } else {
+            maxUnlockedLevel++;
+            setModeStorage('braille_max_unlocked', maxUnlockedLevel);
           }
-          msg.innerText = `No errors! Level ${currentLevel + 1} (${ALPHABET[currentLevel].toUpperCase()}) has been unlocked in ${isPairMode ? 'pair' : 'letter'} mode!`;
-          actions.innerHTML = `
-            <button class="btn" onclick="closeModalAndMenu()">Menu</button>
-            <button class="btn btn-primary" onclick="startNextLevel()">Next Level →</button>
-          `;
-        } else {
-          msg.innerText = `CONGRATULATIONS! You completed all ${isPairMode ? 'pair' : 'Braille alphabet'} levels like a master!`;
-          actions.innerHTML = `<button class="btn btn-primary" onclick="closeModalAndMenu()">Back to Menu</button>`;
         }
-      } else {
-        // NOT PERFECT
-        icon.innerText = '❌';
-        title.innerText = 'Not Perfect!';
-        msg.innerText = `You made ${errorsCount} ${errorsCount === 1 ? 'error' : 'errors'}. To unlock the next level, you must complete all 30 characters without any mistakes.`;
+        msg.innerText = `${earnedStars}/3 stars with ${errorsCount} ${errorsCount === 1 ? 'error' : 'errors'}. Level ${currentLevel + 1} (${ALPHABET[currentLevel].toUpperCase()}) is unlocked!`;
         actions.innerHTML = `
-          <button class="btn" onclick="closeModalAndMenu()">Level Menu</button>
-          <button class="btn btn-primary" onclick="retryLevel()">Retry Level</button>
+          <button class="btn" onclick="closeModalAndMenu()">Menu</button>
+          <button class="btn" onclick="retryLevel()">Retry</button>
+          <button class="btn btn-primary" onclick="startNextLevel()">Next Level →</button>
+        `;
+      } else {
+        msg.innerText = `${earnedStars}/3 stars with ${errorsCount} ${errorsCount === 1 ? 'error' : 'errors'}. You completed all ${isPairMode ? 'pair' : 'Braille alphabet'} levels!`;
+        actions.innerHTML = `
+          <button class="btn" onclick="retryLevel()">Retry</button>
+          <button class="btn btn-primary" onclick="closeModalAndMenu()">Back to Menu</button>
         `;
       }
     }
@@ -1588,13 +1531,17 @@
          removeModeStorage('braille_completed');
          removeModeStorage(PAIR_MAX_UNLOCKED_KEY);
          removeModeStorage(PAIR_COMPLETED_KEY);
+         removeModeStorage(LETTER_STARS_KEY);
+         removeModeStorage(PAIR_STARS_KEY);
         removeModeStorage(PHRASE_RECORD_KEY);
          removeModeStorage(RUSH_RECORD_KEY);
          removeModeStorage(RUSH_MISTAKES_KEY);
          maxUnlockedLevel = 1;
          completedLevels = [];
+         levelStars = {};
          pairMaxUnlockedLevel = 1;
          pairCompletedLevels = [];
+         pairLevelStars = {};
         renderLevelsGrid();
       }
     }
@@ -1616,8 +1563,10 @@
       if (!confirm('Reset all Letter Levels progress?')) return;
       removeModeStorage('braille_max_unlocked');
       removeModeStorage('braille_completed');
+      removeModeStorage(LETTER_STARS_KEY);
       maxUnlockedLevel = 1;
       completedLevels = [];
+      levelStars = {};
       renderLevelsGrid();
     }
 
@@ -1625,15 +1574,16 @@
       if (!confirm('Reset all Braille Pairs progress?')) return;
       removeModeStorage(PAIR_MAX_UNLOCKED_KEY);
       removeModeStorage(PAIR_COMPLETED_KEY);
+      removeModeStorage(PAIR_STARS_KEY);
       pairMaxUnlockedLevel = 1;
       pairCompletedLevels = [];
+      pairLevelStars = {};
       renderLevelsGrid();
     }
 
     // Initial startup
     loadModeProgress();
     renderLevelsGrid();
-    setInputMode(inputMode);
   </script>
 </body>
 </html>

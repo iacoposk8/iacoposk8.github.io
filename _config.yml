@@ -1,6 +1,8 @@
 # Site settings
 title: Iacopo Guarneri
 email: iacopo.guarneri@gmail.com
+url: "https://iacoposk8.github.io"
+baseurl: ""
 description: > # this means to ignore newlines until "baseurl:"
 
 # Build settings

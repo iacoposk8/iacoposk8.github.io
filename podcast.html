@@ -616,14 +616,14 @@ function popupPLayer(id, params) {
 	const imgInDesc = imgBase && item.description && item.description.includes(imgBase);
 	$(".audioImage").toggle(!isYoutube && !imgInDesc);
 
-	if (isYoutube)
-		item.description += `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${item.url}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
-
 	$("#audioDescription").html('Pubblicazione: ' + item.pubdate + '<br />' + item.description);
 	if (params && params.open == 1) $("#popup-player").modal("show");
 }
 
-function togglePlay(id, bookmark) {
+function togglePlay(id, bookmark, startedByPlayButton) {
+	if (startedByPlayButton === true) player.startedByPlayId = id;
+	else if (player.startedByPlayId !== id) player.startedByPlayId = null;
+
 	if (player.id != id || typeof bookmark !== "undefined") {
 		player.id = id;
 		$("#playerBar .playPauseBtn").data("id", id);
@@ -782,7 +782,9 @@ setInterval(function() {
 	} catch(e) { return; }
 	if (ct == last_currentTime) return;
 	last_currentTime = ct;
-	if (player.id) updateEpisode(player.id, 'audio_time', Math.floor(ct));
+	// Salva solo il contenuto avviato esplicitamente dal suo pulsante blu Play.
+	if (player.id && player.startedByPlayId === player.id)
+		updateEpisode(player.id, 'audio_time', Math.floor(ct));
 	analizzaFrequenzaParole(ct);
 }, 5000);
 
@@ -916,7 +918,7 @@ $(document).delegate(".view-btn", "click", function() {
 });
 
 // Play/Pause buttons
-$(".playPauseBtn").click(function() { togglePlay($(this).data("id")); });
+$(".playPauseBtn").click(function() { togglePlay($(this).data("id"), undefined, true); });
 
 // Prev/Next episode
 let isLoadingMore = false;

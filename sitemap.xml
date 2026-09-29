@@ -3,9 +3,8 @@ layout: null
 ---
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  {% assign html_pages = site.pages | where: "output_ext", ".html" %}
-  {% for page in html_pages %}
-    {% unless page.sitemap == false %}
+  {% for page in site.pages %}
+    {% unless page.sitemap == false or page.url == "/sitemap.xml" %}
   <url>
     <loc>{{ page.url | absolute_url | xml_escape }}</loc>
     {% if page.last_modified_at or page.date %}<lastmod>{{ page.last_modified_at | default: page.date | date_to_xmlschema }}</lastmod>{% endif %}

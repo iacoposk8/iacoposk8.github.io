@@ -636,6 +636,7 @@ function togglePlay(id, bookmark, startedByPlayButton) {
 		if (item.url.indexOf("http") == -1 && item.url.indexOf("static/") == -1) {
 			player.type = "youtube";
 			const startAt = typeof bookmark !== "undefined" ? parseInt(bookmark) : parseInt(item.audio_time);
+			let initialSeekPending = startAt > 0;
 			player.obj = new YT.Player('player_yt', {
 				width: '100%', videoId: item.url,
 				playerVars: { controls: 0, showinfo: 0, rel: 0, modestbranding: 0, start: startAt },
@@ -647,6 +648,13 @@ function togglePlay(id, bookmark, startedByPlayButton) {
 					'onStateChange': function(e) {
 						player.status = e.data;
 						$("#currentStatus").html(yotubeStatus(player.status));
+						// Le registrazioni delle dirette possono ignorare il seek in onReady:
+						// lo ripetiamo una sola volta quando il video e' davvero in riproduzione.
+						if (e.data == YT.PlayerState.PLAYING && initialSeekPending) {
+							initialSeekPending = false;
+							if (Math.abs(e.target.getCurrentTime() - startAt) > 2)
+								e.target.seekTo(startAt, true);
+						}
 						updateProgressBar();
 						if (e.data == YT.PlayerState.ENDED) episode_end();
 					}

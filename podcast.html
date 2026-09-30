@@ -709,6 +709,9 @@ function togglePlay(id, bookmark, startedByPlayButton) {
 		}
 
 		saveSetting('last_episode', player.id);
+		// Il nuovo elemento audio/video deve partire al primo click anche se l'icona
+		// era rimasta su Pausa dall'episodio riprodotto in precedenza.
+		$(".playPauseIcon").removeClass("fa-pause").addClass("fa-play");
 	}
 
 	const icon = $(".playPauseIcon");

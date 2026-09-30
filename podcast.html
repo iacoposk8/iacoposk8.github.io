@@ -734,22 +734,20 @@ function episode_end() {
 	items[index_array_episode].audio_time = 0;
 	items[index_array_episode].complete = 1;
 
-	updateEpisode(player.id, 'complete', 1).then(async function() {
+	// Avvia subito il suono: aspettare l'UPDATE e una seconda query Supabase puo' far
+	// perdere al browser l'autorizzazione alla riproduzione automatica appena terminata.
+	try {
+		const urls = JSON.parse(settings['flashcard_urls'] || '[]');
+		if (urls.length) {
+			const rand = new Audio(urls[Math.floor(Math.random() * urls.length)]);
+			rand.playbackRate = 1.75;
+			rand.play().catch(e => console.warn("End sound play() error:", e));
+		}
+	} catch(e) { console.warn("Invalid flashcard_urls setting:", e); }
+
+	updateEpisode(player.id, 'complete', 1).then(function() {
 		if ($("#episode_" + player.id + " .episode-title .episode-complete").length == 0)
 			$("#episode_" + player.id + " .episode-title").prepend(complete_template);
-
-		// Suono casuale da Flashcards/Reminder
-		const { data } = await sb.from('settings').select('value').eq('setting', 'flashcard_urls').maybeSingle();
-		if (data && data.value) {
-			try {
-				const urls = JSON.parse(data.value);
-				if (urls.length) {
-					const rand = new Audio(urls[Math.floor(Math.random() * urls.length)]);
-					rand.playbackRate = 1.75;
-					rand.play();
-				}
-			} catch(e) {}
-		}
 	});
 
 	updateEpisode(player.id, 'audio_time', 0);

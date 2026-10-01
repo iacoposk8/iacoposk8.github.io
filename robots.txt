@@ -1,4 +1,4 @@
-Sitemap: https://iacoposk8.github.io/sitemap-static.xml
+Sitemap: https://iacoposk8.github.io/sitemap.txt
 
 User-agent: *
 Disallow:

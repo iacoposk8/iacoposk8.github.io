@@ -616,7 +616,10 @@ function popupPLayer(id, params) {
 	const imgInDesc = imgBase && item.description && item.description.includes(imgBase);
 	$(".audioImage").toggle(!isYoutube && !imgInDesc);
 
-	$("#audioDescription").html('Pubblicazione: ' + item.pubdate + '<br />' + item.description);
+	const youtubePreview = isYoutube
+		? `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${item.url}?autoplay=0&playsinline=1" title="YouTube video player" frameborder="0" allow="clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`
+		: '';
+	$("#audioDescription").html('Pubblicazione: ' + item.pubdate + '<br />' + item.description + youtubePreview);
 	if (params && params.open == 1) $("#popup-player").modal("show");
 }
 

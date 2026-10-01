@@ -1,24 +1,43 @@
----
-layout: null
----
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  {% for page in site.pages %}
-    {% assign source_extension = page.path | split: "." | last %}
-    {% if source_extension == "html" or source_extension == "md" %}
-      {% unless page.sitemap == false %}
-  <url>
-    <loc>{{ page.url | absolute_url | xml_escape }}</loc>
-    {% if page.last_modified_at or page.date %}<lastmod>{{ page.last_modified_at | default: page.date | date_to_xmlschema }}</lastmod>{% endif %}
-  </url>
-      {% endunless %}
-    {% endif %}
-  {% endfor %}
-  {% for file in site.static_files %}
-    {% if file.extname == ".html" %}
-  <url>
-    <loc>{{ file.path | absolute_url | xml_escape }}</loc>
-  </url>
-    {% endif %}
-  {% endfor %}
+  <url><loc>https://iacoposk8.github.io/projects/learn-language/</loc></url>
+  <url><loc>https://iacoposk8.github.io/projects/rainier-days/</loc></url>
+  <url><loc>https://iacoposk8.github.io/projects/vegetable_garden/</loc></url>
+  <url><loc>https://iacoposk8.github.io/projects/optimizeFunction/</loc></url>
+  <url><loc>https://iacoposk8.github.io/projects/public-spending/</loc></url>
+  <url><loc>https://iacoposk8.github.io/projects/metodo_croce/</loc></url>
+  <url><loc>https://iacoposk8.github.io/projects/apple/</loc></url>
+  <url><loc>https://iacoposk8.github.io/projects/virtual-reality-treadmill/</loc></url>
+  <url><loc>https://iacoposk8.github.io/projects/html-canvas-animation/</loc></url>
+  <url><loc>https://iacoposk8.github.io/projects/WGI/</loc></url>
+  <url><loc>https://iacoposk8.github.io/projects/joomla-extensions/</loc></url>
+  <url><loc>https://iacoposk8.github.io/projects/random_midi_generator/</loc></url>
+  <url><loc>https://iacoposk8.github.io/projects/best-country/</loc></url>
+  <url><loc>https://iacoposk8.github.io/projects/vo2max/</loc></url>
+  <url><loc>https://iacoposk8.github.io/projects/cnc-calculator/</loc></url>
+  <url><loc>https://iacoposk8.github.io/projects/jquey-native-js/</loc></url>
+  <url><loc>https://iacoposk8.github.io/</loc></url>
+  <url><loc>https://iacoposk8.github.io/silent-games/</loc></url>
+  <url><loc>https://iacoposk8.github.io/projects/nostro-mondo/</loc></url>
+  <url><loc>https://iacoposk8.github.io/projects/normal-map-generator/</loc></url>
+  <url><loc>https://iacoposk8.github.io/projects/random-map-tile-generator/</loc></url>
+  <url><loc>https://iacoposk8.github.io/projects/ebook-to-covers-library/</loc></url>
+  <url><loc>https://iacoposk8.github.io/projects/langchain/</loc></url>
+  <url><loc>https://iacoposk8.github.io/my-favorites.html</loc></url>
+  <url><loc>https://iacoposk8.github.io/projects.html</loc></url>
+  <url><loc>https://iacoposk8.github.io/sports.html</loc></url>
+  <url><loc>https://iacoposk8.github.io/app-privacy/pickpic-privacy.html</loc></url>
+  <url><loc>https://iacoposk8.github.io/dieta.html</loc></url>
+  <url><loc>https://iacoposk8.github.io/meteo.html</loc></url>
+  <url><loc>https://iacoposk8.github.io/podcast.html</loc></url>
+  <url><loc>https://iacoposk8.github.io/projects/WGI/graph.html</loc></url>
+  <url><loc>https://iacoposk8.github.io/projects/dragonball-age.html</loc></url>
+  <url><loc>https://iacoposk8.github.io/projects/html-canvas-animation/test.html</loc></url>
+  <url><loc>https://iacoposk8.github.io/projects/joomla-extensions/extensions/empty-template10/index.html</loc></url>
+  <url><loc>https://iacoposk8.github.io/projects/learn-braille.html</loc></url>
+  <url><loc>https://iacoposk8.github.io/projects/public-spending/graph.html</loc></url>
+  <url><loc>https://iacoposk8.github.io/silent-games/combact.html</loc></url>
+  <url><loc>https://iacoposk8.github.io/silent-games/maze.html</loc></url>
+  <url><loc>https://iacoposk8.github.io/silent-games/path.html</loc></url>
+  <url><loc>https://iacoposk8.github.io/workout-inside/index.html</loc></url>
 </urlset>

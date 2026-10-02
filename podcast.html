@@ -600,7 +600,10 @@ function popupPLayer(id, params) {
 	}
 	$(".container-cats").html('<div class="row">' + cats + '</div>');
 	$("#popup-player .playPauseBtn").data("id", id);
-	$(".audioTitle").html(`<a href="${item.url}" target="_blank">${item.title}${titleSuffix(item)}</a>`);
+	const episodeUrl = item.url.indexOf("http") == -1 && item.url.indexOf("static/") == -1
+		? `https://www.youtube.com/watch?v=${item.url}`
+		: item.url;
+	$(".audioTitle").html(`<a href="${episodeUrl}" target="_blank">${item.title}${titleSuffix(item)}</a>`);
 	renderChannelTitleWithRemaining(item);
 	// Il numero mostrato subito e' quello dell'ultimo refresh: puo' essere invecchiato
 	// (altri episodi caricati dal cron, letture da un'altra sessione). Lo si ricalcola
@@ -616,7 +619,10 @@ function popupPLayer(id, params) {
 	const imgInDesc = imgBase && item.description && item.description.includes(imgBase);
 	$(".audioImage").toggle(!isYoutube && !imgInDesc);
 
-	const youtubePreview = isYoutube
+	// YouTube non espone nel browser un dato affidabile per distinguere una live
+	// registrata da un video normale senza API key. Come fallback, non precarichiamo
+	// l'anteprima per WesaChannel; il video compare nel player solo premendo Play.
+	const youtubePreview = isYoutube && item.id_channel != 92
 		? `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${item.url}?autoplay=0&playsinline=1" title="YouTube video player" frameborder="0" allow="clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`
 		: '';
 	$("#audioDescription").html('Pubblicazione: ' + item.pubdate + '<br />' + item.description + youtubePreview);

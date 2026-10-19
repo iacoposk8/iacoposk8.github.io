@@ -246,6 +246,7 @@
 		</div>
 	</div>
 	<div id="currentStatus" class="mt-2"></div>
+	<div id="flashcard-status" role="status" class="mt-2"></div>
 	<div id="speedGroup" class="btn-group mt-3 playback-speed" role="group">
 		<button id="currentSpeedDisplay" class="speed-btn btn btn-light" disabled>1.0x</button>
 		<button class="speed-btn btn btn-light" data-speed="-">-</button>
@@ -636,6 +637,13 @@ function popupPLayer(id, params) {
 }
 
 function togglePlay(id, bookmark, startedByPlayButton) {
+	stopFlashcard();
+	// Inizializza la sintesi durante il gesto utente, non dopo la fine del video.
+	if (startedByPlayButton === true && 'speechSynthesis' in window) {
+		const warmup = new SpeechSynthesisUtterance('');
+		warmup.lang = 'it-IT';
+		window.speechSynthesis.speak(warmup);
+	}
 	if (startedByPlayButton === true) player.startedByPlayId = id;
 	else if (player.startedByPlayId !== id) player.startedByPlayId = null;
 
@@ -752,16 +760,8 @@ function episode_end() {
 	items[index_array_episode].audio_time = 0;
 	items[index_array_episode].complete = 1;
 
-	// Avvia subito il suono: aspettare l'UPDATE e una seconda query Supabase puo' far
-	// perdere al browser l'autorizzazione alla riproduzione automatica appena terminata.
-	try {
-		const urls = JSON.parse(settings['flashcard_urls'] || '[]');
-		if (urls.length) {
-			const rand = new Audio(urls[Math.floor(Math.random() * urls.length)]);
-			rand.playbackRate = 1.75;
-			rand.play().catch(e => console.warn("End sound play() error:", e));
-		}
-	} catch(e) { console.warn("Invalid flashcard_urls setting:", e); }
+	// Testi gia' caricati all'accesso: nessuna richiesta di rete prima di parlare.
+	readRandomFlashcard();
 
 	updateEpisode(player.id, 'complete', 1).then(function() {
 		if ($("#episode_" + player.id + " .episode-title .episode-complete").length == 0)
@@ -815,6 +815,58 @@ setInterval(function() {
 // ══════════════════════════════════════════════════════════
 // TTS — Web Speech API
 // ══════════════════════════════════════════════════════════
+var flashcardUtterance = null;
+var flashcardRun = 0;
+
+function stopFlashcard() {
+	flashcardRun++;
+	if (flashcardUtterance && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+	flashcardUtterance = null;
+	$('#flashcard-status').text('');
+}
+
+function readRandomFlashcard() {
+	stopFlashcard();
+	try {
+		if (!('speechSynthesis' in window)) throw new Error('TTS non supportato dal browser');
+		const texts = JSON.parse(settings['flashcard_texts'] || '[]');
+		if (!Array.isArray(texts)) throw new Error('Elenco flashcard non valido');
+		const cards = texts.filter(t => typeof t === 'string' && t.trim());
+		if (!cards.length) throw new Error('Nessun testo flashcard sincronizzato');
+		const text = cards[Math.floor(Math.random() * cards.length)];
+		// Frammenti brevi evitano il blocco di Chrome su letture lunghe.
+		const chunks = text.match(/.{1,180}(?:\s|$)|\S{1,180}/gs) || [text];
+		const run = flashcardRun;
+		let index = 0;
+		window.speechSynthesis.cancel();
+		window.speechSynthesis.resume();
+		function speakNext() {
+			if (run !== flashcardRun) return;
+			if (index === chunks.length) { stopFlashcard(); return; }
+			flashcardUtterance = new SpeechSynthesisUtterance(chunks[index++]);
+			flashcardUtterance.lang = 'it-IT';
+			flashcardUtterance.rate = 1.5;
+			const voice = window.speechSynthesis.getVoices().find(v => /^it[-_]/i.test(v.lang));
+			if (voice) flashcardUtterance.voice = voice;
+			flashcardUtterance.onend = speakNext;
+			flashcardUtterance.onerror = function(e) {
+				if (run !== flashcardRun) return;
+				console.warn('Flashcard TTS:', e.error);
+				stopFlashcard();
+				$('#flashcard-status').text('Flashcard non letta: ' + e.error);
+			};
+			window.speechSynthesis.speak(flashcardUtterance);
+		}
+		$('#flashcard-status').text('Lettura flashcard… ').append(
+			$('<button type="button" class="btn btn-secondary btn-sm">Stop</button>').on('click', stopFlashcard)
+		);
+		speakNext();
+	} catch(e) {
+		console.warn('Flashcard TTS:', e);
+		$('#flashcard-status').text(e.message);
+	}
+}
+
 var ttsUtterance = null;
 var ttsSpeed = 1.5;
 

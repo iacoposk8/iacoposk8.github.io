@@ -1585,5 +1585,150 @@
     loadModeProgress();
     renderLevelsGrid();
   </script>
+<script>
+// These games consume letters from a hardware keyboard, never raw Braille dots.
+(() => {
+  const alphabet = 'abcdefghijklmnopqrstuvwxyz';
+  const key = 'braille-hardware-games-v1';
+  let saved;
+  try { saved = JSON.parse(localStorage.getItem(key)) || {}; } catch { saved = {}; }
+  let game = null, timer = null;
+  const menu = document.getElementById('view-levels');
+  const cards = document.createElement('div');
+  const titles = ['Targeted Training', 'Progressive Words', 'Letter Duel', 'Build the Bridge'];
+  const descriptions = [
+    'Practice 30 letters without a timer. Slow or incorrect letters appear more often.',
+    'Type visible words. Each level gradually introduces new letters; the current letter is highlighted.',
+    'Push your opponent back with correct letters before it reaches you.',
+    'Build a 20-plank bridge, one correct letter at a time. No timer.'
+  ];
+  cards.innerHTML = '<h2>ESP32 / Letter Keyboard Games</h2><p>These games accept ordinary letters only. No chord input or sequence memorization.</p>' + titles.map((title, i) => `<div class="mode-card"><h2>${title}</h2><p>${descriptions[i]}</p><button class="btn btn-primary" data-game="${i}">Start Game</button></div>`).join('') + '<button class="reset-progress" id="hardware-reset">Reset these four games</button>';
+  menu.insertBefore(cards, menu.firstChild);
+  const view = document.createElement('section');
+  view.hidden = true;
+  view.innerHTML = `<div class="game-card"><div class="top-bar"><button class="btn" id="hardware-back">← Menu</button><h2 id="hardware-title"></h2></div><div id="hardware-setup"><label>Practice letters <input id="hardware-pool" value="abcdefghijklmnopqrstuvwxyz" maxlength="26" style="max-width:100%"></label><p>Choose any letters for training, duel, and bridge.</p><label>Word level <select id="hardware-level"></select></label><p id="hardware-best"></p><button class="btn btn-primary" id="hardware-start">Start</button></div><div id="hardware-play" hidden style="width:100%;text-align:center"><p id="hardware-instructions"></p><div id="hardware-scene" style="font-size:2rem;margin:20px 0;overflow-wrap:anywhere"></div><div id="hardware-target" style="font-size:3rem;letter-spacing:.15em;margin:20px 0"></div><p id="hardware-feedback" role="status" aria-live="polite"></p><p id="hardware-stats"></p><button class="btn" id="hardware-retry" hidden>Play Again</button></div></div>`;
+  document.querySelector('.container').appendChild(view);
+  const el = id => document.getElementById('hardware-' + id);
+  // Each stage's words use only its alphabet prefix.
+  const stages = [
+    ['a','i'], ['at','it','tat'], ['in','an','ant','tin'], ['sit','sat','sin'],
+    ['pin','pan','pit','spin'], ['pat','tap','tip','past'], ['cat','can','cap','scan'],
+    ['hat','hit','chat','thin'], ['mat','man','map','math'], ['ran','rat','rain','star'],
+    ['red','ten','pen','tree'], ['dog','god','dot','got'], ['log','leg','let','tall'],
+    ['sun','run','cup','cut'], ['bag','bat','big','bit'], ['fish','fan','fit','fast'],
+    ['van','vet','visit'], ['wet','win','water'], ['yes','yet','play'], ['jam','jet','jump'],
+    ['kite','king','keep'], ['quiz','quit','queen'], ['box','six','next'], ['zoo','zip','zero']
+  ];
+  let introduced = '';
+  stages.forEach((words, i) => {
+    introduced = [...new Set(introduced + words.join(''))].join('');
+    el('level').add(new Option(`Level ${i+1}: ${introduced.toUpperCase()}`, i));
+  });
+  function persist() { try { localStorage.setItem(key, JSON.stringify(saved)); } catch {} }
+  function stop() { clearInterval(timer); timer = null; }
+  function setup(mode) {
+    stop(); showLevelsMenu(); menu.style.display = 'none';
+    view.hidden = false;
+    game = {mode, active:false};
+    el('title').textContent = titles[mode];
+    el('setup').hidden = false; el('play').hidden = true;
+    el('level').value = Math.min(saved.wordLevel || 0, stages.length-1);
+    el('best').textContent = `Best score: ${(saved.best || {})[mode] || 0}`;
+  }
+  cards.querySelectorAll('[data-game]').forEach(button => button.onclick = () => setup(Number(button.dataset.game)));
+  el('back').onclick = () => { stop(); game = null; view.hidden = true; showLevelsMenu(); };
+  document.getElementById('hardware-reset').onclick = () => {
+    if (confirm('Reset training statistics, word progress, and records for these four games?')) { saved = {}; persist(); }
+  };
+  function pick() {
+    if (game.mode === 1) {
+      const words = stages[game.level];
+      let choices = words.filter(word => word !== game.word);
+      game.word = choices[Math.floor(Math.random()*choices.length)]; game.index = 0;
+    } else {
+      const weights = [...game.pool].map(c => {
+        const s = (saved.letters || {})[c] || {};
+        return game.mode === 0 ? 1 + Math.min(5, (s.errors || 0) / Math.max(1,s.attempts || 0)*8) + Math.min(4,(s.ms || 0)/1500) : 1;
+      });
+      let n = Math.random()*weights.reduce((a,b)=>a+b,0), i = 0;
+      while (i < weights.length-1 && (n -= weights[i]) > 0) i++;
+      game.target = game.pool[i];
+    }
+    game.since = performance.now(); render();
+  }
+  function render() {
+    if (game.mode === 1) {
+      el('target').replaceChildren(...[...game.word].map((c,i) => {
+        const span = document.createElement('span'); span.textContent = c;
+        span.style.color = i < game.index ? 'var(--success)' : 'var(--text-main)';
+        if (i === game.index) { span.style.textDecoration = 'underline'; span.style.background = '#4f46e5'; }
+        return span;
+      }));
+    } else el('target').textContent = game.target.toUpperCase();
+    el('scene').textContent = game.mode === 2 ? `You 🛡️ ${'·'.repeat(Math.max(0,Math.floor((100-game.danger)/10)))} 👾 (${Math.round(game.danger)}% danger)` : game.mode === 3 ? `🏁 ${'🟫'.repeat(game.correct)}${'▫'.repeat(20-game.correct)} 🚶` : game.mode === 1 ? `Level ${game.level+1} · Word ${game.words+1}/10` : 'Accuracy first — no time limit';
+    el('stats').textContent = `${game.correct} correct · ${game.errors} errors · Accuracy: ${Math.round(100*game.correct/Math.max(1,game.correct+game.errors))}%`;
+  }
+  function finish(message) {
+    game.active = false; stop();
+    saved.best ||= {}; saved.best[game.mode] = Math.max(saved.best[game.mode] || 0, game.correct); persist();
+    el('feedback').textContent = message; el('retry').hidden = false;
+  }
+  function start() {
+    stop();
+    const pool = [...new Set(el('pool').value.toLowerCase().replace(/[^a-z]/g,''))].join('');
+    if (!pool && game.mode !== 1) { el('pool').focus(); return; }
+    game = {mode:game.mode, active:true, pool, level:Number(el('level').value), correct:0, errors:0, words:0, danger:40};
+    el('setup').hidden = true; el('play').hidden = false; el('retry').hidden = true; el('feedback').textContent = '';
+    el('instructions').textContent = game.mode === 2 ? 'Type the visible letter. Each hit pushes the opponent back. Survive 30 hits; danger grows faster as you progress.' : 'Type the highlighted letter. Incorrect letters do not advance the target.';
+    pick();
+    if (game.mode === 2) {
+      let last = performance.now();
+      timer = setInterval(() => {
+        const now = performance.now();
+        game.danger += (now-last)/1000*(3+game.correct*.22); last = now;
+        if (game.danger >= 100) { game.danger = 100; render(); finish('The opponent reached you. Try again!'); } else render();
+      },100);
+    }
+  }
+  el('start').onclick = start; el('retry').onclick = () => setup(game.mode);
+  window.addEventListener('keydown', event => {
+    if (view.hidden || !game?.active) return;
+    if (event.ctrlKey || event.altKey || event.metaKey || event.isComposing) return;
+    event.stopImmediatePropagation();
+    if (!/^[a-z]$/i.test(event.key)) return;
+    event.preventDefault(); if (event.repeat) return;
+    const typed = event.key.toLowerCase();
+    const target = game.mode === 1 ? game.word[game.index] : game.target;
+    saved.letters ||= {}; const stat = saved.letters[target] ||= {attempts:0,errors:0,ms:0};
+    stat.attempts++;
+    if (typed !== target) {
+      stat.errors++; game.errors++; persist();
+      el('feedback').textContent = `Received ${typed.toUpperCase()}. Try ${target.toUpperCase()} again.`; render(); return;
+    }
+    const elapsed = Math.min(15000,performance.now()-game.since);
+    stat.ms = stat.ms ? stat.ms*.7+elapsed*.3 : elapsed;
+    game.correct++; persist(); el('feedback').textContent = 'Correct!';
+    if (game.mode === 1) {
+      game.index++; game.since = performance.now();
+      if (game.index < game.word.length) { render(); return; }
+      game.words++;
+      if (game.words >= 10) {
+        saved.wordLevel = Math.max(saved.wordLevel || 0, Math.min(stages.length-1,game.level+1));
+        render(); finish('Level complete! Choose the next level from Play Again.'); return;
+      }
+    }
+    if (game.mode === 2) game.danger = Math.max(0,game.danger-8);
+    if (game.correct >= (game.mode === 3 ? 20 : 30) && game.mode !== 1) {
+      render(); finish(game.mode === 3 ? 'Bridge complete — you made it across!' : 'Challenge complete!'); return;
+    }
+    pick();
+  }, true);
+  // Never let a background tab silently end a duel.
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && game?.active && game.mode === 2) finish('Duel stopped because the page was hidden. Play Again to restart.');
+  });
+})();
+
+</script>
 </body>
 </html>

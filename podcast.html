@@ -69,7 +69,7 @@
 	#youtube-info-tooltip { margin-top: 8px; padding: 10px; background: #333; border-radius: 6px; font-size: 14px; text-align: left; }
 </style>
 
-<div id="screen-dimmer" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#000;opacity:0.95;z-index:99990;cursor:pointer;"></div>
+<div id="screen-dimmer" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#000;opacity:1;z-index:99990;cursor:pointer;"></div>
 
 <div id="login-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#121212;z-index:99999;display:none;align-items:center;justify-content:center;">
 	<div style="text-align:center;padding:30px;background:#1a1a1a;border-radius:10px;">
@@ -833,7 +833,12 @@ function readRandomFlashcard() {
 		if (!Array.isArray(texts)) throw new Error('Elenco flashcard non valido');
 		const cards = texts.filter(t => typeof t === 'string' && t.trim());
 		if (!cards.length) throw new Error('Nessun testo flashcard sincronizzato');
-		const text = cards[Math.floor(Math.random() * cards.length)];
+		const text = cards[Math.floor(Math.random() * cards.length)]
+			.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+			.replace(/<[^>]*>/g, ' ')
+			.replace(/(?:https?:\/\/|www\.)[^\s<>]+/gi, '')
+			.trim();
+		if (!text) throw new Error('Flashcard senza testo da leggere');
 		// Frammenti brevi evitano il blocco di Chrome su letture lunghe.
 		const chunks = text.match(/.{1,180}(?:\s|$)|\S{1,180}/gs) || [text];
 		const run = flashcardRun;
@@ -845,7 +850,7 @@ function readRandomFlashcard() {
 			if (index === chunks.length) { stopFlashcard(); return; }
 			flashcardUtterance = new SpeechSynthesisUtterance(chunks[index++]);
 			flashcardUtterance.lang = 'it-IT';
-			flashcardUtterance.rate = 1.5;
+			flashcardUtterance.rate = 1.7;
 			const voice = window.speechSynthesis.getVoices().find(v => /^it[-_]/i.test(v.lang));
 			if (voice) flashcardUtterance.voice = voice;
 			flashcardUtterance.onend = speakNext;
@@ -868,10 +873,14 @@ function readRandomFlashcard() {
 }
 
 var ttsUtterance = null;
-var ttsSpeed = 1.5;
+var ttsSpeed = 1.7;
 
 function tts() {
-	const text = document.getElementById('text-input-tts').value.trim();
+	const text = document.getElementById('text-input-tts').value
+		.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+		.replace(/<[^>]*>/g, ' ')
+		.replace(/(?:https?:\/\/|www\.)[^\s<>]+/gi, '')
+		.trim();
 	if (!text) { alert("Inserisci un testo!"); return; }
 	stopTts();
 	ttsUtterance = new SpeechSynthesisUtterance(text);

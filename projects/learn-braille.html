@@ -637,6 +637,58 @@
       'Numpad8': [4], 'Numpad5': [5], 'Numpad2': [6]
     };
 
+    // Shared across all games, independently of progress/record resets.
+    // Response samples measure prompt-to-correct time (including retries); errors
+    // belong to the expected letter. Missed rush notes count as wrong attempts.
+    window.BrailleLearning = (() => {
+      const storageKey = 'braille-learning-analytics-v1';
+      let letters = {};
+      try {
+        const data = JSON.parse(localStorage.getItem(storageKey));
+        if (data?.version === 1 && data.letters && typeof data.letters === 'object') {
+          for (const [letter, stat] of Object.entries(data.letters)) {
+            if (/^[a-z]$/.test(letter) && stat &&
+                ['responses', 'totalMs', 'wrongAttempts'].every(k => Number.isFinite(stat[k]) && stat[k] >= 0)) {
+              letters[letter] = {responses: stat.responses, totalMs: stat.totalMs, wrongAttempts: stat.wrongAttempts};
+            }
+          }
+        }
+      } catch {} // Storage may be unavailable; practice still works in memory.
+      function record(letter, correct, elapsedMs) {
+        if (!/^[a-z]$/.test(letter)) return;
+        const stat = letters[letter] ||= {responses: 0, totalMs: 0, wrongAttempts: 0};
+        if (!correct) stat.wrongAttempts++;
+        else if (Number.isFinite(elapsedMs) && elapsedMs >= 0) {
+          stat.responses++;
+          stat.totalMs += elapsedMs;
+        }
+        try { localStorage.setItem(storageKey, JSON.stringify({version: 1, letters})); } catch {}
+      }
+      function getStats() {
+        return Object.fromEntries(Object.entries(letters).map(([letter, stat]) =>
+          [letter, {...stat, meanMs: stat.responses ? stat.totalMs / stat.responses : 0}]));
+      }
+      function weight(text) {
+        const weights = [...String(text)].filter(c => /^[a-z]$/.test(c)).map(c => {
+          const s = letters[c];
+          if (!s) return 1;
+          return 1 + Math.min(4, s.wrongAttempts / Math.max(1, s.responses + s.wrongAttempts) * 8)
+            + Math.min(4, s.responses ? s.totalMs / s.responses / 1500 : 0);
+        });
+        return weights.length ? weights.reduce((a, b) => a + b, 0) / weights.length : 1;
+      }
+      function choose(pool) {
+        const choices = Array.from(pool);
+        if (!choices.length) return undefined;
+        const weights = choices.map(weight);
+        let n = Math.random() * weights.reduce((a, b) => a + b, 0);
+        return choices.find((_, i) => (n -= weights[i]) < 0) ?? choices[choices.length - 1];
+      }
+      return Object.freeze({storageKey, record, getStats, weight, choose});
+    })();
+    let learningPromptAt = 0;
+    let phrasePromptAt = 0;
+
     function getModeStorage(baseKey) {
       return localStorage.getItem(baseKey) ?? localStorage.getItem(`${baseKey}_normal`);
     }
@@ -930,6 +982,7 @@
       document.getElementById('phrase-errors').innerText = '0';
       document.getElementById('phrase-timer').innerText = '0.00 s';
       document.getElementById('phrase-status').innerText = 'The timer starts with the first character.';
+      phrasePromptAt = performance.now();
       renderPhraseTarget();
     }
 
@@ -947,6 +1000,7 @@
         phraseStartedAt = performance.now();
         phraseTimer = setInterval(updatePhraseTimer, 30);
       }
+      BrailleLearning.record(currentPhrase[phrasePosition], character === currentPhrase[phrasePosition], performance.now() - phrasePromptAt);
       if (character !== currentPhrase[phrasePosition]) {
         phraseErrors++;
         document.getElementById('phrase-errors').innerText = phraseErrors;
@@ -955,6 +1009,7 @@
         return;
       }
       phrasePosition++;
+      phrasePromptAt = performance.now();
       renderPhraseTarget();
       if (phrasePosition === currentPhrase.length) endPhraseMode();
     }
@@ -1041,7 +1096,7 @@
     }
 
     function spawnRushNote(now) {
-      const letter = ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
+      const letter = BrailleLearning.choose(ALPHABET);
       const element = document.createElement('div');
       element.className = 'rush-note';
       element.innerText = letter;
@@ -1067,6 +1122,7 @@
           rushErrors++;
           rushLives--;
           recordRushMistake(note.letter);
+          BrailleLearning.record(note.letter, false);
           updateRushStats();
           return false;
         }
@@ -1087,12 +1143,16 @@
         rushErrors++;
         rushLives--;
         recordRushMistake(note ? note.letter : character);
+        // Attribute a wrong key to the earliest pending target, not the typed key.
+        const expected = note || rushNotes.reduce((first, item) => !first || item.hitAt < first.hitAt ? item : first, null);
+        if (expected) BrailleLearning.record(expected.letter, false);
         document.getElementById('rush-status').innerText = 'Wrong letter: combo lost.';
         playSound('error');
         updateRushStats();
         if (rushLives <= 0) endLetterRush();
         return;
       }
+      BrailleLearning.record(note.letter, true, now - note.spawnedAt);
       note.element.remove();
       rushNotes.splice(rushNotes.indexOf(note), 1);
       rushCombo++;
@@ -1203,9 +1263,9 @@
         queue.push(newLetter);
       }
 
-      // 3. Distribute the remaining slots evenly among ALL letters unlocked so far
+      // 3. Weight remaining slots toward slow/error-prone unlocked letters.
       while (queue.length < TOTAL_STEPS) {
-        const rnd = availableLetters[Math.floor(Math.random() * availableLetters.length)];
+        const rnd = BrailleLearning.choose(availableLetters);
         queue.push(rnd);
       }
 
@@ -1224,7 +1284,7 @@
       });
       const queue = [];
       while (queue.length < TOTAL_STEPS) {
-        queue.push(pairs[Math.floor(Math.random() * pairs.length)]);
+        queue.push(BrailleLearning.choose(pairs));
       }
       return shuffleAntiStreak(queue, 2);
     }
@@ -1273,6 +1333,7 @@
 
     // Update game interface (hide Braille dots for the new letter)
     function updateGameUI() {
+      learningPromptAt = performance.now();
       const target = levelQueue[currentStep];
       document.getElementById('target-letter').innerText = target.toUpperCase();
       document.getElementById('step-counter').innerText = `${currentStep + 1} / ${getLevelTotalSteps()}`;
@@ -1316,6 +1377,7 @@
         return;
       }
       const cardEl = document.getElementById('game-card');
+      BrailleLearning.record(target, key === target, performance.now() - learningPromptAt);
 
       if (key === target) {
         // CORRECT ANSWER
@@ -1347,6 +1409,7 @@
     function processPairLetter(key, target) {
       const cardEl = document.getElementById('game-card');
       const expected = target[pairPosition];
+      BrailleLearning.record(expected, key === expected, performance.now() - learningPromptAt);
       if (key !== expected) {
         playSound('error');
         errorsCount++;
@@ -1359,6 +1422,7 @@
       }
       playSound('correct');
       pairPosition++;
+      learningPromptAt = performance.now();
       if (pairPosition < target.length) {
         document.getElementById('hint-banner').innerHTML = `First letter correct. Now type <b>"${target[1].toUpperCase()}"</b>`;
         return;
@@ -1644,15 +1708,9 @@
     if (game.mode === 1) {
       const words = stages[game.level];
       let choices = words.filter(word => word !== game.word);
-      game.word = choices[Math.floor(Math.random()*choices.length)]; game.index = 0;
+      game.word = BrailleLearning.choose(choices); game.index = 0;
     } else {
-      const weights = [...game.pool].map(c => {
-        const s = (saved.letters || {})[c] || {};
-        return game.mode === 0 ? 1 + Math.min(5, (s.errors || 0) / Math.max(1,s.attempts || 0)*8) + Math.min(4,(s.ms || 0)/1500) : 1;
-      });
-      let n = Math.random()*weights.reduce((a,b)=>a+b,0), i = 0;
-      while (i < weights.length-1 && (n -= weights[i]) > 0) i++;
-      game.target = game.pool[i];
+      game.target = BrailleLearning.choose(game.pool);
     }
     game.since = performance.now(); render();
   }
@@ -1699,6 +1757,8 @@
     event.preventDefault(); if (event.repeat) return;
     const typed = event.key.toLowerCase();
     const target = game.mode === 1 ? game.word[game.index] : game.target;
+    BrailleLearning.record(target, typed === target, performance.now() - game.since);
+    // Preserve the newer games' own legacy statistics and save format.
     saved.letters ||= {}; const stat = saved.letters[target] ||= {attempts:0,errors:0,ms:0};
     stat.attempts++;
     if (typed !== target) {
@@ -1730,5 +1790,116 @@
 })();
 
 </script>
+<script>
+(() => {
+  const baseKeys = ['braille_max_unlocked','braille_completed','braille_pair_max_unlocked','braille_pair_completed','braille_level_stars','braille_pair_level_stars','braille_phrase_record_ms','braille_rush_record','braille_rush_mistakes'];
+  const isAllowed = key => baseKeys.some(base => key === base || key === `${base}_normal`) || key === 'braille-hardware-games-v1' || key === 'braille-learning-analytics-v1';
+  const statsCard = document.createElement('div');
+  statsCard.className = 'mode-card';
+  statsCard.innerHTML = '<h2>Your letter statistics</h2><p>Mean time from the visible prompt to the correct letter, including retries. Errors are counted against the requested letter. Slower or frequently missed letters appear more often where the game allows it.</p><button class="btn" id="refresh-letter-stats">Refresh statistics</button><div id="letter-statistics" style="overflow-x:auto"></div>';
+  document.getElementById('view-levels').appendChild(statsCard);
+  function renderStats() {
+    const stats = window.BrailleLearning.getStats();
+    const letters = Object.keys(stats).sort((a,b)=>window.BrailleLearning.weight(b)-window.BrailleLearning.weight(a));
+    const host = document.getElementById('letter-statistics');
+    host.replaceChildren();
+    if (!letters.length) { host.textContent = 'Play a game to start collecting statistics.'; return; }
+    const table = document.createElement('table'); table.style.cssText = 'width:100%;text-align:left;margin-top:15px';
+    table.innerHTML = '<thead><tr><th>Letter</th><th>Mean time</th><th>Correct</th><th>Errors</th></tr></thead>';
+    const body = document.createElement('tbody');
+    for (const letter of letters) {
+      const stat = stats[letter], row = document.createElement('tr');
+      for (const value of [letter.toUpperCase(), stat.responses ? `${(stat.meanMs/1000).toFixed(2)} s` : '—', stat.responses, stat.wrongAttempts]) {
+        const cell = document.createElement('td'); cell.textContent = value; row.appendChild(cell);
+      }
+      body.appendChild(row);
+    }
+    table.appendChild(body); host.appendChild(table);
+  }
+  document.getElementById('refresh-letter-stats').onclick = renderStats;
+  new MutationObserver(renderStats).observe(document.getElementById('view-levels'),{attributes:true,attributeFilter:['style']});
+  renderStats();
+  const card = document.createElement('div');
+  card.className = 'mode-card';
+  card.innerHTML = '<h2>Progress backup</h2><p>Export all game progress, records, and letter statistics. Import replaces saved progress on this browser.</p><button class="btn btn-primary" id="export-progress">Export JSON</button> <button class="btn" id="import-progress">Import JSON</button><input type="file" id="progress-file" accept="application/json,.json" hidden><p id="progress-status" role="status" aria-live="polite"></p>';
+  document.getElementById('view-levels').appendChild(card);
+  const status = document.getElementById('progress-status');
+  document.getElementById('export-progress').onclick = () => {
+    try {
+      const data = {};
+      for (let i=0;i<localStorage.length;i++) { const key = localStorage.key(i); if (isAllowed(key)) data[key] = localStorage.getItem(key); }
+      const blob = new Blob([JSON.stringify({app:'Learn Braille',version:1,exportedAt:new Date().toISOString(),data},null,2)],{type:'application/json'});
+      const url = URL.createObjectURL(blob), a = document.createElement('a');
+      a.href = url; a.download = `learn-braille-progress-${new Date().toISOString().slice(0,10)}.json`; a.click();
+      setTimeout(()=>URL.revokeObjectURL(url),1000);
+      status.textContent = 'Progress exported. Keep the JSON file as your backup.';
+    } catch { status.textContent = 'Could not export. Browser storage may be unavailable.'; }
+  };
+  const input = document.getElementById('progress-file');
+  document.getElementById('import-progress').onclick = () => input.click();
+  function plain(value) { return value !== null && typeof value === 'object' && !Array.isArray(value); }
+  function safe(value,depth=0) {
+    if (depth > 8) throw Error('Backup is too complex.');
+    if (typeof value === 'number' && (!Number.isFinite(value) || value < 0 || value > 1e15)) throw Error('Invalid numeric value.');
+    if (value && typeof value === 'object') for (const [key,child] of Object.entries(value)) {
+      if (['__proto__','constructor','prototype'].includes(key)) throw Error('Unsafe backup key.');
+      safe(child,depth+1);
+    }
+  }
+  function validate(key,raw) {
+    if (typeof raw !== 'string' || raw.length > 500000) throw Error('Invalid saved value.');
+    const value = JSON.parse(raw); safe(value);
+    const base = key.replace(/_normal$/,'');
+    if (base.endsWith('_max_unlocked')) {
+      if (!Number.isInteger(value) || value < 1 || value > 27) throw Error('Invalid unlocked level.');
+    } else if (base.endsWith('_completed')) {
+      if (!Array.isArray(value) || value.length > 26 || value.some(n=>!Number.isInteger(n)||n<1||n>26)) throw Error('Invalid completed levels.');
+    } else if (base.endsWith('_ms') || base === 'braille_rush_record') {
+      if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) throw Error('Invalid record.');
+    } else if (!plain(value)) throw Error('Expected a statistics object.');
+    if (base.endsWith('_stars') || base.endsWith('_mistakes')) {
+      for (const [letter,n] of Object.entries(value)) {
+        if (!(base.endsWith('_stars') ? /^(?:[1-9]|1[0-9]|2[0-6])$/.test(letter) : /^[a-z]$/.test(letter)) || !Number.isInteger(n) || n < 0 || (base.endsWith('_stars') && n > 3)) throw Error('Invalid letter statistics.');
+      }
+    }
+    if (key === 'braille-hardware-games-v1') {
+      if (value.wordLevel !== undefined && (!Number.isInteger(value.wordLevel)||value.wordLevel<0||value.wordLevel>23)) throw Error('Invalid word level.');
+      if (value.best !== undefined && (!plain(value.best)||Object.values(value.best).some(n=>typeof n!=='number'||n<0))) throw Error('Invalid game records.');
+      if (value.letters !== undefined && !plain(value.letters)) throw Error('Invalid letter statistics.');
+    }
+    if (key === 'braille-learning-analytics-v1') {
+      if (value.version !== 1 || !plain(value.letters)) throw Error('Unsupported learning statistics.');
+      for (const [letter,stat] of Object.entries(value.letters)) {
+        if (!/^[a-z]$/.test(letter) || !plain(stat) || !['responses','totalMs','wrongAttempts'].every(k=>typeof stat[k]==='number' && Number.isFinite(stat[k]) && stat[k]>=0)) throw Error('Invalid learning statistics.');
+      }
+    }
+    return value;
+  }
+  input.onchange = async () => {
+    const file = input.files[0]; input.value = ''; if (!file) return;
+    try {
+      if (file.size > 2000000) throw Error('Backup is too large (maximum 2 MB).');
+      const backup = JSON.parse(await file.text());
+      if (backup.app !== 'Learn Braille' || backup.version !== 1 || !plain(backup.data)) throw Error('Unsupported backup format.');
+      const entries = Object.entries(backup.data);
+      if (!entries.length || entries.length > 40) throw Error('Empty or oversized backup.');
+      for (const [key,value] of entries) { if (!isAllowed(key)) throw Error('Unknown saved-data key.'); validate(key,value); }
+      if (!confirm('Replace this browser’s saved progress, records, and statistics with this backup? This cannot be undone.')) return;
+      const previous = {};
+      for (let i=0;i<localStorage.length;i++) { const key=localStorage.key(i); if(isAllowed(key)) previous[key]=localStorage.getItem(key); }
+      try {
+        Object.keys(previous).forEach(key=>localStorage.removeItem(key));
+        entries.forEach(([key,value])=>localStorage.setItem(key,value));
+      } catch (error) {
+        entries.forEach(([key])=>localStorage.removeItem(key));
+        Object.entries(previous).forEach(([key,value])=>localStorage.setItem(key,value));
+        throw error;
+      }
+      location.reload();
+    } catch(error) { status.textContent = `Import failed: ${error.message}`; }
+  };
+})();
+</script>
+
 </body>
 </html>

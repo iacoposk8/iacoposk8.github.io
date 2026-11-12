@@ -1602,7 +1602,7 @@
     'Push your opponent back with correct letters before it reaches you.',
     'Build a 20-plank bridge, one correct letter at a time. No timer.'
   ];
-  cards.innerHTML = '<h2>ESP32 / Letter Keyboard Games</h2><p>These games accept ordinary letters only. No chord input or sequence memorization.</p>' + titles.map((title, i) => `<div class="mode-card"><h2>${title}</h2><p>${descriptions[i]}</p><button class="btn btn-primary" data-game="${i}">Start Game</button></div>`).join('') + '<button class="reset-progress" id="hardware-reset">Reset these four games</button>';
+  cards.innerHTML = '<h2>ESP32 / Letter Keyboard Games</h2><p>These games accept ordinary letters only. No chord input or sequence memorization.</p>' + titles.map((title, i) => ({title, i})).filter(({i}) => i === 1 || i === 2).map(({title, i}) => `<div class="mode-card"><h2>${title}</h2><p>${descriptions[i]}</p><button class="btn btn-primary" data-game="${i}">Start Game</button></div>`).join('') + '<button class="reset-progress" id="hardware-reset">Reset these games</button>';
   menu.insertBefore(cards, menu.firstChild);
   const view = document.createElement('section');
   view.hidden = true;
@@ -1638,7 +1638,7 @@
   cards.querySelectorAll('[data-game]').forEach(button => button.onclick = () => setup(Number(button.dataset.game)));
   el('back').onclick = () => { stop(); game = null; view.hidden = true; showLevelsMenu(); };
   document.getElementById('hardware-reset').onclick = () => {
-    if (confirm('Reset training statistics, word progress, and records for these four games?')) { saved = {}; persist(); }
+    if (confirm('Reset word progress and records for these games?')) { saved = {}; persist(); }
   };
   function pick() {
     if (game.mode === 1) {

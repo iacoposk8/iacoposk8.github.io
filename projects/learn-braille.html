@@ -1662,7 +1662,7 @@
   const titles = ['Targeted Training', 'Progressive Words', 'Letter Duel', 'Build the Bridge'];
   const descriptions = [
     'Practice 30 letters without a timer. Slow or incorrect letters appear more often.',
-    'Type visible words. Each level gradually introduces new letters; the current letter is highlighted.',
+    'Type visible words. Each level gradually introduces new letters; the current letter is highlighted. Complete 10 words with 100% accuracy to unlock the next level.',
     'Push your opponent back with correct letters before it reaches you.',
     'Build a 20-plank bridge, one correct letter at a time. No timer.'
   ];
@@ -1696,7 +1696,9 @@
     game = {mode, active:false};
     el('title').textContent = titles[mode];
     el('setup').hidden = false; el('play').hidden = true;
-    el('level').value = Math.min(saved.wordLevel || 0, stages.length-1);
+    const unlocked = Math.min(saved.wordLevel || 0, stages.length-1);
+    [...el('level').options].forEach(option => { option.disabled = Number(option.value) > unlocked; });
+    el('level').value = unlocked;
     el('best').textContent = `Best score: ${(saved.best || {})[mode] || 0}`;
   }
   cards.querySelectorAll('[data-game]').forEach(button => button.onclick = () => setup(Number(button.dataset.game)));
@@ -1773,8 +1775,13 @@
       if (game.index < game.word.length) { render(); return; }
       game.words++;
       if (game.words >= 10) {
-        saved.wordLevel = Math.max(saved.wordLevel || 0, Math.min(stages.length-1,game.level+1));
-        render(); finish('Level complete! Choose the next level from Play Again.'); return;
+        const perfect = game.errors === 0;
+        if (perfect) saved.wordLevel = Math.max(saved.wordLevel || 0, Math.min(stages.length-1,game.level+1));
+        render();
+        finish(perfect
+          ? (game.level === stages.length-1 ? 'Perfect accuracy — all levels complete!' : '100% accuracy! Next level unlocked. Choose Play Again to continue.')
+          : 'Level finished, but 100% accuracy is required to unlock the next level. Play Again to retry.');
+        return;
       }
     }
     if (game.mode === 2) game.danger = Math.max(0,game.danger-8);

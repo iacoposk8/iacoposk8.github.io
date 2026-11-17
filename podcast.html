@@ -724,9 +724,46 @@ function togglePlay(id, bookmark, startedByPlayButton) {
 				if (player.obj.pdfViewer) $("#pdf-next").click();
 				else episode_end();
 			});
+			const mediaEpisode = { id: id, title: item.title, channel: item.id_channel };
 			player.obj.addEventListener('error', function() {
-				console.warn("Media load error (code " + (player.obj.error ? player.obj.error.code : "?") + "):", player.obj.src);
-				$("#player_container").html('<div style="padding:1em;color:#f66;font-size:0.9em;">File non disponibile (potrebbe essere stato rimosso).</div>');
+				if (this !== player.obj) return;
+				const code = this.error ? this.error.code : 0;
+				const reasons = {
+					1: 'Caricamento interrotto dal browser.',
+					2: 'Errore di rete durante il caricamento del file.',
+					3: 'Il browser non riesce a decodificare audio/video.',
+					4: 'Sorgente non utilizzabile: formato non supportato o risposta del server non valida.'
+				};
+				const reason = reasons[code] || 'Errore multimediale non identificato.';
+				const ranges = [];
+				for (let i = 0; i < this.buffered.length; i++)
+					ranges.push([this.buffered.start(i), this.buffered.end(i)]);
+				const report = JSON.stringify({
+					diagnostica: 'podcast-media-v1', data: new Date().toISOString(),
+					episodio: mediaEpisode, codice: code, spiegazione: reason,
+					messaggioBrowser: this.error ? this.error.message : '',
+					secondi: this.currentTime, durata: this.duration, buffer: ranges,
+					readyState: this.readyState, networkState: this.networkState,
+					inPausa: this.paused, velocita: this.playbackRate,
+					reteDisponibile: navigator.onLine, visibilita: document.visibilityState,
+					browser: navigator.userAgent
+				}, null, 2);
+				console.warn('Media load error:', report);
+				const box = $('<div style="padding:1em;font-size:0.9em;max-height:45vh;overflow:auto;" role="alert"></div>');
+				box.append($('<p style="color:#f66;"></p>').text(reason + ' Non significa necessariamente che il file sia stato rimosso.'));
+				const details = $('<textarea readonly aria-label="Diagnostica errore" style="width:100%;height:140px;color:#000;font-size:12px;"></textarea>').val(report);
+				const copy = $('<button type="button" class="btn btn-secondary btn-sm">Copia diagnostica</button>').on('click', async function() {
+					try {
+						if (!navigator.clipboard || !navigator.clipboard.writeText) throw new Error('Clipboard non disponibile');
+						await navigator.clipboard.writeText(report);
+						$(this).text('Copiata! Incollala nella chat');
+					} catch(e) {
+						details[0].focus(); details[0].select(); details[0].setSelectionRange(0, report.length);
+						$(this).text('Tieni premuto sul testo e scegli Copia');
+					}
+				});
+				box.append(copy, details);
+				$('#player_container').empty().append(box);
 				$(".playPauseIcon").removeClass("fa-pause").addClass("fa-play");
 			});
 		}

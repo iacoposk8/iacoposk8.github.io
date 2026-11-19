@@ -725,9 +725,53 @@ function togglePlay(id, bookmark, startedByPlayButton) {
 				else episode_end();
 			});
 			const mediaEpisode = { id: id, title: item.title, channel: item.id_channel };
+			let networkRetries = 0, retryPending = false, resumeAt = 0;
+			let retryReady = null;
 			player.obj.addEventListener('error', function() {
 				if (this !== player.obj) return;
 				const code = this.error ? this.error.code : 0;
+				if (retryPending) return;
+				if (retryReady) {
+					this.removeEventListener('loadedmetadata', retryReady);
+					retryReady = null;
+				}
+				if (code === 2 && mediaEpisode.channel == 121 && networkRetries < 3) {
+					const media = this;
+					if (Number.isFinite(media.currentTime) && media.currentTime > 0) resumeAt = media.currentTime;
+					networkRetries++;
+					retryPending = true;
+					$('#currentStatus').text('Connessione interrotta. Riprovo automaticamente (' + networkRetries + '/3)…');
+					setTimeout(function() {
+						retryPending = false;
+						if (media !== player.obj) return;
+						// Non ripartire se nel frattempo l'utente ha premuto Pausa.
+						if (!$('.playPauseIcon').hasClass('fa-pause')) {
+							$('#currentStatus').text('Ripresa automatica annullata: premi Play per riprendere.');
+							return;
+						}
+						retryReady = function() {
+							retryReady = null;
+							if (media !== player.obj) return;
+							media.currentTime = resumeAt;
+							media.playbackRate = parseFloat(player.speed);
+							if (!$('.playPauseIcon').hasClass('fa-pause')) return;
+							media.play().then(function() {
+								if (media === player.obj) $('#currentStatus').text('');
+							}).catch(function(e) {
+								if (media !== player.obj || media.error) return;
+								console.warn('Ripresa automatica:', e);
+								$('#currentStatus').text('Ripresa automatica bloccata dal browser: premi Play.');
+								$('.playPauseIcon').removeClass('fa-pause').addClass('fa-play');
+							});
+						};
+						media.addEventListener('loadedmetadata', retryReady, { once: true });
+						media.load();
+						// Conserva la posizione anche durante il nuovo caricamento.
+						media.currentTime = resumeAt;
+					}, networkRetries * 2000);
+					return;
+				}
+				$('#currentStatus').text('');
 				const reasons = {
 					1: 'Caricamento interrotto dal browser.',
 					2: 'Errore di rete durante il caricamento del file.',
@@ -741,6 +785,7 @@ function togglePlay(id, bookmark, startedByPlayButton) {
 				const report = JSON.stringify({
 					diagnostica: 'podcast-media-v1', data: new Date().toISOString(),
 					episodio: mediaEpisode, codice: code, spiegazione: reason,
+					tentativiAutomatici: networkRetries, posizioneRipresa: resumeAt,
 					messaggioBrowser: this.error ? this.error.message : '',
 					secondi: this.currentTime, durata: this.duration, buffer: ranges,
 					readyState: this.readyState, networkState: this.networkState,
